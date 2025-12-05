@@ -5,7 +5,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 
 import ormconfig from './config/ormconfig';
 import { UsersModule } from './users/users.module';
-import { RolesModule, RolesService } from './roles';
+import { RolesModule } from './roles/roles.module';
+import { RolesService } from './roles/roles.service';
+
 import { AuthModule } from './auth/auth.module';
 
 @Module({
