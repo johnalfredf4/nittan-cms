@@ -8,11 +8,12 @@ async function initUserForm() {
   const isAdmin =
     roles.includes("IT - CMS Admin") || roles.includes("Execom - CEO");
 
-  if (!token || !isAdmin) {
+  if (!token) {
     alert("Unauthorized");
     window.location = "dashboard.html";
     return;
   }
+
 
   document.getElementById("userLabel").innerText = username || '';
 
