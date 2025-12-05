@@ -4,10 +4,10 @@ import { Role } from '../roles/entities/role.entity';
 
 const ormconfig: TypeOrmModuleOptions = {
   type: 'mssql',
-  host: 'YOUR_SQL_SERVER_HOST',
+  host: 'nittan-rds.chsm6icykzm3.ap-southeast-1.rds.amazonaws.com',
   port: 1433,
-  username: 'YOUR_SQL_USER',
-  password: 'YOUR_SQL_PASSWORD',
+  username: 'bong3',
+  password: 'bong3',
   database: 'Nittan-App',
   entities: [User, Role],
   synchronize: false,
