@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>User Form</title>
+  <link rel="stylesheet" href="css/tw.css">
+  <script src="js/main.js" defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <header class="bg-white shadow">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold" id="headerTitle">Create User</h1>
+      <div class="flex items-center space-x-3">
+        <span id="userLabel" class="text-sm text-gray-600"></span>
+        <button id="logoutBtn" class="text-sm text-red-600">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    <nav class="mb-4 flex space-x-4">
+      <a href="dashboard.html" class="text-gray-700 hover:text-blue-600">Dashboard</a>
+      <a href="users.html" class="text-gray-700 hover:text-blue-600">Users</a>
+    </nav>
+
+    <div class="bg-white rounded shadow p-6 max-w-xl">
+      <form id="userForm" class="space-y-3">
+        <input name="username" placeholder="Username" class="w-full border rounded px-3 py-2" required>
+
+        <input name="password" type="password" placeholder="Password (leave blank to keep current)" class="w-full border rounded px-3 py-2">
+
+        <input name="firstName" placeholder="First Name" class="w-full border rounded px-3 py-2" required>
+
+        <input name="middleName" placeholder="Middle Name" class="w-full border rounded px-3 py-2">
+
+        <input name="lastName" placeholder="Last Name" class="w-full border rounded px-3 py-2" required>
+
+        <select name="status" class="w-full border rounded px-3 py-2">
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="INACTIVE">INACTIVE</option>
+          <option value="DELETED">DELETED</option>
+        </select>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Roles</label>
+          <select name="roles" multiple size="6" class="w-full border rounded px-3 py-2" id="rolesList"></select>
+          <p class="text-xs text-gray-500 mt-1">Hold Ctrl (desktop) or long-press (mobile) to select multiple.</p>
+        </div>
+
+        <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded">
+          Save
+        </button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
