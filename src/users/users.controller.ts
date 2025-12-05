@@ -30,7 +30,7 @@ export class UsersController {
   findAll() {
     return this.usersService.findAll();
   }
-
+  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
