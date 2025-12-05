@@ -1,26 +1,23 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
+
 import ormconfig from './config/ormconfig';
 import { UsersModule } from './users/users.module';
+import { RolesModule, RolesService } from './roles';
 import { AuthModule } from './auth/auth.module';
-import { RolesModule } from './roles/roles.module';
-import { RolesService } from './roles/roles.service';
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-  rootPath: join(__dirname, '..', 'src', 'public'),
-}),
     TypeOrmModule.forRoot(ormconfig),
     UsersModule,
     RolesModule,
     AuthModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'src', 'public'),
+    }),
   ],
-})
-@Module({
-  imports: [...],
 })
 export class AppModule implements OnModuleInit {
   constructor(private rolesService: RolesService) {}
@@ -30,4 +27,3 @@ export class AppModule implements OnModuleInit {
     console.log('✔ Roles Seeded');
   }
 }
-export class AppModule {}
