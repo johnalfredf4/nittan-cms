@@ -10,8 +10,8 @@ import { RolesModule } from './roles/roles.module';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
-    }),
+  rootPath: join(__dirname, '..', 'src', 'public'),
+}),
     TypeOrmModule.forRoot(ormconfig),
     UsersModule,
     RolesModule,
