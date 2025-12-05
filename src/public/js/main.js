@@ -46,26 +46,38 @@ async function initUserForm() {
     const res = await fetch(`/users/${editId}`, {
       headers: { Authorization: "Bearer " + token },
     });
+
     console.log("Response status:", res.status);
-    
-    const u = await res.json();
-    console.log("Response data:", u);
 
+    let u = null;
 
-    document.querySelector("input[name=username]").value = u.username;
-    document.querySelector("input[name=firstName]").value = u.firstName;
-    document.querySelector("input[name=middleName]").value =
-      u.middleName || "";
-    document.querySelector("input[name=lastName]").value = u.lastName;
-    document.querySelector("select[name=status]").value = u.status;
+    try {
+      u = await res.json();
+      console.log("Response data:", u);
+    } catch (err) {
+      console.error("Failed to parse JSON", err);
+      alert("Error loading user data");
+      return;
+    }
 
-    u.roles.forEach((role) => {
-      const opt = [...rolesSelect.options].find(
-        (o) => o.value === role.name,
-      );
+    if (!u || !u.id) {
+      console.error("No user data returned!");
+      alert("User not found");
+      return;
+    }
+
+    document.querySelector("input[name=username]").value = u.username || "";
+    document.querySelector("input[name=firstName]").value = u.firstName || "";
+    document.querySelector("input[name=middleName]").value = u.middleName || "";
+    document.querySelector("input[name=lastName]").value = u.lastName || "";
+    document.querySelector("select[name=status]").value = u.status || "ACTIVE";
+
+    (u.roles || []).forEach((role) => {
+      const opt = [...rolesSelect.options].find(o => o.value === role.name);
       if (opt) opt.selected = true;
     });
-  }
+}
+
 
   document
     .querySelector("#userForm")
