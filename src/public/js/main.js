@@ -41,10 +41,16 @@ async function initUserForm() {
   if (editId) {
     document.getElementById("headerTitle").innerText = "Edit User";
 
+    console.log("Fetching user:", `/users/${editId}`);
+
     const res = await fetch(`/users/${editId}`, {
       headers: { Authorization: "Bearer " + token },
     });
+    console.log("Response status:", res.status);
+    
     const u = await res.json();
+    console.log("Response data:", u);
+
 
     document.querySelector("input[name=username]").value = u.username;
     document.querySelector("input[name=firstName]").value = u.firstName;
