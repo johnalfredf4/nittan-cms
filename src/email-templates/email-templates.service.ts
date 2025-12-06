@@ -1,78 +1,43 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
-import * as bcrypt from 'bcryptjs';
-import { User } from './entities/user.entity';
-import { Role } from '../roles/entities/role.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Repository } from 'typeorm';
+import { EmailTemplate } from './entities/email-template.entity';
+import { CreateEmailTemplateDto } from './dto/create-email-template.dto';
+import { UpdateEmailTemplateDto } from './dto/update-email-template.dto';
 
 @Injectable()
-export class UsersService {
+export class EmailTemplatesService {
   constructor(
-    @InjectRepository(User) private readonly usersRepo: Repository<User>,
-    @InjectRepository(Role) private readonly rolesRepo: Repository<Role>,
+    @InjectRepository(EmailTemplate)
+    private repo: Repository<EmailTemplate>,
   ) {}
 
-  async create(dto: CreateUserDto): Promise<User> {
-    const roles = await this.rolesRepo.find({
-      where: { name: In(dto.roleNames) },
-    });
-
-    const passwordHash = await bcrypt.hash(dto.password, 10);
-
-    const user = this.usersRepo.create({
-      username: dto.username,
-      passwordHash,
-      firstName: dto.firstName,
-      middleName: dto.middleName,
-      lastName: dto.lastName,
-      status: dto.status,
-      roles,
-    });
-
-    return this.usersRepo.save(user);
+  findAll() {
+    return this.repo.find();
   }
 
-  async update(id: number, dto: UpdateUserDto): Promise<User> {
-    const user = await this.usersRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
-
-    if (dto.password) {
-      user.passwordHash = await bcrypt.hash(dto.password, 10);
-    }
-    if (dto.firstName !== undefined) user.firstName = dto.firstName;
-    if (dto.middleName !== undefined) user.middleName = dto.middleName;
-    if (dto.lastName !== undefined) user.lastName = dto.lastName;
-    if (dto.status !== undefined) user.status = dto.status;
-
-    if (dto.roleNames) {
-      const roles = await this.rolesRepo.find({
-        where: { name: In(dto.roleNames) },
-      });
-      user.roles = roles;
-    }
-
-    return this.usersRepo.save(user);
+  findOne(id: number) {
+    return this.repo.findOne({ where: { id } });
   }
 
-  async findByUsername(username: string): Promise<User | null> {
-    return this.usersRepo.findOne({ where: { username } });
+  create(dto: CreateEmailTemplateDto) {
+    const data = this.repo.create(dto);
+    return this.repo.save(data);
   }
 
-  async findAll(): Promise<User[]> {
-    return this.usersRepo.find();
+  update(id: number, dto: UpdateEmailTemplateDto) {
+    return this.repo.update(id, dto);
   }
 
-  async findOne(id: number): Promise<User> {
-    const user = await this.usersRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
-    return user;
+  remove(id: number) {
+    return this.repo.update(id, { status: 'DELETED' });
   }
 
-  async remove(id: number): Promise<void> {
-    const user = await this.usersRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
-    await this.usersRepo.remove(user);
+  activate(id: number) {
+    return this.repo.update(id, { status: 'ACTIVE' });
+  }
+
+  deactivate(id: number) {
+    return this.repo.update(id, { status: 'INACTIVE' });
   }
 }
