@@ -85,7 +85,7 @@ async function initUserForm() {
       e.preventDefault();
       const form = new FormData(e.target);
 
-      const payload: any = {
+      const payload = {
         firstName: form.get("firstName"),
         middleName: form.get("middleName"),
         lastName: form.get("lastName"),
@@ -94,6 +94,7 @@ async function initUserForm() {
           (o) => o.value,
         ),
       };
+
 
       if (!editId) {
         payload.username = form.get("username");
