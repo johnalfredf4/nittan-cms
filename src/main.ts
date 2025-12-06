@@ -8,7 +8,7 @@ async function bootstrap() {
   // 🚀 ENABLE BODY PARSING FOR JSON
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-
+  app.setGlobalPrefix('api');
   await app.listen(3000);
 }
 bootstrap();
