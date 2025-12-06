@@ -5,6 +5,8 @@ import { EmailTemplate } from '../email-templates/entities/email-template.entity
 import { EmailTemplateVersion } from '../email-templates/entities/email-template-version.entity';
 import { SmsTemplate } from '../sms-templates/entities/sms-template.entity';
 import { ProductType } from '../product-types/entities/product-type.entity';
+import { AccountRetention } from '../account-retention/entities/account-retention.entity';
+
 
 const ormconfig: TypeOrmModuleOptions = {
   type: 'mssql',
@@ -19,7 +21,8 @@ const ormconfig: TypeOrmModuleOptions = {
     EmailTemplate,
     EmailTemplateVersion,
     SmsTemplate,
-    ProductType,   // 👈 IMPORTANT
+    ProductType, 
+    AccountRetention, // 👈 IMPORTANT
   ],
   synchronize: false,
   options: {
