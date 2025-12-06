@@ -1,4 +1,4 @@
-const API_BASE_URL = '/api/sms-templates';
+const API_BASE_URL = '/sms-templates';
 const form = document.getElementById('smsTemplateForm');
 const idInput = document.getElementById('id');
 
