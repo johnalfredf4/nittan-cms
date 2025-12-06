@@ -6,13 +6,13 @@ import { Role } from './entities/role.entity';
 @Injectable()
 export class RolesService {
   constructor(
-    @InjectRepository(Role) private readonly rolesRepo: Repository<Role>,
+    @InjectRepository(Role)
+    private readonly rolesRepo: Repository<Role>,
   ) {}
 
-  async findAll() {
-    return this.roleRepository.find();
+  findAll(): Promise<Role[]> {
+    return this.rolesRepo.find();
   }
-
 
   async findByName(name: string): Promise<Role | null> {
     return this.rolesRepo.findOne({ where: { name } });
