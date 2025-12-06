@@ -11,15 +11,15 @@ export class SmsTemplate {
   @Column()
   title: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'nvarchar', length: 'MAX' })
   message: string;
 
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'datetime', default: () => 'GETDATE()' })
   createdAt: Date;
 
-  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'datetime', default: () => 'GETDATE()' })
   updatedAt: Date;
 }
