@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Disposition Categories</title>
+    <link rel="stylesheet" href="css/tw.css">
+    <script src="js/disposition-categories.js" defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<header class="bg-white shadow">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold">Disposition Categories</h1>
+      <div class="flex items-center space-x-3">
+        <span id="userLabel" class="text-sm text-gray-600"></span>
+        <button id="logoutBtn" class="text-sm text-red-600">Logout</button>
+      </div>
+    </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-6">
+
+    <nav class="mb-4 flex space-x-4">
+      <a href="dashboard.html" class="text-gray-700 hover:text-blue-600">Dashboard</a>
+      <a href="users.html" class="text-gray-700 hover:text-blue-600">Users</a>
+      <a href="email-templates.html" class="text-gray-700 hover:text-blue-600">Email Templates</a>
+      <a href="sms-templates.html" class="text-gray-700 hover:text-blue-600">SMS Templates</a>
+      <a href="product-types.html" class="text-gray-700 hover:text-blue-600">Product Types</a>
+      <a href="disposition-categories.html" class="text-blue-600 font-medium">Disposition Categories</a>
+    </nav>
+
+    <div class="bg-white rounded shadow p-4">
+
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-semibold">Disposition Categories</h2>
+        <div class="flex gap-3">
+            <button onclick="location.href='disposition-category-form.html'" class="px-4 py-1 bg-green-600 text-white rounded hover:bg-green-700">
+                + New Category
+            </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+              <tr class="bg-gray-100 text-left">
+                  <th class="py-2 w-48">Category Name</th>
+                  <th class="py-2">Description</th>
+                  <th class="py-2 w-24">Status</th>
+                  <th class="py-2 w-48">Actions</th>
+              </tr>
+          </thead>
+          <tbody id="categoryRows"></tbody>
+        </table>
+      </div>
+
+    </div>
+</main>
+
+</body>
+</html>

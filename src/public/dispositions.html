@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Disposition List</title>
+    <link rel="stylesheet" href="css/tw.css">
+    <script src="js/dispositions.js" defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<header class="bg-white shadow">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold">Dispositions</h1>
+    </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-6">
+
+    <div class="flex justify-between mb-4">
+        <button onclick="history.back()" class="text-sm text-blue-600 underline">← back</button>
+        <button onclick="location.href='disposition-form.html'" class="px-4 py-1 bg-green-600 text-white rounded hover:bg-green-700">
+            + New Disposition
+        </button>
+    </div>
+
+    <div class="bg-white rounded shadow p-4">
+        <h2 id="categoryTitle" class="text-lg font-semibold mb-3">CATEGORY NAME</h2>
+
+        <hr class="mb-4">
+
+        <table class="min-w-full text-sm">
+            <thead>
+                <tr class="bg-gray-100 text-left">
+                    <th class="py-2">Disposition</th>
+                    <th class="py-2 w-32">Require Next Call?</th>
+                    <th class="py-2 w-24">Status</th>
+                    <th class="py-2 w-48">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="dispositionRows"></tbody>
+        </table>
+
+    </div>
+
+</main>
+
+</body>
+</html>

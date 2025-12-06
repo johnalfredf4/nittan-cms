@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Disposition Form</title>
+    <link rel="stylesheet" href="css/tw.css">
+    <script src="js/disposition-form.js" defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<main class="max-w-5xl mx-auto px-4 py-6">
+
+    <div class="bg-white rounded shadow p-6">
+        <h2 id="formHeading" class="text-lg font-semibold mb-4">Disposition Details</h2>
+
+        <form id="dispositionForm" class="space-y-4">
+            <input type="hidden" id="id">
+
+            <div>
+                <label class="block text-sm mb-1">Disposition Name</label>
+                <input type="text" id="dispositionName" class="border p-2 rounded w-full" required>
+            </div>
+
+            <div>
+                <label class="block text-sm mb-1">Belongs To Category</label>
+                <select id="categoryId" class="border p-2 rounded w-full" required></select>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" id="requiresNextSchedule">
+                <label for="requiresNextSchedule" class="text-sm">Requires Next Schedule</label>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" id="isActive">
+                <label for="isActive" class="text-sm">Active</label>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-4">
+                <button type="button" onclick="history.back()" class="px-4 py-1 border rounded text-gray-700">
+                    Cancel
+                </button>
+
+                <button type="submit" class="px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Save
+                </button>
+            </div>
+        </form>
+
+    </div>
+
+</main>
+
+</body>
+</html>
