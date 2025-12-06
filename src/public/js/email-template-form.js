@@ -38,41 +38,37 @@ async function initTemplateForm() {
   }
 
   document.querySelector("#templateForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const form = new FormData(e.target);
+  const bodyInput = document.getElementById("bodyInput");
+  if (bodyInput) {
+    document.getElementById("bodyHidden").value = bodyInput.innerHTML;
+  }
 
-    const bodyInput = document.getElementById("bodyInput");
-    if (bodyInput) {
-      document.getElementById("bodyHidden").value = bodyInput.innerHTML;
-    }
+  const form = new FormData(e.target);
 
-    const payload = {
-      code: form.get("code"),
-      name: form.get("name"),
-      subject: form.get("subject"),
-      body: form.get("body"),
-    };
+  const payload = {
+    code: form.get("code"),
+    name: form.get("name"),
+    subject: form.get("subject"),
+    body: form.get("body"), // now contains formatted HTML
+  };
 
-    const url = editId ? `/email-templates/${editId}` : `/email-templates`;
-    const method = editId ? "PATCH" : "POST";
+  const url = editId ? `/email-templates/${editId}` : `/email-templates`;
+  const method = editId ? "PATCH" : "POST";
 
-    const resSave = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!resSave.ok) {
-      alert("Error saving");
-      return;
-    }
-
-    location.href = "email-templates.html";
+  await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token
+    },
+    body: JSON.stringify(payload),
   });
+
+  location.href = "email-templates.html";
+});
+
 }
 
 document.addEventListener("DOMContentLoaded", initTemplateForm);
