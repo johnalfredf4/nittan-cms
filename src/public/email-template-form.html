@@ -25,11 +25,16 @@
 
             <input name="subject" placeholder="Email Subject" class="w-full border px-3 py-2 rounded" required>
 
-            <label class="block text-sm font-medium">Email Body</label>
+            <label class="block text-sm font-medium mb-1">Email Body</label>
+
+            <!-- Rich editor -->
             <div id="bodyInput"
-                 class="w-full border px-3 py-2 rounded min-h-[180px] bg-white outline-none"
+                 class="w-full border rounded px-3 py-2 bg-white min-h-[200px]"
                  contenteditable="true"></div>
+            
+            <!-- Storage field for saving to DB -->
             <input type="hidden" name="body" id="bodyHidden">
+
 
 
 
