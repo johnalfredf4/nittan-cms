@@ -40,12 +40,12 @@ async function initTemplateForm() {
   document.querySelector("#templateForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    const form = new FormData(e.target);
+
     const bodyInput = document.getElementById("bodyInput");
     if (bodyInput) {
       document.getElementById("bodyHidden").value = bodyInput.innerHTML;
     }
-
-    const form = new FormData(e.target);
 
     const payload = {
       code: form.get("code"),
