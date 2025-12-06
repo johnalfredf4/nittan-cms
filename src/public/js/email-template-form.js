@@ -40,80 +40,63 @@ async function initTemplateForm() {
   document.querySelector("#templateForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const bodyInput = document.getElementById("bodyInput");
-  if (bodyInput) {
-    document.getElementById("bodyHidden").value = bodyInput.innerHTML;
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("Unauthorized");
+    return;
   }
 
+  // FIRST update body content before we read FormData
+  const bodyInput = document.getElementById("bodyInput");
+  if (bodyInput) {
+    document.getElementById("bodyHidden").value = bodyInput.innerHTML.trim();
+  }
+
+  // Now retrieve updated values
   const form = new FormData(e.target);
 
   let code = form.get("code")?.trim();
   const name = form.get("name")?.trim();
   const subject = form.get("subject")?.trim();
-  const body = form.get("body");
+  const body = form.get("body")?.trim();
 
-  console.log("Captured values:", { code, name, subject, body });
+  console.log("DEBUG–PAYLOAD:", { code, name, subject, body });
 
-  // VALIDATION BEFORE SENDING TO BACKEND
-  if (!code || code === "") {
-    alert("Template Code is required");
-    return;
-  }
+  // VALIDATION
+  if (!code) return alert("Template Code is required");
+  if (!name) return alert("Template Name is required");
+  if (!subject) return alert("Template Subject is required");
+  if (!body) return alert("Template Body cannot be empty");
 
-  if (!name || name === "") {
-    alert("Template Name is required");
-    return;
-  }
-
-  if (!subject || subject === "") {
-    alert("Template Subject is required");
-    return;
-  }
-
-  if (!body || body.trim() === "") {
-    alert("Template Body is required");
-    return;
-  }
-
-  // Standardize code format
+  // Standardize code
   code = code.toUpperCase().replace(/\s+/g, "_");
 
-  const payload = {
-    code,
-    name,
-    subject,
-    body,
-  };
-
-  console.log("Final payload:", payload);
+  const payload = { code, name, subject, body };
+  console.log("FINAL PAYLOAD:", payload);
 
   const url = editId ? `/email-templates/${editId}` : `/email-templates`;
   const method = editId ? "PATCH" : "POST";
 
-  try {
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-      body: JSON.stringify(payload),
-    });
+  const res = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    body: JSON.stringify(payload),
+  });
 
-    if (!res.ok) {
-      const msg = await res.text();
-      alert("Failed to save changes: " + msg);
-      console.error(msg);
-      return;
-    }
-
-    location.href = "email-templates.html";
-
-  } catch (ex) {
-    console.error(ex);
-    alert("System error occurred");
+  if (!res.ok) {
+    const err = await res.text();
+    alert("Failed to save changes: " + err);
+    console.error(err);
+    return;
   }
+
+  alert("Template saved successfully!");
+  location.href = "email-templates.html";
 });
+
 
 }
 
