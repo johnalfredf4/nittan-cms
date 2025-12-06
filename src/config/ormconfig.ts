@@ -3,7 +3,7 @@ import { User } from '../users/entities/user.entity';
 import { Role } from '../roles/entities/role.entity';
 import { EmailTemplate } from '../email-templates/entities/email-template.entity';
 import { EmailTemplateVersion } from '../email-templates/entities/email-template-version.entity';
-
+import { SmsTemplate } from './sms-templates/entities/sms-template.entity';
 
 const ormconfig: TypeOrmModuleOptions = {
   type: 'mssql',
@@ -12,7 +12,7 @@ const ormconfig: TypeOrmModuleOptions = {
   username: 'bong3',
   password: 'bong3',
   database: 'Nittan-App',
-  entities: [User, Role, EmailTemplate, EmailTemplateVersion],
+  entities: [User, Role, EmailTemplate, EmailTemplateVersion, SmsTemplate],
   synchronize: false,
   options: {
     encrypt: false,
