@@ -1,34 +1,12 @@
-import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  IsArray,
-} from 'class-validator';
-import { UserStatus } from '../../common/enums/user-status.enum';
+import { IsOptional } from 'class-validator';
 
-export class UpdateUserDto {
+export class UpdateSmsTemplateDto {
   @IsOptional()
-  @IsString()
-  password?: string;
+  title?: string;
 
   @IsOptional()
-  @IsString()
-  firstName?: string;
+  message?: string;
 
   @IsOptional()
-  @IsString()
-  middleName?: string;
-
-  @IsOptional()
-  @IsString()
-  lastName?: string;
-
-  @IsOptional()
-  @IsEnum(UserStatus)
-  status?: UserStatus;
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  roleNames?: string[];
+  isActive?: boolean;
 }
