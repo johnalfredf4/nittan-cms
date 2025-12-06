@@ -1,11 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
+  // 🚀 ENABLE BODY PARSING FOR JSON
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
   await app.listen(3000);
-  console.log('Nittan CMS running on http://localhost:3000');
 }
 bootstrap();
