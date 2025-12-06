@@ -1,4 +1,4 @@
-const API_BASE_URL = '/api/sms-templates';
+const API_BASE_URL = '/sms-templates';
 
 // Load user name
 document.getElementById('userLabel').innerText = localStorage.getItem('username') || '';
