@@ -50,39 +50,71 @@ async function initTemplateForm() {
   let code = form.get("code")?.trim();
   const name = form.get("name")?.trim();
   const subject = form.get("subject")?.trim();
-  const body = form.get("body")?.trim();
+  const body = form.get("body");
 
-  if (!code) return alert("Template Code is required");
-  if (!name) return alert("Template Name is required");
-  if (!subject) return alert("Template Subject is required");
-  if (!body) return alert("Body cannot be empty");
+  console.log("Captured values:", { code, name, subject, body });
 
-  // Auto-format code
-  code = code.toUpperCase().replace(/ +/g, "_");
+  // VALIDATION BEFORE SENDING TO BACKEND
+  if (!code || code === "") {
+    alert("Template Code is required");
+    return;
+  }
 
-  const payload = { code, name, subject, body };
+  if (!name || name === "") {
+    alert("Template Name is required");
+    return;
+  }
+
+  if (!subject || subject === "") {
+    alert("Template Subject is required");
+    return;
+  }
+
+  if (!body || body.trim() === "") {
+    alert("Template Body is required");
+    return;
+  }
+
+  // Standardize code format
+  code = code.toUpperCase().replace(/\s+/g, "_");
+
+  const payload = {
+    code,
+    name,
+    subject,
+    body,
+  };
+
+  console.log("Final payload:", payload);
 
   const url = editId ? `/email-templates/${editId}` : `/email-templates`;
   const method = editId ? "PATCH" : "POST";
 
-  const res = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+      body: JSON.stringify(payload),
+    });
 
-  if (!res.ok) {
-    const text = await res.text();
-    alert("Failed to save changes: " + text);
-    console.error(text);
-    return;
+    if (!res.ok) {
+      const msg = await res.text();
+      alert("Failed to save changes: " + msg);
+      console.error(msg);
+      return;
+    }
+
+    location.href = "email-templates.html";
+
+  } catch (ex) {
+    console.error(ex);
+    alert("System error occurred");
   }
-
-  location.href = "email-templates.html";
 });
+
 }
 
 document.addEventListener("DOMContentLoaded", initTemplateForm);
