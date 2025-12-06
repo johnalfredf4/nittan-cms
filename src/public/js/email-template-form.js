@@ -1,78 +1,62 @@
-const roles = JSON.parse(localStorage.getItem("roles") || "[]");
-const isAdmin =
-  roles.includes("IT - CMS Admin") || roles.includes("Execom - CEO");
+let editId = null;
 
-async function loadUsers() {
+async function initTemplateForm() {
   const token = localStorage.getItem("token");
-  const username = localStorage.getItem("username");
-
   if (!token) {
-    window.location = "login.html";
+    alert("Unauthorized");
+    location.href = "login.html";
     return;
   }
 
-  document.getElementById("userLabel").innerText = username || '';
+  const params = new URLSearchParams(window.location.search);
+  editId = params.get("id");
 
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-    localStorage.clear();
-    window.location = "login.html";
-  });
+  if (editId) {
+    document.getElementById("headerTitle").innerText = "Edit Email Template";
 
-  if (!isAdmin) {
-    const newUserBtn = document.getElementById("newUserBtn");
-    if (newUserBtn) newUserBtn.style.display = "none";
+    const res = await fetch(`/email-templates/${editId}`, {
+      headers: { Authorization: "Bearer " + token },
+    });
+
+    const t = await res.json();
+    console.log("Fetched template", t);
+
+    document.querySelector("input[name=code]").value = t.code;
+    document.querySelector("input[name=name]").value = t.name;
+    document.querySelector("input[name=subject]").value = t.subject;
+    document.querySelector("textarea[name=body]").value = t.body;
   }
 
-  const res = await fetch("/users", {
-    headers: { Authorization: "Bearer " + token },
-  });
+  document.querySelector("#templateForm").addEventListener("submit", async e => {
+    e.preventDefault();
 
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      window.location = "login.html";
+    const form = new FormData(e.target);
+    const payload = {
+      code: form.get("code"),
+      name: form.get("name"),
+      subject: form.get("subject"),
+      body: form.get("body"),
+    };
+
+    const url = editId ? `/email-templates/${editId}` : `/email-templates`;
+    const method = editId ? "PATCH" : "POST";
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      alert("Error saving");
+      return;
     }
-    return;
-  }
 
-  const users = await res.json();
-  const tbody = document.getElementById("usersTable");
-  tbody.innerHTML = "";
-
-  users.forEach((u) => {
-    const actions = [];
-
-    actions.push(
-      `<a href="user-form.html?id=${u.id}" class="text-blue-600 mr-2">Edit</a>`,
-    );
-
-    if (isAdmin) {
-      actions.push(
-        `<button onclick="deleteUser(${u.id})" class="text-red-600">Delete</button>`,
-      );
-    }
-
-    tbody.innerHTML += `
-      <tr class="border-b">
-        <td class="p-2">${u.username}</td>
-        <td class="p-2">${u.firstName} ${u.lastName}</td>
-        <td class="p-2">${u.status}</td>
-        <td class="p-2 text-right space-x-2">${actions.join(' ')}</td>
-      </tr>
-    `;
+    location.href = "email-templates.html";
   });
 }
 
-async function deleteUser(id) {
-  if (!confirm("Are you sure you want to delete this user?")) return;
-
-  const token = localStorage.getItem("token");
-
-  await fetch(`/users/${id}`, {
-    method: "DELETE",
-    headers: { Authorization: "Bearer " + token },
-  });
-
-  loadUsers();
-}
-
-document.addEventListener("DOMContentLoaded", loadUsers);
+document.addEventListener("DOMContentLoaded", initTemplateForm);
