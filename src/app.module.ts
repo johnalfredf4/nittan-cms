@@ -14,6 +14,7 @@ import { SmsTemplatesModule } from './sms-templates/sms-templates.module';
 import { SmsTemplate } from './sms-templates/entities/sms-template.entity';
 import { ProductTypesModule } from './product-types/product-types.module';
 import { AccountRetentionModule } from './account-retention/account-retention.module';
+import { DispositionsModule } from './dispositions/dispositions.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AccountRetentionModule } from './account-retention/account-retention.mo
     SmsTemplatesModule,
     ProductTypesModule,
     AccountRetentionModule,
+    DispositionsModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'src', 'public'),
     }),
