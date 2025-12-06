@@ -9,9 +9,10 @@ export class RolesService {
     @InjectRepository(Role) private readonly rolesRepo: Repository<Role>,
   ) {}
 
-  async findAll(): Promise<Role[]> {
-    return this.rolesRepo.find();
+  async findAll() {
+    return this.roleRepository.find();
   }
+
 
   async findByName(name: string): Promise<Role | null> {
     return this.rolesRepo.findOne({ where: { name } });
