@@ -9,7 +9,10 @@ import { UpdateEmailTemplateDto } from './dto/update-email-template.dto';
 export class EmailTemplatesService {
   constructor(
     @InjectRepository(EmailTemplate)
-    private repo: Repository<EmailTemplate>,
+    private readonly repo: Repository<EmailTemplate>,
+
+    @InjectRepository(EmailTemplateVersion)
+    private readonly versionRepo: Repository<EmailTemplateVersion>,
   ) {}
 
   findAll() {
@@ -25,19 +28,21 @@ export class EmailTemplatesService {
     return this.repo.save(data);
   }
 
-  update(id: number, dto: UpdateEmailTemplateDto) {
+  async update(id: number, dto: UpdateEmailTemplateDto) {
+    const existing = await this.repo.findOne({ where: { id } });
+
+    if (!existing) {
+      throw new Error("Template not found");
+    }
+
+    // Save old version
+    await this.versionRepo.save({
+      TemplateId: id,
+      Subject: existing.subject,
+      Body: existing.body,
+    });
+
     return this.repo.update(id, dto);
   }
-
-  remove(id: number) {
-    return this.repo.update(id, { status: 'DELETED' });
-  }
-
-  activate(id: number) {
-    return this.repo.update(id, { status: 'ACTIVE' });
-  }
-
-  deactivate(id: number) {
-    return this.repo.update(id, { status: 'INACTIVE' });
-  }
 }
+
