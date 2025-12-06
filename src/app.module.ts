@@ -11,6 +11,7 @@ import { RolesService } from './roles/roles.service';
 import { AuthModule } from './auth/auth.module';
 import { EmailTemplatesModule } from './email-templates/email-templates.module';
 import { SmsTemplatesModule } from './sms-templates/sms-templates.module';
+import { SmsTemplate } from './sms-templates/entities/sms-template.entity';
 
 @Module({
   imports: [
