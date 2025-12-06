@@ -21,7 +21,6 @@ async function initTemplateForm() {
     const t = await res.json();
     console.log("Fetched template", t);
 
-    // 🔥 HERE IS THE RIGHT PLACE
     document.querySelector("input[name=code]").value = t.code || "";
     document.querySelector("input[name=name]").value = t.name || "";
     document.querySelector("input[name=subject]").value = t.subject || "";
@@ -29,18 +28,18 @@ async function initTemplateForm() {
     const bodyInput = document.getElementById("bodyInput");
 
     if (bodyInput) {
-      // Using rich editor
       bodyInput.innerHTML = t.body || "";
     } else {
-      // Using simple textarea
-      document.querySelector("textarea[name=body]").value = t.body || "";
+      const bodyField = document.querySelector("textarea[name=body]");
+      if (bodyField) {
+        bodyField.value = t.body || "";
+      }
     }
   }
 
-  document.querySelector("#templateForm").addEventListener("submit", async e => {
+  document.querySelector("#templateForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // 🔥 Capture HTML body if editor exists
     const bodyInput = document.getElementById("bodyInput");
     if (bodyInput) {
       document.getElementById("bodyHidden").value = bodyInput.innerHTML;
@@ -52,7 +51,7 @@ async function initTemplateForm() {
       code: form.get("code"),
       name: form.get("name"),
       subject: form.get("subject"),
-      body: form.get("body"), // takes hidden input or textarea
+      body: form.get("body"),
     };
 
     const url = editId ? `/email-templates/${editId}` : `/email-templates`;
