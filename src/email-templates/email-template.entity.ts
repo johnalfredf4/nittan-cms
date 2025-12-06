@@ -31,4 +31,8 @@ export class EmailTemplate {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ nullable: true })
+  category: string;
+
 }
