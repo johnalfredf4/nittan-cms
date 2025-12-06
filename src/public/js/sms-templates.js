@@ -1,78 +1,59 @@
-const roles = JSON.parse(localStorage.getItem("roles") || "[]");
-const isAdmin =
-  roles.includes("IT - CMS Admin") || roles.includes("Execom - CEO");
+const API_BASE_URL = '/api/sms-templates';
 
-async function loadUsers() {
-  const token = localStorage.getItem("token");
-  const username = localStorage.getItem("username");
+// Load user name
+document.getElementById('userLabel').innerText = localStorage.getItem('username') || '';
 
-  if (!token) {
-    window.location = "login.html";
-    return;
-  }
+// Load templates when page loads
+document.addEventListener('DOMContentLoaded', loadTemplates);
 
-  document.getElementById("userLabel").innerText = username || '';
+async function loadTemplates() {
+    const rows = document.getElementById('smsTemplateRows');
+    rows.innerHTML = 'Loading...';
 
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-    localStorage.clear();
-    window.location = "login.html";
-  });
+    try {
+        const res = await fetch(API_BASE_URL);
+        const data = await res.json();
 
-  if (!isAdmin) {
-    const newUserBtn = document.getElementById("newUserBtn");
-    if (newUserBtn) newUserBtn.style.display = "none";
-  }
+        if (!data.length) {
+            rows.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">No templates found</td></tr>';
+            return;
+        }
 
-  const res = await fetch("/users", {
-    headers: { Authorization: "Bearer " + token },
-  });
-
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      window.location = "login.html";
+        rows.innerHTML = data.map(t => `
+            <tr class="border-b">
+                <td class="py-2">${t.templateCode}</td>
+                <td class="py-2">${t.title}</td>
+                <td class="py-2">${t.isActive ? 'Active' : 'Inactive'}</td>
+                <td class="py-2">
+                    <button onclick="editTemplate(${t.id})" class="text-blue-600">Edit</button>
+                     |
+                    <button onclick="toggleActive(${t.id})" class="text-indigo-600">
+                        ${t.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                     |
+                    <button onclick="deleteTemplate(${t.id})" class="text-red-600">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        console.error('Error loading templates', err);
+        rows.innerHTML = '<tr><td colspan="4" class="text-red-600 p-4">Failed to load data</td></tr>';
     }
-    return;
-  }
-
-  const users = await res.json();
-  const tbody = document.getElementById("usersTable");
-  tbody.innerHTML = "";
-
-  users.forEach((u) => {
-    const actions = [];
-
-    actions.push(
-      `<a href="user-form.html?id=${u.id}" class="text-blue-600 mr-2">Edit</a>`,
-    );
-
-    if (isAdmin) {
-      actions.push(
-        `<button onclick="deleteUser(${u.id})" class="text-red-600">Delete</button>`,
-      );
-    }
-
-    tbody.innerHTML += `
-      <tr class="border-b">
-        <td class="p-2">${u.username}</td>
-        <td class="p-2">${u.firstName} ${u.lastName}</td>
-        <td class="p-2">${u.status}</td>
-        <td class="p-2 text-right space-x-2">${actions.join(' ')}</td>
-      </tr>
-    `;
-  });
 }
 
-async function deleteUser(id) {
-  if (!confirm("Are you sure you want to delete this user?")) return;
-
-  const token = localStorage.getItem("token");
-
-  await fetch(`/users/${id}`, {
-    method: "DELETE",
-    headers: { Authorization: "Bearer " + token },
-  });
-
-  loadUsers();
+function editTemplate(id) {
+    location.href = `sms-template-form.html?id=${id}`;
 }
 
-document.addEventListener("DOMContentLoaded", loadUsers);
+async function deleteTemplate(id) {
+    if (!confirm('Are you sure you want to delete this template?')) return;
+
+    await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
+
+    loadTemplates();
+}
+
+async function toggleActive(id) {
+    await fetch(`${API_BASE_URL}/${id}/toggle-active`, { method: 'PATCH' });
+    loadTemplates();
+}
