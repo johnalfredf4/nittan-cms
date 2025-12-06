@@ -9,6 +9,8 @@ import { RolesModule } from './roles/roles.module';
 import { RolesService } from './roles/roles.service';
 
 import { AuthModule } from './auth/auth.module';
+import { EmailTemplatesModule } from './email-templates/email-templates.module';
+
 
 @Module({
   imports: [
@@ -16,6 +18,7 @@ import { AuthModule } from './auth/auth.module';
     UsersModule,
     RolesModule,
     AuthModule,
+    EmailTemplatesModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'src', 'public'),
     }),
