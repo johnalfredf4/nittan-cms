@@ -1,38 +1,19 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
 @Entity()
-export class EmailTemplate {
+export class EmailTemplateVersion {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
-  code: string;
+  @Column()
+  TemplateId: number;
 
   @Column()
-  name: string;
-
-  @Column()
-  subject: string;
+  Subject: string;
 
   @Column({ type: 'nvarchar', length: 'MAX' })
-  body: string;
-
-  @Column({ default: 'ACTIVE' })
-  status: string;
+  Body: string;
 
   @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @Column({ nullable: true })
-  category: string;
-
+  VersionDate: Date;
 }
