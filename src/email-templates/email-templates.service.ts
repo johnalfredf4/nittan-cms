@@ -24,10 +24,15 @@ export class EmailTemplatesService {
     return this.repo.findOne({ where: { id } });
   }
   
-  create(dto: CreateEmailTemplateDto) {
+  async create(dto: CreateEmailTemplateDto) {
+    if (!dto.code) {
+      throw new Error("Template Code is required");
+    }
+  
     const data = this.repo.create(dto);
     return this.repo.save(data);
   }
+
 
   async update(id: number, dto: UpdateEmailTemplateDto) {
     const existing = await this.repo.findOne({ where: { id } });
