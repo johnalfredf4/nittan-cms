@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity('SMS_Templates')
 export class SmsTemplate {
   @PrimaryGeneratedColumn()
   id: number;
