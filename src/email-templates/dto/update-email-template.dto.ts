@@ -1,7 +1,6 @@
 export class UpdateEmailTemplateDto {
+  code?: string;
   name?: string;
   subject?: string;
   body?: string;
-  status?: string;
-  category?: string;
 }
