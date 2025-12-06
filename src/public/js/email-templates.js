@@ -17,23 +17,23 @@ async function loadTemplates() {
   tbody.innerHTML = "";
 
   list.forEach(t => {
-    const tr = document.createElement("tr");
-    tbody.innerHTML += 
+    tbody.innerHTML += `
     <tr class="border-b">
       <td class="py-2">${t.code}</td>
       <td class="py-2">${t.name}</td>
       <td class="py-2">${t.status}</td>
       <td class="py-2 flex gap-2">
         <button onclick="editTemplate(${t.id})" class="text-blue-600 mr-2">Edit</button>
-        
+            
         ${t.status === "ACTIVE"
-        ? `<button onclick="deactivateTemplate(${t.id})" class="text-blue-600 mr-2">Deactivate</button>`
-        : `<button onclick="activateTemplate(${t.id})" class="text-blue-600 mr-2">Activate</button>`}
-
+          ? `<button onclick="deactivateTemplate(${t.id})" class="text-blue-600 mr-2">Deactivate</button>`
+          : `<button onclick="activateTemplate(${t.id})" class="text-blue-600 mr-2">Activate</button>`
+        }
+    
         <button onclick="deleteTemplate(${t.id})" class="text-red-600">Delete</button>
       </td>
-     </tr>
-    `;
+    </tr>
+    ;
   });
 }
 
