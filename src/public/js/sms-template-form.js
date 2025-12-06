@@ -58,3 +58,8 @@ form.addEventListener('submit', async e => {
         alert('Error: ' + result.message);
     }
 });
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    location.href = 'login.html';
+});
