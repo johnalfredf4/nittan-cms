@@ -1,6 +1,9 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { Role } from '../roles/entities/role.entity';
+import { EmailTemplate } from '../email-templates/entities/email-template.entity';
+import { EmailTemplateVersion } from '../email-templates/entities/email-template-version.entity';
+
 
 const ormconfig: TypeOrmModuleOptions = {
   type: 'mssql',
@@ -9,7 +12,7 @@ const ormconfig: TypeOrmModuleOptions = {
   username: 'bong3',
   password: 'bong3',
   database: 'Nittan-App',
-  entities: [User, Role],
+  entities: [User, Role, EmailTemplate, EmailTemplateVersion],
   synchronize: false,
   options: {
     encrypt: false,
