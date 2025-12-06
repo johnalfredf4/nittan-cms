@@ -1,33 +1,12 @@
-import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  IsArray,
-} from 'class-validator';
-import { UserStatus } from '../../common/enums/user-status.enum';
+import { IsNotEmpty } from 'class-validator';
 
-export class CreateUserDto {
-  @IsString()
-  username: string;
+export class CreateSmsTemplateDto {
+  @IsNotEmpty({ message: 'Template Code is required' })
+  templateCode: string;
 
-  @IsString()
-  password: string;
+  @IsNotEmpty({ message: 'Title is required' })
+  title: string;
 
-  @IsString()
-  firstName: string;
-
-  @IsOptional()
-  @IsString()
-  middleName?: string;
-
-  @IsString()
-  lastName: string;
-
-  @IsOptional()
-  @IsEnum(UserStatus)
-  status?: UserStatus;
-
-  @IsArray()
-  @IsString({ each: true })
-  roleNames: string[]; // e.g. ["Collection Agent - Head Office"]
+  @IsNotEmpty({ message: 'Message is required' })
+  message: string;
 }
