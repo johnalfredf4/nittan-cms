@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { EmailTemplate } from './entities/email-template.entity';
 import { CreateEmailTemplateDto } from './dto/create-email-template.dto';
 import { UpdateEmailTemplateDto } from './dto/update-email-template.dto';
+import { EmailTemplateVersion } from './entities/email-template-version.entity';
 
 @Injectable()
 export class EmailTemplatesService {
