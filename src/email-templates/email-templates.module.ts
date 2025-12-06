@@ -9,7 +9,7 @@ import { EmailTemplatesController } from './email-templates.controller';
   imports: [
     TypeOrmModule.forFeature([
       EmailTemplate,
-      EmailTemplateVersion, // <-- ADD THIS
+      EmailTemplateVersion,
     ])
   ],
   controllers: [EmailTemplatesController],
