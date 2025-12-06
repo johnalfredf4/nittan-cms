@@ -4,47 +4,64 @@ import {
   Post,
   Patch,
   Delete,
-  Body,
   Param,
+  Body,
   UseGuards,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateEmailTemplateDto } from './dto/create-email-template.dto';
+import { UpdateEmailTemplateDto } from './dto/update-email-template.dto';
+import { EmailTemplatesService } from './email-templates.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 
-@Controller('users')
-@UseGuards(AuthGuard('jwt')) // applies to all methods
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
-
-  @Post()
-  @Roles('IT - CMS Admin', 'Execom - CEO')
-  create(@Body() dto: CreateUserDto) {
-    return this.usersService.create(dto);
-  }
+@UseGuards(AuthGuard('jwt'))
+@Controller('email-templates')
+export class EmailTemplatesController {
+  constructor(private readonly service: EmailTemplatesService) {}
 
   @Get()
   findAll() {
-    return this.usersService.findAll();
+    return this.service.findAll();
   }
-  @UseGuards(AuthGuard('jwt'))
+
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  findOne(@Param('id') id: number) {
+    return this.service.findOne(id);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles('IT - CMS Admin', 'Execom - CEO')
+  @Post()
+  create(@Body() dto: CreateEmailTemplateDto) {
+    return this.service.create(dto);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('IT - CMS Admin', 'Execom - CEO')
   @Patch(':id')
-  @Roles('IT - CMS Admin')
-  update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(+id, dto);
+  update(@Param('id') id: number, @Body() dto: UpdateEmailTemplateDto) {
+    return this.service.update(id, dto);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles('IT - CMS Admin', 'Execom - CEO')
   @Delete(':id')
-  @Roles('IT - CMS Admin')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  delete(@Param('id') id: number) {
+    return this.service.remove(id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('IT - CMS Admin', 'Execom - CEO')
+  @Patch(':id/activate')
+  activate(@Param('id') id: number) {
+    return this.service.activate(id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('IT - CMS Admin', 'Execom - CEO')
+  @Patch(':id/deactivate')
+  deactivate(@Param('id') id: number) {
+    return this.service.deactivate(id);
   }
 }
