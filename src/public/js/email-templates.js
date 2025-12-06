@@ -18,23 +18,22 @@ async function loadTemplates() {
 
   list.forEach(t => {
     const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td class="px-4 py-2">${t.code}</td>
-      <td class="px-4 py-2">${t.name}</td>
-      <td class="px-4 py-2">${t.status}</td>
-      <td class="px-4 py-2 flex gap-2">
-        <button onclick="editTemplate(${t.id})" class="px-2 py-1 bg-blue-600 text-white rounded text-xs">Edit</button>
+    tbody.innerHTML += 
+    <tr class="border-b">
+      <td class="py-2">${t.code}</td>
+      <td class="py-2">${t.name}</td>
+      <td class="py-2">${t.status}</td>
+      <td class="py-2 flex gap-2">
+        <button onclick="editTemplate(${t.id})" class="text-blue-600 mr-2">Edit</button>
         
         ${t.status === "ACTIVE"
-        ? `<button onclick="deactivateTemplate(${t.id})" class="px-2 py-1 bg-yellow-500 text-white rounded text-xs">Deactivate</button>`
-        : `<button onclick="activateTemplate(${t.id})" class="px-2 py-1 bg-green-600 text-white rounded text-xs">Activate</button>`}
+        ? `<button onclick="deactivateTemplate(${t.id})" class="text-blue-600 mr-2">Deactivate</button>`
+        : `<button onclick="activateTemplate(${t.id})" class="text-blue-600 mr-2">Activate</button>`}
 
-        <button onclick="deleteTemplate(${t.id})" class="px-2 py-1 bg-red-600 text-white rounded text-xs">Delete</button>
+        <button onclick="deleteTemplate(${t.id})" class="text-red-600">Delete</button>
       </td>
+     </tr>
     `;
-
-    tbody.appendChild(tr);
   });
 }
 
