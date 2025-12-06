@@ -72,3 +72,32 @@ async function initTemplateForm() {
 }
 
 document.addEventListener("DOMContentLoaded", initTemplateForm);
+
+function execCmd(cmd, value = null) {
+  document.execCommand(cmd, false, value);
+}
+
+function addLink() {
+  const url = prompt("Enter link URL:");
+  if (url) document.execCommand("createLink", false, url);
+}
+
+function removeLink() {
+  document.execCommand("unlink", false, null);
+}
+
+function setColor() {
+  const color = prompt("Enter text color HEX e.g. #ff0000:");
+  if (color) execCmd("foreColor", color);
+}
+
+function setHighlight() {
+  const color = prompt("Enter highlight background HEX e.g. #ffff00:");
+  if (color) execCmd("hiliteColor", color);
+}
+
+function setFontSize(size) {
+  if (!size) return;
+  execCmd("fontSize", size);
+}
+
