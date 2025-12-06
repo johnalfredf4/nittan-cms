@@ -25,8 +25,12 @@
 
             <input name="subject" placeholder="Email Subject" class="w-full border px-3 py-2 rounded" required>
 
-            <textarea name="body" placeholder="Email Content Body" rows="8"
-                      class="w-full border px-3 py-2 rounded" required></textarea>
+            <div id="bodyInput"
+                 class="w-full border px-3 py-2 rounded min-h-[200px] bg-white"
+                 contenteditable="true"></div>
+            
+            <input name="body" type="hidden" id="bodyHidden">
+
 
             <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded">
                 Save
