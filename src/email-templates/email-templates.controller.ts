@@ -34,8 +34,10 @@ export class EmailTemplatesController {
   @Roles('IT - CMS Admin', 'Execom - CEO')
   @Post()
   create(@Body() dto: CreateEmailTemplateDto) {
+    console.log("📩 BACKEND RECEIVED DTO:", dto); // ← ADD THIS
     return this.service.create(dto);
   }
+
 
   @UseGuards(RolesGuard)
   @Roles('IT - CMS Admin', 'Execom - CEO')
