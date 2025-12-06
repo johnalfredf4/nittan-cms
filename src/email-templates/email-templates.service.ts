@@ -23,6 +23,19 @@ export class EmailTemplatesService {
     return this.repo.findOne({ where: { id } });
   }
 
+  remove(id: number) {
+  return this.repo.update(id, { status: 'DELETED' });
+  }
+  
+  activate(id: number) {
+    return this.repo.update(id, { status: 'ACTIVE' });
+  }
+  
+  deactivate(id: number) {
+    return this.repo.update(id, { status: 'INACTIVE' });
+  }
+
+
   create(dto: CreateEmailTemplateDto) {
     const data = this.repo.create(dto);
     return this.repo.save(data);
