@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { EmailTemplatesModule } from './email-templates/email-templates.module';
 import { SmsTemplatesModule } from './sms-templates/sms-templates.module';
 import { SmsTemplate } from './sms-templates/entities/sms-template.entity';
+import { ProductTypesModule } from './product-types/product-types.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { SmsTemplate } from './sms-templates/entities/sms-template.entity';
     AuthModule,
     EmailTemplatesModule,
     SmsTemplatesModule,
+    ProductTypesModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'src', 'public'),
     }),
