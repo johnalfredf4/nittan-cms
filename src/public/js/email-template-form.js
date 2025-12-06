@@ -24,7 +24,7 @@ async function initTemplateForm() {
     document.querySelector("input[name=code]").value = t.code;
     document.querySelector("input[name=name]").value = t.name;
     document.querySelector("input[name=subject]").value = t.subject;
-    document.querySelector("textarea[name=body]").value = t.body;
+    document.getElementById("bodyInput").innerHTML = t.body;
   }
 
   document.querySelector("#templateForm").addEventListener("submit", async e => {
