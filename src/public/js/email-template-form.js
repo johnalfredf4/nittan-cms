@@ -47,28 +47,42 @@ async function initTemplateForm() {
 
   const form = new FormData(e.target);
 
-  const payload = {
-    code: form.get("code"),
-    name: form.get("name"),
-    subject: form.get("subject"),
-    body: form.get("body"), // now contains formatted HTML
-  };
+  let code = form.get("code")?.trim();
+  const name = form.get("name")?.trim();
+  const subject = form.get("subject")?.trim();
+  const body = form.get("body")?.trim();
+
+  if (!code) return alert("Template Code is required");
+  if (!name) return alert("Template Name is required");
+  if (!subject) return alert("Template Subject is required");
+  if (!body) return alert("Body cannot be empty");
+
+  // Auto-format code
+  code = code.toUpperCase().replace(/ +/g, "_");
+
+  const payload = { code, name, subject, body };
 
   const url = editId ? `/email-templates/${editId}` : `/email-templates`;
   const method = editId ? "PATCH" : "POST";
 
-  await fetch(url, {
+  const res = await fetch(url, {
     method,
     headers: {
       "Content-Type": "application/json",
-      Authorization: "Bearer " + token
+      Authorization: "Bearer " + token,
     },
     body: JSON.stringify(payload),
   });
 
+  if (!res.ok) {
+    const text = await res.text();
+    alert("Failed to save changes: " + text);
+    console.error(text);
+    return;
+  }
+
   location.href = "email-templates.html";
 });
-
 }
 
 document.addEventListener("DOMContentLoaded", initTemplateForm);
