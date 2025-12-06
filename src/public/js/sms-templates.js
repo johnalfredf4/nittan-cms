@@ -57,3 +57,8 @@ async function toggleActive(id) {
     await fetch(`${API_BASE_URL}/${id}/toggle-active`, { method: 'PATCH' });
     loadTemplates();
 }
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    location.href = 'login.html';
+});
