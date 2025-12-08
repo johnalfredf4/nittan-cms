@@ -8,7 +8,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 @Injectable()
 export class DispositionCategoriesService {
   constructor(
-    @InjectRepository(DispositionCategory)
+    @InjectRepository(DispositionCategory, 'nittan_app')
     private repo: Repository<DispositionCategory>,
   ) {}
 
@@ -49,3 +49,4 @@ export class DispositionCategoriesService {
     return await this.repo.remove(record);
   }
 }
+
