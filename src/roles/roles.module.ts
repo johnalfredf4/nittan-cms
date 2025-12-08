@@ -5,7 +5,9 @@ import { RolesService } from './roles.service';
 import { RolesController } from './roles.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Role])],
+  imports: [
+    TypeOrmModule.forFeature([Role], 'nittan_app'),  // 👈 FIX HERE
+  ],
   providers: [RolesService],
   controllers: [RolesController],
   exports: [RolesService],
