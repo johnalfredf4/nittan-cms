@@ -1,5 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { LocationType } from '../types/location-type';
+import { LOCATION_HQ, LOCATION_BRANCH } from './constants/location-constants';
+
 
 @Entity({ name: 'Loan_Assignment_Rotation' })
 export class RotationState {
