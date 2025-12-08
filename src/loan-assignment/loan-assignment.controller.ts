@@ -21,4 +21,58 @@ export class LoanAssignmentController {
   async bulkOverride(@Body() dto: BulkOverrideAssignmentDto) {
     return this.service.bulkOverride(dto);
   }
+
+  import {
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Body,
+} from '@nestjs/common';
+import { LoanAssignmentService } from './loan-assignment.service';
+
+@Controller('loan-assignment')
+export class LoanAssignmentController {
+  constructor(
+    private readonly service: LoanAssignmentService
+  ) {}
+
+  // -----------------------------------------------------
+  // Get ALL assignments
+  // -----------------------------------------------------
+  @Get('all')
+  async getAllAssignments() {
+    return this.service.getAllAssignments();
+  }
+
+  // -----------------------------------------------------
+  // Get assignments of specific agent
+  // -----------------------------------------------------
+  @Get('agent/:agentId')
+  async getAssignmentsForAgent(@Param('agentId') agentId: number) {
+    return this.service.getAgentQueue(Number(agentId));
+  }
+
+  // -----------------------------------------------------
+  // Get agent list for dropdown
+  // -----------------------------------------------------
+  @Get('agents')
+  async getAgents() {
+    return this.service.getAgentsList();
+  }
+
+  // -----------------------------------------------------
+  // Reassign a single loan to another agent
+  // -----------------------------------------------------
+  @Patch('reassign/:id')
+  async reassign(
+    @Param('id') assignmentId: number,
+    @Body() dto: { newAgentId: number },
+  ) {
+    return this.service.overrideAssignment({
+      assignmentId,
+      newAgentId: dto.newAgentId,
+    });
+  }
+
 }
