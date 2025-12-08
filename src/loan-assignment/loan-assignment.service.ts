@@ -185,7 +185,53 @@ export class LoanAssignmentService {
     result.setDate(result.getDate() + days);
     return result;
   }
+
+  // -----------------------------------------------------
+// AGENT QUEUE — list of accounts assigned to an agent
+// -----------------------------------------------------
+async getAgentQueue(agentId: number) {
+  return this.assignmentRepo.find({
+    where: { agentId, active: true },
+    order: { createdAt: 'DESC' },
+  });
 }
+
+// -----------------------------------------------------
+// MANUAL OVERRIDE (single account)
+// -----------------------------------------------------
+async overrideAssignment(dto: { assignmentId: number; newAgentId: number }) {
+  const assignment = await this.assignmentRepo.findOne({
+    where: { id: dto.assignmentId },
+  });
+
+  if (!assignment) {
+    throw new Error('Assignment not found');
+  }
+
+  assignment.agentId = dto.newAgentId;
+  assignment.updatedAt = new Date();
+
+  return this.assignmentRepo.save(assignment);
+}
+
+// -----------------------------------------------------
+// BULK OVERRIDE (all accounts of an agent)
+// -----------------------------------------------------
+async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
+  const accounts = await this.assignmentRepo.find({
+    where: { agentId: dto.fromAgentId, active: true },
+  });
+
+  for (const acc of accounts) {
+    acc.agentId = dto.toAgentId;
+    acc.updatedAt = new Date();
+  }
+
+  return this.assignmentRepo.save(accounts);
+}
+
+}
+
 
 
 
