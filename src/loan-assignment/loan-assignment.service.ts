@@ -158,7 +158,7 @@ export class LoanAssignmentService {
       FROM dbo.User_Accounts ua
       INNER JOIN dbo.User_Roles ur ON ur.user_id = ua.id
       INNER JOIN dbo.Roles r ON r.id = ur.role_id
-      WHERE ua.status = 'ACTIVE'
+      WHERE ua.status = 1
         AND r.name LIKE 'Collection Agent%'
     `;
 
@@ -237,6 +237,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
