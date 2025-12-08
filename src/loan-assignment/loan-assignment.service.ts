@@ -106,8 +106,8 @@ export class LoanAssignmentService {
 
     if (!rotation) {
       rotation = this.rotationRepo.create({
-        locationType: location,
-        branchId,
+        locationType: locationType,
+        branchId: branchId,
         lastIndex: 0,
       });
 
@@ -186,5 +186,6 @@ export class LoanAssignmentService {
     return result;
   }
 }
+
 
 
