@@ -6,6 +6,7 @@ import { LoanAssignment } from './entities/loan-assignment.entity';
 import { RotationState } from './entities/rotation-state.entity';
 import { LocationType } from './types/location-type';
 import { AccountClass } from './types/account-class';
+import { LOCATION_HQ, LOCATION_BRANCH } from './constants/location-constants';
 
 @Injectable()
 export class LoanAssignmentService {
@@ -73,9 +74,9 @@ export class LoanAssignmentService {
    * Categorizes data into HQ | BRANCH groups
    */
   private groupByLocation(loans: any[]): Record<LocationType, any[]> {
-    const grouped: Record<LocationType, any[]> = {
-      [LocationType.HQ]: [],
-      [LocationType.BRANCH]: [],
+    const grouped: Record<string, any[]> = {
+      [LOCATION_HQ]: [],
+      [LOCATION_BRANCH]: [],
     };
 
     for (const r of loans) {
@@ -185,4 +186,5 @@ export class LoanAssignmentService {
     return result;
   }
 }
+
 
