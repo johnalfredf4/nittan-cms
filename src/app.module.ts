@@ -13,7 +13,7 @@ import { ProductTypesModule } from './product-types/product-types.module';
 import { AccountRetentionModule } from './account-retention/account-retention.module';
 import { DispositionsModule } from './dispositions/dispositions.module';
 import { LoanAssignmentModule } from './loan-assignment/loan-assignment.module';
-
+import ormconfig from './config/ormconfig';
 // 👉 Entities belonging to the writable DB (nittan_app)
 import { User } from './users/entities/user.entity';
 import { Role } from './roles/entities/role.entity';
@@ -29,6 +29,8 @@ import { RotationState } from './loan-assignment/entities/rotation-state.entity'
 
 @Module({
   imports: [
+     // DEFAULT DATABASE (CMS writable DB)
+    TypeOrmModule.forRoot(ormconfig),
     // MAIN connection -> all repositories use this automatically
     TypeOrmModule.forRoot({
       name: 'nittan_app', // MUST MATCH injection usage
