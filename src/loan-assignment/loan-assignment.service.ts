@@ -28,6 +28,12 @@ export class LoanAssignmentService {
     @InjectRepository(User, 'nittan_app')
     private readonly userRepo: Repository<User>, // <-- REQUIRED
 
+    @InjectDataSource('nittan_app')
+    private readonly appDataSource: DataSource,
+  
+    @InjectDataSource('nittan')
+    private readonly coreDb: DataSource,
+
     private readonly nittanSource: DataSource,
     private readonly nittanAppSource: DataSource,
   ) {}
@@ -498,6 +504,7 @@ async getAllAssignments() {
 
 
 }
+
 
 
 
