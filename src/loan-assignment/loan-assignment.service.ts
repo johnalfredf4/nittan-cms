@@ -151,12 +151,15 @@ export class LoanAssignmentService {
       : 'Collection Agent - Branch';
 
     const query = `
-      SELECT u.id, u.username, u.BranchId
-      FROM [dbo].[User_Accounts] u
-      INNER JOIN [dbo].[User_Roles] ur ON ur.user_id = u.id
-      INNER JOIN [dbo].[Roles] r ON r.id = ur.role_id
-      WHERE r.name = '${roleName}'
-        AND u.status = 1
+      SELECT 
+        ua.EmployeeId AS agentId,
+        ua.BranchId,
+        r.name AS roleName
+      FROM dbo.User_Accounts ua
+      INNER JOIN dbo.User_Roles ur ON ur.user_id = ua.id
+      INNER JOIN dbo.Roles r ON r.id = ur.role_id
+      WHERE ua.status = 'ACTIVE'
+        AND r.name LIKE 'Collection Agent%'
     `;
 
     return await this.nittanAppSource.query(query);
@@ -234,6 +237,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
