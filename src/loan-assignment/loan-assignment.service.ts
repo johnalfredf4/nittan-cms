@@ -145,25 +145,56 @@ export class LoanAssignmentService {
   /**
    * Fetch agents assigned to location
    */
-  private async fetchAgents(locationType: LocationType): Promise<any[]> {
-    let roleName = locationType === LOCATION_HQ
-      ? 'Collection Agent - Head Office'
-      : 'Collection Agent - Branch';
+  private async fetchAgents(locationType: LocationType, branchId?: string): Promise<any[]> {
+  const query = `
+    SELECT 
+      ua.EmployeeId AS agentId,
+      ua.BranchId,
+      r.name AS roleName
+    FROM dbo.User_Accounts ua
+    INNER JOIN dbo.User_Roles ur ON ur.user_id = ua.id
+    INNER JOIN dbo.Roles r ON r.id = ur.role_id
+    WHERE ua.status = 1
+      AND r.name LIKE 'Collection Agent%'
+  `;
 
-    const query = `
-      SELECT 
-        ua.EmployeeId AS agentId,
-        ua.BranchId,
-        r.name AS roleName
-      FROM dbo.User_Accounts ua
-      INNER JOIN dbo.User_Roles ur ON ur.user_id = ua.id
-      INNER JOIN dbo.Roles r ON r.id = ur.role_id
-      WHERE ua.status = 1
-        AND r.name LIKE 'Collection Agent%'
-    `;
+  const pool = await this.nittanAppDataSource.manager.connection;
+  const agents = await pool.query(query);
 
-    return await this.nittanAppSource.query(query);
+  console.log('🔍 Raw Agents From DB:', agents);
+
+  // Normalize values
+  const normalizedAgents = agents.map(a => ({
+    ...a,
+    roleName: a.roleName?.trim().toLowerCase(),
+    BranchId: a.BranchId ? String(a.BranchId).toLowerCase() : null,
+  }));
+
+  if (locationType === LOCATION_HQ) {
+    return normalizedAgents.filter(a =>
+      a.roleName.includes('head office') || a.roleName.includes('hq')
+    );
   }
+
+  if (locationType === LOCATION_BRANCH) {
+    if (!branchId) return [];
+
+    const normalizedBranchId = String(branchId).toLowerCase();
+
+    const filtered = normalizedAgents.filter(a =>
+      a.roleName.includes('branch') &&
+      a.BranchId &&
+      a.BranchId === normalizedBranchId
+    );
+
+    console.log(`🟦 Filtered Branch Agents for branchId= ${branchId} :`, filtered);
+
+    return filtered;
+  }
+
+  return [];
+}
+
 
   /**
    * Convert DPD into enum class
@@ -237,6 +268,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
