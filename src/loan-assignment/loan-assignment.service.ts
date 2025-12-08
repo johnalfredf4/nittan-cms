@@ -4,6 +4,7 @@ import { Repository, DataSource } from 'typeorm';
 import { LoanAssignment } from './entities/loan-assignment.entity';
 import { RotationState } from './entities/rotation-state.entity';
 import { LocationType } from './types/location-type';
+import { AccountClass } from './types/account-class';
 
 @Injectable()
 export class LoanAssignmentService {
@@ -147,16 +148,16 @@ export class LoanAssignmentService {
   /**
    * MAP DPD TO ACCOUNT CLASS
    */
-  private getAccountClass(dpd: number): string {
-    if (dpd >= 181) return '181+';
-    if (dpd >= 151) return '151-180';
-    if (dpd >= 121) return '121-150';
-    if (dpd >= 91) return '91-120';
-    if (dpd >= 61) return '61-90';
-    if (dpd >= 31) return '31-60';
-    if (dpd >= 1) return '1-30';
-    return '0DPD';
-  }
+  getAccountClass(dpd: number): AccountClass {
+  if (dpd <= 0) return AccountClass.ZeroDPD;
+  if (dpd <= 30) return AccountClass.OneTo30DPD;
+  if (dpd <= 60) return AccountClass.ThirtyOneTo60DPD;
+  if (dpd <= 90) return AccountClass.SixtyOneTo90DPD;
+  if (dpd <= 120) return AccountClass.NinetyOneTo120DPD;
+  if (dpd <= 150) return AccountClass.OneTwentyOneTo150DPD;
+  if (dpd <= 180) return AccountClass.OneFiftyOneTo180DPD;
+  return AccountClass.OneEightyPlusDPD;
+}
 
   /**
    * CALCULATE END OF RETENTION
@@ -235,3 +236,4 @@ export class LoanAssignmentService {
     };
   }
 }
+
