@@ -1,9 +1,6 @@
 import { IsUUID, IsInt } from 'class-validator';
 
 export class OverrideAssignmentDto {
-  @IsUUID()
-  assignmentId: string;
-
-  @IsInt()
+  assignmentId: number;
   newAgentId: number;
 }
