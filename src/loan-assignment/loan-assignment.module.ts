@@ -1,16 +1,17 @@
 import { Module } from '@nestjs/common';
-import { LoanAssignmentService } from './loan-assignment.service';
-import { LoanAssignmentController } from './loan-assignment.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoanAssignment } from './entities/loan-assignment.entity';
 import { RotationState } from './entities/rotation-state.entity';
-import { ScheduleModule } from '@nestjs/schedule';
+import { LoanAssignmentService } from './loan-assignment.service';
+import { LoanAssignmentController } from './loan-assignment.controller';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(),
-    TypeOrmModule.forFeature([LoanAssignment, RotationState], 'nittan_app'),
-    TypeOrmModule.forFeature([], 'nittan'), // read-only source DB
+    // ✅ Uses DEFAULT connection (Nittan_App)
+    TypeOrmModule.forFeature([LoanAssignment, RotationState]),
+
+    // ✅ Attach the Nittan connection so we can @InjectDataSource('nittan')
+    TypeOrmModule.forFeature([], 'nittan'),
   ],
   providers: [LoanAssignmentService],
   controllers: [LoanAssignmentController],
