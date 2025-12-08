@@ -486,7 +486,7 @@ async getAgentsList() {
       AND r.name LIKE 'Collection Agent%'
   `;
 
-  const agents = await this.mainDataSource.query(query);
+  const agents = await this.appDataSource.query(query);
   return agents;
 }
 
@@ -498,6 +498,7 @@ async getAllAssignments() {
 
 
 }
+
 
 
 
