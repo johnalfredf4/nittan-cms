@@ -16,18 +16,20 @@ export class LoanAssignmentService {
   private readonly logger = new Logger(LoanAssignmentService.name);
 
   constructor(
-    @InjectRepository(LoanAssignment)
-    private readonly assignmentRepo: Repository<LoanAssignment>,
+  @InjectRepository(LoanAssignment)
+  private readonly assignmentRepo: Repository<LoanAssignment>,
 
-    @InjectRepository(RotationState)
-    private readonly rotationRepo: Repository<RotationState>,
+  @InjectRepository(RotationState)
+  private readonly rotationRepo: Repository<RotationState>,
 
-    @InjectDataSource('nittan')
-    private readonly nittanDs: DataSource,
+  // Nittan = external DB
+  @InjectDataSource('nittan')
+  private readonly nittanDs: DataSource,
 
-    @InjectDataSource('nittan_app')
-    private readonly nittanAppDs: DataSource,
-  ) {}
+  // default DB = CMS DB
+  private readonly nittanAppDs: DataSource,
+) {}
+
 
   private async getReceivables() {
     const sql = `
@@ -219,3 +221,4 @@ export class LoanAssignmentService {
     return this.assignmentRepo.find({ where: { agentId, active: true } });
   }
 }
+
