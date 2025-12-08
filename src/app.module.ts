@@ -26,9 +26,11 @@ import { DispositionCategory } from './dispositions/entities/disposition-categor
 import { Disposition } from './dispositions/entities/disposition.entity';
 import { LoanAssignment } from './loan-assignment/entities/loan-assignment.entity';
 import { RotationState } from './loan-assignment/entities/rotation-state.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
      // DEFAULT DATABASE (CMS writable DB)
     TypeOrmModule.forRoot(ormconfig),
     // MAIN connection -> all repositories use this automatically
