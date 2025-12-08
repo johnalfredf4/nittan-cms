@@ -71,6 +71,63 @@ export class LoanAssignmentService {
     return this.nittanAppDs.query(sql);
   }
 
+  async getAgentQueue(agentId: number) {
+    return this.assignmentRepo.find({
+      where: {
+        agentId,
+        active: true,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
+async overrideAssignment(dto: { assignmentId: number; newAgentId: number }) {
+  const assignment = await this.assignmentRepo.findOne({
+    where: { id: dto.assignmentId },
+  });
+
+  if (!assignment) throw new Error('Assignment not found');
+
+  assignment.agentId = dto.newAgentId;
+  assignment.active = true;
+  assignment.updatedAt = new Date();
+
+  await this.assignmentRepo.save(assignment);
+
+  return { success: true };
+}
+
+async bulkOverride(dto: {
+  fromAgentId: number;
+  toAgentId: number;
+  accountClass?: string;
+}) {
+  const conditions: any = {
+    agentId: dto.fromAgentId,
+    active: true,
+  };
+
+  if (dto.accountClass) {
+    conditions.accountClass = dto.accountClass;
+  }
+
+  const affectedRows = await this.assignmentRepo.find({
+    where: conditions,
+  });
+
+  for (const row of affectedRows) {
+    row.agentId = dto.toAgentId;
+    row.updatedAt = new Date();
+  }
+
+  await this.assignmentRepo.save(affectedRows);
+
+  return { updated: affectedRows.length };
+}
+
+
   // ----------------------------
   // GROUPING & AGENT FILTERS
   // ----------------------------
@@ -227,4 +284,5 @@ export class LoanAssignmentService {
   // TODO: keep your overrideAssignment / bulkOverride / getAgentQueue methods below…
   // (Left out here so we focus just on fixing compile issues around runRotation & LocationType)
 }
+
 
