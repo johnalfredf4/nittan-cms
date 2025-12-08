@@ -9,10 +9,10 @@ import { EmailTemplateVersion } from './entities/email-template-version.entity';
 @Injectable()
 export class EmailTemplatesService {
   constructor(
-    @InjectRepository(EmailTemplate)
+    @InjectRepository(EmailTemplate, 'nittan_app')
     private readonly repo: Repository<EmailTemplate>,
 
-    @InjectRepository(EmailTemplateVersion)
+    @InjectRepository(EmailTemplateVersion, 'nittan_app')
     private readonly versionRepo: Repository<EmailTemplateVersion>,
   ) {}
 
