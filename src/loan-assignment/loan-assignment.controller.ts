@@ -22,13 +22,16 @@ export class LoanAssignmentController {
     return this.service.bulkOverride(dto);
   }
 
-  // -----------------------------------------------------
-  // Get ALL assignments
-  // -----------------------------------------------------
-  @Get('all')
-  async getAllAssignments() {
-    return this.service.getAllAssignments();
-  }
+  @Get('agents')
+async getAgents() {
+  return await this.service.getAllAgents();
+}
+
+@Get('all')
+async getAllAssignments() {
+  return await this.service.getAllAssignments();
+}
+
 
   // -----------------------------------------------------
   // Get assignments of specific agent
@@ -37,15 +40,7 @@ export class LoanAssignmentController {
   async getAssignmentsForAgent(@Param('agentId') agentId: number) {
     return this.service.getAgentQueue(Number(agentId));
   }
-
-  // -----------------------------------------------------
-  // Get agent list for dropdown
-  // -----------------------------------------------------
-  @Get('agents')
-  async getAgents() {
-    return this.service.getAgentsList();
-  }
-
+  
   // -----------------------------------------------------
   // Reassign a single loan to another agent
   // -----------------------------------------------------
