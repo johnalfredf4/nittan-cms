@@ -8,7 +8,7 @@ import { UpdateProductTypeDto } from './dto/update-product-type.dto';
 @Injectable()
 export class ProductTypesService {
   constructor(
-    @InjectRepository(ProductType)
+    @InjectRepository(ProductType, 'nittan_app')
     private repo: Repository<ProductType>,
   ) {}
 
