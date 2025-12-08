@@ -1,18 +1,19 @@
-import { Entity, PrimaryGeneratedColumn, Column, Index } from 'typeorm';
-import { LocationType } from './loan-assignment.entity';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({ name: 'Loan_Assignment_Rotation' })
-@Index(['locationType', 'branchId'], { unique: true })
+@Entity()
 export class RotationState {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ type: 'enum', enum: LocationType })
-  locationType: LocationType;
+  @Column({ type: 'varchar', length: 10 })
+  locationType: 'HQ' | 'BRANCH';
 
   @Column({ type: 'int', nullable: true })
   branchId: number | null;
 
   @Column({ type: 'int', default: 0 })
-  lastIndex: number;
+  lastAssignedAgentIndex: number;
+
+  @Column({ type: 'datetime', default: () => 'GETDATE()' })
+  updatedAt: Date;
 }
