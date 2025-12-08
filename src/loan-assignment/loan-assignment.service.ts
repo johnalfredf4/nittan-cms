@@ -41,8 +41,9 @@ export class LoanAssignmentService {
 
     const grouped = this.groupByLocation(loans);
 
-    await this.assignForLocation(LocationType.HQ, grouped[LOCATION_HQ]);
-    await this.assignForLocation(LocationType.BRANCH, grouped[LocationType.BRANCH]);
+    await this.assignForLocation('HQ', grouped['HQ']);
+    await this.assignForLocation('BRANCH', grouped['BRANCH']);
+
 
     this.logger.log('Loan rotation completed.');
   }
@@ -81,7 +82,7 @@ export class LoanAssignmentService {
 
     for (const r of loans) {
       if (r.BranchId === null) grouped[LOCATION_HQ].push(r);
-      else grouped[LocationType.BRANCH].push(r);
+      else grouped['BRANCH'].push(r);
     }
 
     return grouped;
@@ -106,7 +107,7 @@ export class LoanAssignmentService {
 
     if (!rotation) {
       rotation = this.rotationRepo.create({
-        locationType: locationType,
+        locationType: location,
         branchId: branchId,
         lastIndex: 0,
       });
@@ -231,6 +232,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
