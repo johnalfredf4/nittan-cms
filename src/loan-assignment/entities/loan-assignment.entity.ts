@@ -8,30 +8,24 @@ import {
 } from 'typeorm';
 import { LocationType } from '../types/location-type';
 import { AccountClass } from '../types/account-class';
-import { LOCATION_HQ, LOCATION_BRANCH } from '../constants/location-constants';
-
-
 
 @Entity({ name: 'Loan_Assignments' })
 @Index(['loanApplicationId', 'active'], { unique: true })
 export class LoanAssignment {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column()
+  @Column({ type: 'int' })
   loanApplicationId: number;
 
-  @Column()
+  @Column({ type: 'int' })
   agentId: number; // maps User_Accounts.id
 
-  @Column({
-    type: 'varchar',
-    length: 10,
-  })
-  locationType: LocationType;
+  @Column({ type: 'varchar', length: 10 })
+  locationType: LocationType; // 'HQ' | 'BRANCH'
 
-  @Column({ nullable: true })
-  branchId: number | null;
+  @Column({ type: 'int', nullable: true })
+  branchId: number | null; // NULL means HQ
 
   @Column({ type: 'date' })
   dueDate: Date;
@@ -39,20 +33,17 @@ export class LoanAssignment {
   @Column({ type: 'int' })
   dpd: number;
 
-  @Column({
-    type: 'varchar',
-    length: 50,
-  })
+  @Column({ type: 'varchar', length: 50 })
   accountClass: AccountClass;
 
   @Column({ type: 'datetime' })
   retentionUntil: Date;
 
-  @Column({ default: true })
+  @Column({ type: 'bit', default: true })
   active: boolean;
 
-  @Column({ nullable: true })
-  previousAssignmentId: string | null;
+  @Column({ type: 'int', nullable: true })
+  previousAssignmentId: number | null;
 
   @CreateDateColumn()
   createdAt: Date;
