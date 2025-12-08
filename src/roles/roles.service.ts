@@ -6,9 +6,10 @@ import { Role } from './entities/role.entity';
 @Injectable()
 export class RolesService {
   constructor(
-    @InjectRepository(Role)
-    private readonly rolesRepo: Repository<Role>,
-  ) {}
+  @InjectRepository(Role, 'nittan_app')
+  private readonly repo: Repository<Role>,
+) {}
+
 
   findAll(): Promise<Role[]> {
     return this.rolesRepo.find();
