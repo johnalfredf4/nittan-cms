@@ -76,12 +76,13 @@ import { ScheduleModule } from '@nestjs/schedule';
       database: 'Nittan',
       synchronize: false,
       autoLoadEntities: false,
+      requestTimeout: 6000000,
       entities: [], // must stay empty
       options: {
         encrypt: false,
         trustServerCertificate: true,
-        connectionTimeout: 6000000,
-        requestTimeout: 6000000,
+        connectTimeout: 6000000,
+        
       },
     }),
 
