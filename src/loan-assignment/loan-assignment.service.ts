@@ -176,7 +176,15 @@ export class LoanAssignmentService {
 
   private async getRotationState(locationType: LocationType, branchId: number | null): Promise<RotationState> {
     let existing = await this.rotationRepo.findOne({ where: { locationType, branchId }});
-    if (!existing) existing = this.rotationRepo.create({ locationType, branchId, lastAssignedAgentIndex: 0 });
+    if (!existing) {
+      existing = this.rotationRepo.create({
+        locationType,
+        branchId,
+        lastAssignedAgentIndex: 0,
+      });
+      await this.rotationRepo.save(existing);
+    }
+
     return existing;
   }
 
@@ -221,6 +229,7 @@ export class LoanAssignmentService {
     return this.assignmentRepo.find({ where: { agentId, active: true } });
   }
 }
+
 
 
 
