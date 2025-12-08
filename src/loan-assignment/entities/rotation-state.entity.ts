@@ -1,16 +1,13 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { LocationType } from '../types/location-type';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { LocationType } from './loan-assignment.entity';
 
-@Column({ type: 'varchar', length: 10 })
-locationType: LocationType;
-
-@Entity()
+@Entity({ name: 'Loan_Assignment_Rotation' })
 export class RotationState {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'varchar', length: 10 })
-  locationType: 'HQ' | 'BRANCH';
+  locationType: LocationType;
 
   @Column({ type: 'int', nullable: true })
   branchId: number | null;
