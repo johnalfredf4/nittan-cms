@@ -198,8 +198,9 @@ private async saveRotationIndex(branchId: number | null, newIndex: number): Prom
     await this.assignmentRepo.save({
       loanApplicationId: loan.LoanApplicationId,
       agentId: agents[index % agents.length].agentId,
-      accountClass: loan.CustomerClass,
+      accountClass: loan.CustomerClass ?? '',
       branchId: null,
+      locationType: LOCATION_HQ,
       updatedAt: new Date(),
     });
 
@@ -228,8 +229,9 @@ private async assignForBranch(branchId: number, loans: any[]) {
     await this.assignmentRepo.save({
       loanApplicationId: loan.LoanApplicationId,
       agentId: agents[index % agents.length].agentId,
-      accountClass: loan.CustomerClass,
+      accountClass: loan.CustomerClass ?? '',
       branchId: branchId,
+      locationType: LOCATION_BRANCH,
       updatedAt: new Date(),
     });
 
@@ -366,6 +368,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
