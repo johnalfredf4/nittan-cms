@@ -12,6 +12,7 @@ import { LoanAssignment } from '../loan-assignment/entities/loan-assignment.enti
 import { RotationState } from '../loan-assignment/entities/rotation-state.entity';
 
 const ormconfig: TypeOrmModuleOptions = {
+  name: 'nittan_app',  // ⭐ REQUIRED
   type: 'mssql',
   host: 'nittan-rds.chsm6icykzm3.ap-southeast-1.rds.amazonaws.com',
   port: 1433,
@@ -24,10 +25,10 @@ const ormconfig: TypeOrmModuleOptions = {
     EmailTemplate,
     EmailTemplateVersion,
     SmsTemplate,
-    ProductType, 
-    AccountRetention, 
-    DispositionCategory,  
-    Disposition, 
+    ProductType,
+    AccountRetention,
+    DispositionCategory,
+    Disposition,
     LoanAssignment,
     RotationState,
   ],
