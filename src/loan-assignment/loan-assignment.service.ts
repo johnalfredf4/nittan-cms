@@ -187,7 +187,12 @@ async runRotation() {
   }
 
   this.logger.log('Rotation completed.');
-}
+} // END runRotation()
+
+
+} // 👈 MUST ADD THIS — end of class
+
+
 
 
 
