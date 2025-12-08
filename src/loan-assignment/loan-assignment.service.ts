@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
-import { Repository, DataSource, In } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import {
   LoanAssignment,
   AccountClass,
-  LocationType,
+  LocationType, // enum: HQ | BRANCH
 } from './entities/loan-assignment.entity';
 import { RotationState } from './entities/rotation-state.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -29,6 +29,9 @@ export class LoanAssignmentService {
     private readonly nittanAppDs: DataSource,
   ) {}
 
+  // ----------------------------
+  // DB HELPERS
+  // ----------------------------
   private async getReceivables() {
     const sql = `
       WITH NextReceivables AS (
@@ -68,38 +71,50 @@ export class LoanAssignmentService {
     return this.nittanAppDs.query(sql);
   }
 
-  private groupReceivablesByLocation(receivables: any[]) {
-  const grouped: Record<string, any[]> = {
-    HQ: [],
-    BRANCH: [],
-  };
+  // ----------------------------
+  // GROUPING & AGENT FILTERS
+  // ----------------------------
+  private groupReceivablesByLocation(receivables: any[]): Record<LocationType, any[]> {
+    const grouped: Record<LocationType, any[]> = {
+      [LocationType.HQ]: [],
+      [LocationType.BRANCH]: [],
+    };
 
-  for (const r of receivables) {
-    if (r.BranchId === null) grouped.HQ.push(r);
-    else grouped.BRANCH.push(r);
+    for (const r of receivables) {
+      if (r.BranchId === null) grouped[LocationType.HQ].push(r);
+      else grouped[LocationType.BRANCH].push(r);
+    }
+
+    return grouped;
   }
 
-  return grouped;
-}
+  private async getAgentsForLocation(
+    locationType: LocationType,
+    branchId: number | null,
+  ) {
+    const allAgents = await this.getAgents();
 
-private async getAgentsForLocation(
-  locationType: LocationType,
-  branchId: number | null,
-) {
-  const allAgents = await this.getAgents();
+    if (locationType === LocationType.HQ) {
+      return allAgents.filter(
+        (a: any) => a.roleName === 'Collection Agent - Head Office',
+      );
+    }
 
-  if (locationType === LocationType.HQ) {
-    return allAgents.filter(a => a.roleName === 'Collection Agent - Head Office');
+    return allAgents.filter(
+      (a: any) =>
+        a.roleName === 'Collection Agent - Branch' &&
+        a.BranchId === branchId,
+    );
   }
 
-  return allAgents.filter(
-    a => a.roleName === 'Collection Agent - Branch' && a.BranchId === branchId,
-  );
-}
-
+  // ----------------------------
+  // ACCOUNT CLASS & RETENTION
+  // ----------------------------
   private classifyAccount(dueDate: Date) {
     const now = new Date();
-    const diff = Math.floor((now.getTime() - new Date(dueDate).getTime()) / (1000 * 60 * 60 * 24));
+    const diff = Math.floor(
+      (now.getTime() - new Date(dueDate).getTime()) / (1000 * 60 * 60 * 24),
+    );
 
     let retention = 7;
     let cls: AccountClass;
@@ -119,80 +134,96 @@ private async getAgentsForLocation(
     return { dpd: diff, retention, accountClass: cls };
   }
 
+  // ----------------------------
+  // MAIN CRON JOB
+  // ----------------------------
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
-async runRotation() {
-  this.logger.log('Processing rotation...');
+  async runRotation() {
+    this.logger.log('Processing rotation...');
 
-  const receivables = await this.getReceivables();
+    const receivables = await this.getReceivables();
 
-  if (!receivables?.length) {
-    this.logger.log('No receivables found.');
-    return;
-  }
+    if (!receivables?.length) {
+      this.logger.log('No receivables found.');
+      return;
+    }
 
-  const grouped = this.groupReceivablesByLocation(receivables);
+    const grouped = this.groupReceivablesByLocation(receivables);
 
-  for (const [locationType, items] of Object.entries(grouped)) {
-    const branchIds =
-      locationType === LocationType.HQ
-        ? [null]
-        : [...new Set(items.map(r => r.BranchId))]; // unique BranchId values
+    // grouped: { HQ: [...], BRANCH: [...] }
+    for (const [locationTypeKey, items] of Object.entries(grouped)) {
+      const locationType = locationTypeKey as LocationType;
 
-    for (const branchId of branchIds) {
-      const filteredReceivables =
+      const branchIds =
         locationType === LocationType.HQ
-          ? items
-          : items.filter(r => r.BranchId === branchId);
+          ? [null]
+          : [...new Set(items.map((r: any) => r.BranchId))]; // unique BranchId values
 
-      const filteredAgents = await this.getAgentsForLocation(locationType, branchId);
-      if (!filteredAgents?.length) continue;
+      for (const branchId of branchIds) {
+        const filteredReceivables =
+          locationType === LocationType.HQ
+            ? items
+            : items.filter((r: any) => r.BranchId === branchId);
 
-      let rotation = await this.rotationRepo.findOne({
-        where: { locationType, branchId },
-      });
-
-      if (!rotation) {
-        rotation = this.rotationRepo.create({
+        const filteredAgents = await this.getAgentsForLocation(
           locationType,
           branchId,
-          lastAssignedAgentIndex: 0,
+        );
+        if (!filteredAgents?.length) continue;
+
+        let rotation = await this.rotationRepo.findOne({
+          where: { locationType, branchId },
         });
-        rotation = await this.rotationRepo.save(rotation);
-      }
 
-      let index = rotation.lastAssignedAgentIndex % filteredAgents.length;
-
-      for (const rec of filteredReceivables) {
-        const agent = filteredAgents[index];
-
-        await this.assignmentRepo.save(
-          this.assignmentRepo.create({
-            loanApplicationId: rec.LoanApplicationId,
-            dueDate: rec.DueDate,
-            agentId: agent.userId,
+        if (!rotation) {
+          rotation = this.rotationRepo.create({
             locationType,
             branchId,
-            assignedAt: new Date(),
-          }),
-        );
+            lastAssignedAgentIndex: 0,
+          });
+          rotation = await this.rotationRepo.save(rotation);
+        }
 
-        index++;
-        if (index >= filteredAgents.length) index = 0;
+        let index =
+          rotation.lastAssignedAgentIndex % filteredAgents.length;
+
+        for (const rec of filteredReceivables) {
+          const agent = filteredAgents[index];
+
+          const { dpd, retention, accountClass } = this.classifyAccount(
+            rec.DueDate,
+          );
+
+          const retentionUntil = new Date();
+          retentionUntil.setDate(retentionUntil.getDate() + retention);
+
+          const assignment = this.assignmentRepo.create({
+            loanApplicationId: rec.LoanApplicationId,
+            agentId: agent.userId,
+            branchId,
+            locationType,
+            dueDate: rec.DueDate,
+            dpd,
+            accountClass,
+            retentionUntil,
+            active: true,
+          });
+
+          await this.assignmentRepo.save(assignment);
+
+          index++;
+          if (index >= filteredAgents.length) index = 0;
+        }
+
+        rotation.lastAssignedAgentIndex = index;
+        rotation.updatedAt = new Date();
+        await this.rotationRepo.save(rotation);
       }
-
-      rotation.lastAssignedAgentIndex = index;
-      rotation.updatedAt = new Date();
-      await this.rotationRepo.save(rotation);
     }
+
+    this.logger.log('Rotation completed.');
   }
 
-  this.logger.log('Rotation completed.');
-} // END runRotation()
-
-
-} // 👈 MUST ADD THIS — end of class
-
-
-
-
-
+  // TODO: keep your overrideAssignment / bulkOverride / getAgentQueue methods below…
+  // (Left out here so we focus just on fixing compile issues around runRotation & LocationType)
+}
