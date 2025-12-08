@@ -76,19 +76,31 @@ export class LoanAssignmentService {
   /**
    * Categorizes data into HQ | BRANCH groups
    */
-  private groupByLocation(loans: any[]): Record<LocationType, any[]> {
-    const grouped: Record<string, any[]> = {
-      [LOCATION_HQ]: [],
-      [LOCATION_BRANCH]: [],
-    };
+  private groupByLocation(loans: any[]): {
+  HQ: any[];
+  BRANCH: Record<number, any[]>;
+} {
+  const grouped = {
+    HQ: [],
+    BRANCH: {} as Record<number, any[]>,
+  };
 
-    for (const r of loans) {
-      if (r.BranchId === null) grouped[LOCATION_HQ].push(r);
-      else grouped['BRANCH'].push(r);
+  for (const r of loans) {
+    if (!r.BranchId) {
+      // belongs to HQ
+      grouped.HQ.push(r);
+    } else {
+      // belongs to a specific branch
+      if (!grouped.BRANCH[r.BranchId]) {
+        grouped.BRANCH[r.BranchId] = [];
+      }
+      grouped.BRANCH[r.BranchId].push(r);
     }
-
-    return grouped;
   }
+
+  return grouped;
+}
+
 
   /**
    * Assign accounts to available agents
@@ -268,6 +280,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
