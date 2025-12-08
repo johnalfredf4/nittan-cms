@@ -4,10 +4,11 @@ import { LOCATION_HQ, LOCATION_BRANCH } from '../constants/location-constants';
 
 
 
-@Entity({ name: 'Loan_Assignment_Rotation' })
+@Entity('Loan_Assignment_Rotation')
 export class RotationState {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ type: 'varchar', length: 10 })
   locationType: LocationType;
@@ -21,3 +22,4 @@ export class RotationState {
   @Column({ type: 'datetime', default: () => 'GETDATE()' })
   updatedAt: Date;
 }
+
