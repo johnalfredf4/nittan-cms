@@ -16,20 +16,18 @@ export class LoanAssignmentService {
   private readonly logger = new Logger(LoanAssignmentService.name);
 
   constructor(
-  @InjectRepository(LoanAssignment)
-  private readonly assignmentRepo: Repository<LoanAssignment>,
+    @InjectRepository(LoanAssignment, 'nittan_app')
+    private readonly assignmentRepo: Repository<LoanAssignment>,
 
-  @InjectRepository(RotationState)
-  private readonly rotationRepo: Repository<RotationState>,
+    @InjectRepository(RotationState, 'nittan_app')
+    private readonly rotationRepo: Repository<RotationState>,
 
-  @InjectDataSource('nittan')
-  private readonly nittanDs: DataSource,
+    @InjectDataSource('nittan')
+    private readonly nittanDs: DataSource,
 
-  @InjectDataSource('nittan_app')
-  private readonly nittanAppDs: DataSource,
-) {}
-
-
+    @InjectDataSource('nittan_app')
+    private readonly nittanAppDs: DataSource,
+  ) {}
 
   private async getReceivables() {
     const sql = `
@@ -73,6 +71,7 @@ export class LoanAssignmentService {
   private classifyAccount(dueDate: Date) {
     const now = new Date();
     const diff = Math.floor((now.getTime() - new Date(dueDate).getTime()) / (1000 * 60 * 60 * 24));
+
     let retention = 7;
     let cls: AccountClass;
 
@@ -95,10 +94,7 @@ export class LoanAssignmentService {
   async runRotation() {
     this.logger.log('Running loan assignment rotation...');
 
-    const [receivables, agents] = await Promise.all([
-      this.getReceivables(),
-      this.getAgents(),
-    ]);
+    const [receivables, agents] = await Promise.all([this.getReceivables(), this.getAgents()]);
 
     if (!receivables.length) return;
 
@@ -116,8 +112,7 @@ export class LoanAssignmentService {
 
     for (const r of eligible) {
       const branchId = r.BranchId ?? null;
-      const locationType =
-        branchId === null ? LocationType.HQ : LocationType.BRANCH;
+      const locationType = branchId === null ? LocationType.HQ : LocationType.BRANCH;
       const key = `${locationType}:${branchId ?? ''}`;
       if (!grouped.has(key)) grouped.set(key, []);
       grouped.get(key)!.push(r);
@@ -149,88 +144,3 @@ export class LoanAssignmentService {
 
         const agent = filteredAgents[index];
         index = (index + 1) % filteredAgents.length;
-
-        const assignment = this.assignmentRepo.create({
-          loanApplicationId: r.LoanApplicationId,
-          agentId: agent.userId,
-          branchId,
-          locationType: loc as LocationType,
-          dueDate: r.DueDate,
-          dpd,
-          accountClass,
-          retentionUntil,
-          active: true,
-        });
-
-        assignmentRecords.push(assignment);
-      }
-
-      rotation.lastAssignedAgentIndex = index;
-      await this.rotationRepo.save(rotation);
-    }
-
-    if (assignmentRecords.length) await this.assignmentRepo.save(assignmentRecords);
-
-    return assignmentRecords.length;
-  }
-
-  private async getRotationState(locationType: LocationType, branchId: number | null): Promise<RotationState> {
-    let existing = await this.rotationRepo.findOne({ where: { locationType, branchId }});
-    if (!existing) {
-      existing = this.rotationRepo.create({
-        locationType,
-        branchId,
-        lastAssignedAgentIndex: 0,
-      });
-      await this.rotationRepo.save(existing);
-    }
-
-    return existing;
-  }
-
-  async overrideAssignment(dto: OverrideAssignmentDto) {
-    const record = await this.assignmentRepo.findOne({ where: { id: dto.assignmentId }});
-    if (!record) return;
-
-    record.active = false;
-    await this.assignmentRepo.save(record);
-
-    const newAssign = this.assignmentRepo.create({
-      ...record,
-      id: undefined,
-      agentId: dto.newAgentId,
-      active: true,
-      previousAssignmentId: record.id,
-    });
-
-    return this.assignmentRepo.save(newAssign);
-  }
-
-  async bulkOverride(dto: BulkOverrideAssignmentDto) {
-    const current = await this.assignmentRepo.find({
-      where: { agentId: dto.fromAgentId, active: true },
-    });
-
-    const deactivated = current.map(a => ({ ...a, active: false }));
-    await this.assignmentRepo.save(deactivated);
-
-    const newAssignments = deactivated.map(old => ({
-      ...old,
-      id: undefined,
-      agentId: dto.toAgentId,
-      active: true,
-      previousAssignmentId: old.id,
-    }));
-
-    return this.assignmentRepo.save(newAssignments);
-  }
-
-  async getAgentQueue(agentId: number) {
-    return this.assignmentRepo.find({ where: { agentId, active: true } });
-  }
-}
-
-
-
-
-
