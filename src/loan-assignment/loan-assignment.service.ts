@@ -139,7 +139,7 @@ export class LoanAssignmentService {
 
       const rotation = await this.getRotationState(loc as LocationType, branchId);
 
-      let index = rotation.lastIndex % filteredAgents.length;
+      let index = rotation.lastAssignedAgentIndex % filteredAgents.length;
 
       for (const r of items) {
         const { dpd, retention, accountClass } = this.classifyAccount(r.DueDate);
@@ -165,7 +165,7 @@ export class LoanAssignmentService {
         assignmentRecords.push(assignment);
       }
 
-      rotation.lastIndex = index;
+      rotation.lastAssignedAgentIndex = index;
       await this.rotationRepo.save(rotation);
     }
 
@@ -176,7 +176,7 @@ export class LoanAssignmentService {
 
   private async getRotationState(locationType: LocationType, branchId: number | null) {
     let existing = await this.rotationRepo.findOne({ where: { locationType, branchId }});
-    if (!existing) existing = this.rotationRepo.create({ locationType, branchId, lastIndex: 0 });
+    if (!existing) existing = this.rotationRepo.create({ locationType, branchId, lastAssignedAgentIndex: 0 });
     return existing;
   }
 
@@ -221,4 +221,5 @@ export class LoanAssignmentService {
     return this.assignmentRepo.find({ where: { agentId, active: true } });
   }
 }
+
 
