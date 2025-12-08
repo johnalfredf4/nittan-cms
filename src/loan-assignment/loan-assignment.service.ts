@@ -213,7 +213,7 @@ export class LoanAssignmentService {
   // ----------------------------------------------------
   // MAIN ROTATION LOGIC (CRON JOB)
   // ----------------------------------------------------
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_MINUTE)
   async runRotation() {
     this.logger.log('Starting loan rotation...');
 
@@ -309,6 +309,7 @@ export class LoanAssignmentService {
     this.logger.log('Loan rotation completed.');
   }
 }
+
 
 
 
