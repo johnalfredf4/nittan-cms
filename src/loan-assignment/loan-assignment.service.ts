@@ -81,40 +81,71 @@ export class LoanAssignmentService {
   // REASSIGNMENT FUNCTIONS
   // ----------------------------------------------------
   async overrideAssignment(dto: OverrideAssignmentDto) {
-    const assignment = await this.assignmentRepo.findOne({
-      where: { id: dto.assignmentId.toString() },
-    });
+  const assignment = await this.assignmentRepo.findOne({
+    where: { id: dto.assignmentId.toString() },
+  });
 
-    if (!assignment) throw new Error('Assignment not found');
+  if (!assignment) throw new Error('Assignment not found');
 
-    assignment.agentId = Number(dto.newAgentId);
-    assignment.updatedAt = new Date();
-    assignment.active = true;
+  // deactivate existing
+  assignment.active = false;
+  assignment.updatedAt = new Date();
+  await this.assignmentRepo.save(assignment);
 
-    await this.assignmentRepo.save(assignment);
+  // create new
+  const newAssign = this.assignmentRepo.create({
+    loanApplicationId: assignment.loanApplicationId,
+    agentId: Number(dto.newAgentId),
+    branchId: assignment.branchId,
+    locationType: assignment.locationType,
+    dueDate: assignment.dueDate,
+    dpd: assignment.dpd,
+    accountClass: assignment.accountClass,
+    retentionUntil: assignment.retentionUntil,
+    active: true,
+    createdAt: new Date(),
+  });
 
-    return { success: true };
-  }
+  await this.assignmentRepo.save(newAssign);
+
+  return { success: true };
+}
+
 
   async bulkOverride(dto: BulkOverrideAssignmentDto) {
-    const where: any = {
-      agentId: Number(dto.fromAgentId),
+  const where: any = {
+    agentId: Number(dto.fromAgentId),
+    active: true,
+  };
+
+  if (dto.accountClass) where.accountClass = dto.accountClass;
+
+  const list = await this.assignmentRepo.find({ where });
+
+  for (const assignment of list) {
+    assignment.active = false;
+    assignment.updatedAt = new Date();
+    await this.assignmentRepo.save(assignment);
+
+    const newAssign = this.assignmentRepo.create({
+      loanApplicationId: assignment.loanApplicationId,
+      agentId: Number(dto.toAgentId),
+      branchId: assignment.branchId,
+      locationType: assignment.locationType,
+      dueDate: assignment.dueDate,
+      dpd: assignment.dpd,
+      retentionUntil: assignment.retentionUntil,
+      accountClass: assignment.accountClass,
+      createdAt: new Date(),
       active: true,
-    };
+    });
 
-    if (dto.accountClass) where.accountClass = dto.accountClass;
-
-    const list = await this.assignmentRepo.find({ where });
-
-    for (const assignment of list) {
-      assignment.agentId = Number(dto.toAgentId);
-      assignment.active = true;
-      assignment.updatedAt = new Date();
-      await this.assignmentRepo.save(assignment);
-    }
-
-    return { updated: list.length };
+    await this.assignmentRepo.save(newAssign);
   }
+
+  return { updated: list.length };
+}
+
 
   // ----------------------------------------------------
   // AGENT GROUPING & LOCATION FILTERING
@@ -261,4 +292,5 @@ export class LoanAssignmentService {
     this.logger.log('Loan rotation completed.');
   }
 }
+
 
