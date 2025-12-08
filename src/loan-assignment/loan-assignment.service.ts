@@ -60,7 +60,7 @@ export class LoanAssignmentService {
    * Reads due accounts from remote DB
    */
   private async fetchLoansFromSource(): Promise<any[]> {
-    const query = `
+  const query = `
       WITH NextReceivables AS (
           SELECT *,
                  DATEDIFF(DAY, DueDate, GETDATE()) AS DPD,
@@ -75,9 +75,11 @@ export class LoanAssignmentService {
       SELECT *
       FROM NextReceivables
       WHERE rn = 1;
-  ;
-    return await this.nittanSource.query(query);
-  }
+  `;
+
+  return await this.nittanSource.query(query);
+}
+
 
   /**
    * Categorizes data into HQ | BRANCH groups
@@ -380,6 +382,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
