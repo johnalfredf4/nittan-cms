@@ -68,6 +68,35 @@ export class LoanAssignmentService {
     return this.nittanAppDs.query(sql);
   }
 
+  private groupReceivablesByLocation(receivables: any[]) {
+  const grouped: Record<string, any[]> = {
+    HQ: [],
+    BRANCH: [],
+  };
+
+  for (const r of receivables) {
+    if (r.BranchId === null) grouped.HQ.push(r);
+    else grouped.BRANCH.push(r);
+  }
+
+  return grouped;
+}
+
+private async getAgentsForLocation(
+  locationType: LocationType,
+  branchId: number | null,
+) {
+  const allAgents = await this.getAgents();
+
+  if (locationType === LocationType.HQ) {
+    return allAgents.filter(a => a.roleName === 'Collection Agent - Head Office');
+  }
+
+  return allAgents.filter(
+    a => a.roleName === 'Collection Agent - Branch' && a.BranchId === branchId,
+  );
+}
+
   private classifyAccount(dueDate: Date) {
     const now = new Date();
     const diff = Math.floor((now.getTime() - new Date(dueDate).getTime()) / (1000 * 60 * 60 * 24));
@@ -91,29 +120,32 @@ export class LoanAssignmentService {
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
-  async runRotation() {
-  console.log('Processing account rotation...');
+async runRotation() {
+  this.logger.log('Processing rotation...');
 
-  const receivables = await this.getEligibleAccountsFromNittan();
+  const receivables = await this.getReceivables();
 
-  if (!receivables || receivables.length === 0) return;
+  if (!receivables?.length) {
+    this.logger.log('No receivables found.');
+    return;
+  }
 
   const grouped = this.groupReceivablesByLocation(receivables);
 
   for (const [locationType, items] of Object.entries(grouped)) {
+    const branchIds =
+      locationType === LocationType.HQ
+        ? [null]
+        : [...new Set(items.map(r => r.BranchId))]; // unique BranchId values
 
-    const branches =
-      locationType === 'BRANCH'
-        ? [...new Set(items.map(i => i.branchId))] // unique branch IDs
-        : [null]; // HQ case
-
-    for (const branchId of branches) {
-      const filteredItems = items.filter(x =>
-        locationType === 'HQ' ? true : x.branchId === branchId,
-      );
+    for (const branchId of branchIds) {
+      const filteredReceivables =
+        locationType === LocationType.HQ
+          ? items
+          : items.filter(r => r.BranchId === branchId);
 
       const filteredAgents = await this.getAgentsForLocation(locationType, branchId);
-      if (!filteredAgents || filteredAgents.length === 0) continue;
+      if (!filteredAgents?.length) continue;
 
       let rotation = await this.rotationRepo.findOne({
         where: { locationType, branchId },
@@ -128,20 +160,21 @@ export class LoanAssignmentService {
         rotation = await this.rotationRepo.save(rotation);
       }
 
-      let index =
-        rotation.lastAssignedAgentIndex % filteredAgents.length;
+      let index = rotation.lastAssignedAgentIndex % filteredAgents.length;
 
-      for (const r of filteredItems) {
+      for (const rec of filteredReceivables) {
         const agent = filteredAgents[index];
 
-        await this.assignmentRepo.save(this.assignmentRepo.create({
-          loanApplicationId: r.loanApplicationId,
-          dueDate: r.dueDate,
-          agentId: agent.id,
-          locationType,
-          branchId,
-          assignedAt: new Date(),
-        }));
+        await this.assignmentRepo.save(
+          this.assignmentRepo.create({
+            loanApplicationId: rec.LoanApplicationId,
+            dueDate: rec.DueDate,
+            agentId: agent.userId,
+            locationType,
+            branchId,
+            assignedAt: new Date(),
+          }),
+        );
 
         index++;
         if (index >= filteredAgents.length) index = 0;
@@ -153,6 +186,8 @@ export class LoanAssignmentService {
     }
   }
 
-  console.log('Rotation process completed.');
+  this.logger.log('Rotation completed.');
 }
+
+
 
