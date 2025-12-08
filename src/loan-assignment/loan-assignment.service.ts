@@ -214,7 +214,7 @@ async overrideAssignment(dto: { assignmentId: number; newAgentId: number }) {
     throw new Error('Assignment not found');
   }
 
-  assignment.agentId = dto.newAgentId;
+  assignment.agentId = Number(dto.newAgentId);
   assignment.updatedAt = new Date();
 
   return this.assignmentRepo.save(assignment);
@@ -237,6 +237,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
