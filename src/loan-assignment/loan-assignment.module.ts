@@ -5,6 +5,7 @@ import { LoanAssignmentController } from './loan-assignment.controller';
 import { LoanAssignment } from './entities/loan-assignment.entity';
 import { RotationState } from './entities/rotation-state.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { User } from '../users/entities/user.entity'; // ADD THIS
 
 @Module({
   imports: [
