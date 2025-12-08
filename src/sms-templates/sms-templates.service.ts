@@ -7,10 +7,11 @@ import { UpdateSmsTemplateDto } from './dto/update-sms-template.dto';
 
 @Injectable()
 export class SmsTemplatesService {
-  constructor(
-    @InjectRepository(SmsTemplate)
-    private smsRepo: Repository<SmsTemplate>,
-  ) {}
+ constructor(
+  @InjectRepository(SmsTemplate, 'default')
+  private smsRepo: Repository<SmsTemplate>,
+) {}
+
 
   async create(dto: CreateSmsTemplateDto) {
     const template = this.smsRepo.create(dto);
