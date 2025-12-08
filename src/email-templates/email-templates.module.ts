@@ -7,10 +7,10 @@ import { EmailTemplatesController } from './email-templates.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      EmailTemplate,
-      EmailTemplateVersion,
-    ])
+    TypeOrmModule.forFeature(
+      [EmailTemplate, EmailTemplateVersion],
+      'nittan_app', // 👈 IMPORTANT FIX
+    ),
   ],
   controllers: [EmailTemplatesController],
   providers: [EmailTemplatesService],
