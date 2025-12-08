@@ -1,11 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import {
-  LoanAssignment,
-  AccountClass,
-  LocationType,
-} from './entities/loan-assignment.entity';
+import { LoanAssignment } from './entities/loan-assignment.entity';
+import { RotationState } from './entities/rotation-state.entity';
+import { LocationType } from './types/location-type';
+import { AccountClass } from './types/account-class';
 import { RotationState } from './entities/rotation-state.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { OverrideAssignmentDto } from './dto/override-assignment.dto';
@@ -284,5 +283,6 @@ async bulkOverride(dto: {
   // TODO: keep your overrideAssignment / bulkOverride / getAgentQueue methods below…
   // (Left out here so we focus just on fixing compile issues around runRotation & LocationType)
 }
+
 
 
