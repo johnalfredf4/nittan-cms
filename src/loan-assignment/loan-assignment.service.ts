@@ -40,7 +40,7 @@ export class LoanAssignmentService {
 
     const grouped = this.groupByLocation(loans);
 
-    await this.assignForLocation(LocationType.HQ, grouped[LocationType.HQ]);
+    await this.assignForLocation(LocationType.HQ, grouped[LOCATION_HQ]);
     await this.assignForLocation(LocationType.BRANCH, grouped[LocationType.BRANCH]);
 
     this.logger.log('Loan rotation completed.');
@@ -79,7 +79,7 @@ export class LoanAssignmentService {
     };
 
     for (const r of loans) {
-      if (r.BranchId === null) grouped[LocationType.HQ].push(r);
+      if (r.BranchId === null) grouped[LOCATION_HQ].push(r);
       else grouped[LocationType.BRANCH].push(r);
     }
 
@@ -142,7 +142,7 @@ export class LoanAssignmentService {
    * Fetch agents assigned to location
    */
   private async fetchAgents(locationType: LocationType): Promise<any[]> {
-    let roleName = locationType === LocationType.HQ
+    let roleName = locationType === LOCATION_HQ
       ? 'Collection Agent - Head Office'
       : 'Collection Agent - Branch';
 
@@ -185,3 +185,4 @@ export class LoanAssignmentService {
     return result;
   }
 }
+
