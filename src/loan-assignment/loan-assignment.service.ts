@@ -108,7 +108,7 @@ export class LoanAssignmentService {
 }
 
 private async getAgentsForLocation(location: string) {
-  const rows = await this.nittanAppDataSource.query(`
+  const rows = await this.nittanAppSource.query(`
     SELECT 
       ua.EmployeeId AS agentId,
       ua.BranchId,
@@ -127,7 +127,7 @@ private async getAgentsForLocation(location: string) {
 }
 
 private async getAgentsForBranch(branchId: number) {
-  const rows = await this.nittanAppDataSource.query(
+  const rows = await this.nittanAppSource.query(
     `
     SELECT 
       ua.EmployeeId AS agentId,
@@ -366,6 +366,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
