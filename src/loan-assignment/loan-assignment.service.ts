@@ -137,10 +137,29 @@ export class LoanAssignmentService {
       let index = rotation.lastAssignedAgentIndex % filteredAgents.length;
 
       for (const r of items) {
-        const { dpd, retention, accountClass } = this.classifyAccount(r.DueDate);
+    const { dpd, retention, accountClass } = this.classifyAccount(r.DueDate);
 
-        const retentionUntil = new Date();
-        retentionUntil.setDate(retentionUntil.getDate() + retention);
+    const retentionUntil = new Date();
+    retentionUntil.setDate(retentionUntil.getDate() + retention);
 
-        const agent = filteredAgents[index];
-        index = (index + 1) % filteredAgents.length;
+    const agent = filteredAgents[index];
+    index = (index + 1) % filteredAgents.length;
+
+    assignmentRecords.push(
+      this.assignmentRepo.create({
+        loanApplicationId: r.LoanApplicationId,
+        dueDate: r.DueDate,
+        dpd,
+        retentionUntil,
+        accountClass,
+        agentId: agent.userId,
+        locationType: loc as LocationType,
+        branchId: branchId,
+        active: true,
+      }),
+    );
+  }
+
+  rotation.lastAssignedAgentIndex = index;
+  await this.rotationRepo.save(rotation);
+} // <-- This closing brace w
