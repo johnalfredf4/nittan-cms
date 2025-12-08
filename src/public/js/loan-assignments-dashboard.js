@@ -6,7 +6,6 @@ async function loadAgents() {
     try {
         const res = await fetch(`${apiUrl}/agents`);
         const agents = await res.json();
-const apiUrl = "/loan-assignment";
 
 async function loadAgents() {
     const dropdown = document.getElementById("agentFilter");
