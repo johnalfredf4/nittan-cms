@@ -1,3 +1,8 @@
+import { LocationType } from '../types/location-type';
+
+@Column({ type: 'varchar', length: 10 })
+locationType: LocationType;
+
 import {
   Entity,
   PrimaryGeneratedColumn,
