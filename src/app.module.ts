@@ -44,6 +44,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       database: 'Nittan-App',
       synchronize: false,
       autoLoadEntities: false,
+      requestTimeout: 6000000,   // 60 seconds for query execution
       entities: [
         User,
         Role,
@@ -61,7 +62,6 @@ import { ScheduleModule } from '@nestjs/schedule';
         encrypt: false,
         trustServerCertificate: true,
         connectTimeout: 6000000,   // 60 seconds for DB connection
-        requestTimeout: 6000000,   // 60 seconds for query execution
       },
     }),
 
