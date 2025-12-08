@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
+
 import { LoanAssignment } from './entities/loan-assignment.entity';
 import { RotationState } from './entities/rotation-state.entity';
 import { LocationType } from './types/location-type';
@@ -8,7 +9,7 @@ import { AccountClass } from './types/account-class';
 
 @Injectable()
 export class LoanAssignmentService {
-  private readonly logger = new Logger('LoanAssignmentService');
+  private readonly logger = new Logger(LoanAssignmentService.name);
 
   constructor(
     @InjectRepository(LoanAssignment, 'nittan_app')
@@ -17,225 +18,170 @@ export class LoanAssignmentService {
     @InjectRepository(RotationState, 'nittan_app')
     private readonly rotationRepo: Repository<RotationState>,
 
-    @InjectDataSource('nittan')
-    private readonly nittanDataSource: DataSource,
+    @InjectRepository(LoanAssignment, 'nittan_app')
+    private readonly auditRepo: Repository<LoanAssignment>,
 
-    @InjectDataSource('nittan_app')
-    private readonly nittanAppDataSource: DataSource,
+    private readonly nittanSource: DataSource,
+    private readonly nittanAppSource: DataSource,
   ) {}
 
   /**
-   * MAIN SCHEDULER ENTRY
+   * Runs rotation schedule
    */
-  async runRotation() {
+  async runRotation(): Promise<void> {
     this.logger.log('Starting loan rotation...');
 
-    const upcomingLoans = await this.fetchNextReceivables();
-
-    if (!upcomingLoans.length) {
-      this.logger.warn('No receivables found for rotation period');
+    // Get accounts from source DB (Nittan)
+    const loans = await this.fetchLoansFromSource();
+    if (!loans?.length) {
+      this.logger.warn('No due loans found. Rotation skipped.');
       return;
     }
 
-    const agents = await this.fetchAgentsFromApp();
+    const grouped = this.groupByLocation(loans);
 
-    for (const loan of upcomingLoans) {
-      const branchId = loan.BranchId ?? null;
-      const locationType: LocationType = branchId ? 'BRANCH' : 'HQ';
+    await this.assignForLocation(LocationType.HQ, grouped[LocationType.HQ]);
+    await this.assignForLocation(LocationType.BRANCH, grouped[LocationType.BRANCH]);
 
-      const filteredAgents = this.filterAgents(agents, locationType, branchId);
+    this.logger.log('Loan rotation completed.');
+  }
 
-      if (!filteredAgents.length) {
-        this.logger.warn(
-          `No agents found for loan ${loan.LoanApplicationId}`,
-        );
-        continue;
-      }
+  /**
+   * Reads due accounts from remote DB
+   */
+  private async fetchLoansFromSource(): Promise<any[]> {
+    const query = `
+      WITH NextReceivables AS (
+          SELECT *,
+                 ROW_NUMBER() OVER (
+                     PARTITION BY LoanApplicationId
+                     ORDER BY DueDate ASC
+                 ) AS rn
+          FROM [Nittan].[dbo].[tblLoanReceivables]
+          WHERE Cleared = 0
+            AND DueDate >= CAST(GETDATE() AS DATE)
+            AND DueDate < DATEADD(DAY, 7, CAST(GETDATE() AS DATE))
+      )
+      SELECT * FROM NextReceivables
+      WHERE rn = 1
+    `;
 
-      let rotation = await this.rotationRepo.findOne({
-        where: {
-          locationType: locationType,
-          branchId: branchId,
-        },
+    return await this.nittanSource.query(query);
+  }
+
+  /**
+   * Categorizes data into HQ | BRANCH groups
+   */
+  private groupByLocation(loans: any[]): Record<LocationType, any[]> {
+    const grouped: Record<LocationType, any[]> = {
+      [LocationType.HQ]: [],
+      [LocationType.BRANCH]: [],
+    };
+
+    for (const r of loans) {
+      if (r.BranchId === null) grouped[LocationType.HQ].push(r);
+      else grouped[LocationType.BRANCH].push(r);
+    }
+
+    return grouped;
+  }
+
+  /**
+   * Assign accounts to available agents
+   */
+  private async assignForLocation(location: LocationType, loans: any[]): Promise<void> {
+    if (!loans.length) return;
+
+    const agents = await this.fetchAgents(location);
+
+    if (!agents.length) {
+      this.logger.warn(`No agents available for location ${location}`);
+      return;
+    }
+
+    const { branchId } = loans[0];
+
+    let rotation = await this.rotationRepo.findOne({ where: { locationType: location, branchId } });
+
+    if (!rotation) {
+      rotation = this.rotationRepo.create({
+        locationType: location,
+        branchId,
+        lastIndex: 0,
       });
 
-      if (!rotation) {
-        rotation = await this.rotationRepo.save({
-          locationType,
-          branchId,
-          lastAssignedAgentIndex: 0,
-        });
-      }
+      rotation = await this.rotationRepo.save(rotation);
+    }
 
-      const index = rotation.lastAssignedAgentIndex % filteredAgents.length;
-      const selectedAgent = filteredAgents[index];
+    let index = rotation.lastIndex ?? 0;
 
-      await this.assignmentRepo.save({
+    for (const loan of loans) {
+      const agent = agents[index % agents.length];
+
+      const newAssignment = this.assignmentRepo.create({
         loanApplicationId: loan.LoanApplicationId,
-        agentId: selectedAgent.agentId,
+        agentId: agent.id,
         branchId,
-        locationType,
-        accountClass: this.getAccountClass(loan.DPD),
-        retentionUntil: this.calculateRetention(loan.DPD),
+        locationType: location,
+        accountClass: this.getAccountClass(loan.DPD ?? 0),
+        retentionUntil: this.calculateRetention(loan.DPD ?? 0),
         createdAt: new Date(),
         active: true,
       });
 
-      // SAFEST UPDATE — avoids identity collision
-      await this.rotationRepo.update(rotation.id, {
-        lastAssignedAgentIndex: index + 1,
-        updatedAt: new Date(),
-      });
+      await this.assignmentRepo.save(newAssignment);
+
+      index++;
     }
 
-    this.logger.log('Loan assignment rotation completed.');
+    rotation.lastIndex = index;
+    await this.rotationRepo.save(rotation);
   }
 
   /**
-   * QUERY RECEIVABLES FROM SOURCE DB
+   * Fetch agents assigned to location
    */
-  private async fetchNextReceivables() {
-    return await this.nittanDataSource.query(`
-      WITH NextReceivables AS (
-        SELECT *,
-               ROW_NUMBER() OVER (
-                   PARTITION BY LoanApplicationId
-                   ORDER BY DueDate ASC
-               ) AS rn
-        FROM [Nittan].[dbo].[tblLoanReceivables]
-        WHERE Cleared = 0
-          AND DueDate >= CAST(GETDATE() AS DATE)
-          AND DueDate < DATEADD(DAY, 7, CAST(GETDATE() AS DATE))
-      )
-      SELECT *
-      FROM NextReceivables
-      WHERE rn = 1;
-    `);
+  private async fetchAgents(locationType: LocationType): Promise<any[]> {
+    let roleName = locationType === LocationType.HQ
+      ? 'Collection Agent - Head Office'
+      : 'Collection Agent - Branch';
+
+    const query = `
+      SELECT u.id, u.username, u.BranchId
+      FROM [Nittan_App].[dbo].[User_Accounts] u
+      INNER JOIN [Nittan_App].[dbo].[User_Roles] ur ON ur.user_id = u.id
+      INNER JOIN [Nittan_App].[dbo].[Roles] r ON r.id = ur.role_id
+      WHERE r.name = '${roleName}'
+        AND u.status = 'ACTIVE'
+    `;
+
+    return await this.nittanAppSource.query(query);
   }
 
   /**
-   * READ AGENTS FROM APP DB
-   */
-  private async fetchAgentsFromApp() {
-    return await this.nittanAppDataSource.query(`
-      SELECT ua.id AS agentId,
-             ua.first_name + ' ' + ua.last_name AS fullName,
-             ua.BranchId,
-             r.name AS role
-      FROM User_Accounts ua
-      INNER JOIN User_Roles ur ON ua.id = ur.user_id
-      INNER JOIN Roles r ON r.id = ur.role_id
-      WHERE ua.status = 1
-    `);
-  }
-
-  /**
-   * FILTER AGENTS BASED ON LOCATION
-   */
-  private filterAgents(allAgents: any[], locationType: LocationType, branchId: number | null) {
-    return allAgents.filter(agent => {
-      if (locationType === 'HQ') {
-        return agent.role === 'Collection Agent - Head Office';
-      }
-
-      return (
-        agent.role === 'Collection Agent - Branch' &&
-        agent.BranchId === branchId
-      );
-    });
-  }
-
-  /**
-   * MAP DPD TO ACCOUNT CLASS
+   * Convert DPD into enum class
    */
   private getAccountClass(dpd: number): AccountClass {
-  if (dpd <= 0) return AccountClass.DPD_0;
-  if (dpd <= 30) return AccountClass.DPD_1_30;
-  if (dpd <= 60) return AccountClass.DPD_31_60;
-  if (dpd <= 90) return AccountClass.DPD_61_90;
-  if (dpd <= 120) return AccountClass.DPD_91_120;
-  if (dpd <= 150) return AccountClass.DPD_121_150;
-  if (dpd <= 180) return AccountClass.DPD_151_180;
-  return AccountClass.DPD_181_PLUS;
-}
-
+    if (dpd <= 0) return AccountClass.DPD_0;
+    if (dpd <= 30) return AccountClass.DPD_1_30;
+    if (dpd <= 60) return AccountClass.DPD_31_60;
+    if (dpd <= 90) return AccountClass.DPD_61_90;
+    if (dpd <= 120) return AccountClass.DPD_91_120;
+    if (dpd <= 150) return AccountClass.DPD_121_150;
+    if (dpd <= 180) return AccountClass.DPD_151_180;
+    return AccountClass.DPD_181_PLUS;
+  }
 
   /**
-   * CALCULATE END OF RETENTION
+   * Retention date calculator
    */
   private calculateRetention(dpd: number): Date {
     let days = 7;
+
     if (dpd >= 181) days = 120;
 
-    const now = new Date();
-    now.setDate(now.getDate() + days);
-    return now;
-  }
-
-  /**
-   * PROVIDES AGENT QUEUE
-   */
-  async getAgentQueue(userId: number) {
-    return await this.assignmentRepo.find({
-      where: { agentId: userId, active: true },
-      order: { createdAt: 'DESC' },
-    });
-  }
-
-  /**
-   * MANUAL OVERRIDE SINGLE
-   */
-  async overrideAssignment(dto: { assignmentId: number, newAgentId: number }) {
-    const existing = await this.assignmentRepo.findOne({
-      where: { id: dto.assignmentId.toString() },
-    });
-
-    if (!existing) throw new Error('Assignment not found');
-
-    existing.active = false;
-    await this.assignmentRepo.save(existing);
-
-    return await this.assignmentRepo.save({
-      loanApplicationId: existing.loanApplicationId,
-      agentId: dto.newAgentId,
-      branchId: existing.branchId,
-      locationType: existing.locationType,
-      accountClass: existing.accountClass,
-      retentionUntil: existing.retentionUntil,
-      createdAt: new Date(),
-      active: true,
-    });
-  }
-
-  /**
-   * MANUAL BULK OVERRIDE
-   */
-  async bulkOverride(dto: { fromAgentId: number, toAgentId: number }) {
-    const assignments = await this.assignmentRepo.find({
-      where: { agentId: dto.fromAgentId, active: true },
-    });
-
-    for (const row of assignments) {
-      row.active = false;
-      await this.assignmentRepo.save(row);
-
-      await this.assignmentRepo.save({
-        loanApplicationId: row.loanApplicationId,
-        agentId: dto.toAgentId,
-        branchId: row.branchId,
-        locationType: row.locationType,
-        accountClass: row.accountClass,
-        retentionUntil: row.retentionUntil,
-        createdAt: new Date(),
-        active: true,
-      });
-    }
-
-    return {
-      message: 'Bulk override completed',
-      count: assignments.length,
-    };
+    const result = new Date();
+    result.setDate(result.getDate() + days);
+    return result;
   }
 }
-
-
