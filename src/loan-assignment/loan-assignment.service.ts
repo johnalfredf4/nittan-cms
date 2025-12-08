@@ -258,30 +258,47 @@ export class LoanAssignmentService {
         let index = rotation.lastAssignedAgentIndex % agents.length;
 
         for (const rec of filteredReceivables) {
-          const agent = agents[index];
 
-          const { dpd, retention, accountClass } = this.classifyAccount(rec.DueDate);
+  const existingActive = await this.assignmentRepo.findOne({
+    where: {
+      loanApplicationId: rec.LoanApplicationId,
+      active: true
+    }
+  });
 
-          const until = new Date();
-          until.setDate(until.getDate() + retention);
+  if (existingActive) {
+    // Skip assignment – already assigned
+    this.logger.log(
+      `Skipping assignment – loan ${rec.LoanApplicationId} already assigned.`
+    );
+    continue;
+  }
 
-          const assign = this.assignmentRepo.create({
-            loanApplicationId: rec.LoanApplicationId,
-            agentId: agent.userId,
-            branchId,
-            locationType,
-            dueDate: rec.DueDate,
-            dpd,
-            accountClass,
-            retentionUntil: until,
-            active: true,
-          });
+  const agent = agents[index];
 
-          await this.assignmentRepo.save(assign);
+  const { dpd, retention, accountClass } = this.classifyAccount(rec.DueDate);
 
-          index++;
-          if (index >= agents.length) index = 0;
-        }
+  const until = new Date();
+  until.setDate(until.getDate() + retention);
+
+  const assign = this.assignmentRepo.create({
+    loanApplicationId: rec.LoanApplicationId,
+    agentId: agent.userId,
+    branchId,
+    locationType,
+    dueDate: rec.DueDate,
+    dpd,
+    accountClass,
+    retentionUntil: until,
+    active: true,
+  });
+
+  await this.assignmentRepo.save(assign);
+
+  index++;
+  if (index >= agents.length) index = 0;
+}
+
 
         rotation.lastAssignedAgentIndex = index;
         rotation.updatedAt = new Date();
@@ -292,5 +309,6 @@ export class LoanAssignmentService {
     this.logger.log('Loan rotation completed.');
   }
 }
+
 
 
