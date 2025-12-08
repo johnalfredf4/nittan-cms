@@ -107,6 +107,74 @@ export class LoanAssignmentService {
   return grouped;
 }
 
+private async getAgentsForLocation(location: string) {
+  const rows = await this.nittanAppDataSource.query(`
+    SELECT 
+      ua.EmployeeId AS agentId,
+      ua.BranchId,
+      r.name AS roleName
+    FROM User_Accounts ua
+    INNER JOIN User_Roles ur ON ur.user_id = ua.id
+    INNER JOIN Roles r ON r.id = ur.role_id
+    WHERE ua.status = 1
+      AND r.name = 'Collection Agent - Head Office'
+  `);
+
+  return rows.map((r) => ({
+    agentId: r.agentId,
+    BranchId: r.BranchId
+  }));
+}
+
+private async getAgentsForBranch(branchId: number) {
+  const rows = await this.nittanAppDataSource.query(
+    `
+    SELECT 
+      ua.EmployeeId AS agentId,
+      ua.BranchId,
+      r.name AS roleName
+    FROM User_Accounts ua
+    INNER JOIN User_Roles ur ON ur.user_id = ua.id
+    INNER JOIN Roles r ON r.id = ur.role_id
+    WHERE ua.status = 1
+      AND ua.BranchId = @0
+      AND r.name = 'Collection Agent - Branch'
+  `,
+    [branchId],
+  );
+
+  return rows.map((r) => ({
+    agentId: r.agentId,
+    BranchId: r.BranchId
+  }));
+}
+
+private async getRotationIndex(branchId: number | null): Promise<number> {
+  const record = await this.rotationRepo.findOne({
+    where: { branchId },
+  });
+
+  return record?.lastIndex ?? 0;
+}
+
+private async saveRotationIndex(branchId: number | null, newIndex: number): Promise<void> {
+  let record = await this.rotationRepo.findOne({
+    where: { branchId },
+  });
+
+  if (!record) {
+    record = this.rotationRepo.create({
+      branchId: branchId,
+      lastIndex: newIndex,
+      updatedAt: new Date(),
+    });
+  } else {
+    record.lastIndex = newIndex;
+    record.updatedAt = new Date();
+  }
+
+  await this.rotationRepo.save(record);
+}
 
   /**
    * Assign accounts to available agents
@@ -298,6 +366,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
