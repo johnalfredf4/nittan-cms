@@ -205,23 +205,34 @@ private async saveRotationIndex(branchId: number | null, newIndex: number): Prom
   }
 
   let index = await this.getRotationIndex(null);
+  const totalAgents = agents.length;
+  const loanQueue = [...loans];
 
-  for (const loan of loans) {
-    await this.assignmentRepo.save({
-      loanApplicationId: loan.LoanApplicationId,
-      agentId: agents[index % agents.length].agentId,
-      accountClass: loan.CustomerClass ?? '',
-      branchId: null,
-      locationType: LOCATION_HQ,
-      retentionUntil: this.computeRetentionUntil(loan.DPD),
-      updatedAt: new Date(),
-    });
+  while (loanQueue.length > 0) {
+    const agent = agents[index % totalAgents];
+
+    // take up to 10 loans
+    const chunk = loanQueue.splice(0, 10);
+
+    for (const loan of chunk) {
+      await this.assignmentRepo.save({
+        loanApplicationId: loan.LoanApplicationID,
+        agentId: agent.agentId,
+        accountClass: loan.CustomerClass ?? '',
+        branchId: null,
+        locationType: LOCATION_HQ,
+        retentionUntil: this.computeRetentionUntil(loan.DPD),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
 
     index++;
   }
 
   await this.saveRotationIndex(null, index);
 }
+
 
 private async assignForBranch(branchId: number, loans: any[]) {
   if (!loans.length) {
@@ -237,23 +248,34 @@ private async assignForBranch(branchId: number, loans: any[]) {
   }
 
   let index = await this.getRotationIndex(branchId);
+  const totalAgents = agents.length;
+  const loanQueue = [...loans];
 
-  for (const loan of loans) {
-     await this.assignmentRepo.save({
-      loanApplicationId: loan.LoanApplicationId,
-      agentId: agents[index % agents.length].agentId,
-      accountClass: loan.CustomerClass ?? '',
-      branchId: branchId,
-      locationType: LOCATION_BRANCH,
-      retentionUntil: this.computeRetentionUntil(loan.DPD),
-      updatedAt: new Date(),
-    });
+  while (loanQueue.length > 0) {
+    const agent = agents[index % totalAgents];
+
+    // take up to 10 loans per assignment
+    const chunk = loanQueue.splice(0, 10);
+
+    for (const loan of chunk) {
+      await this.assignmentRepo.save({
+        loanApplicationId: loan.LoanApplicationID,
+        agentId: agent.agentId,
+        accountClass: loan.CustomerClass ?? '',
+        branchId: branchId,
+        locationType: LOCATION_BRANCH,
+        retentionUntil: this.computeRetentionUntil(loan.DPD),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
 
     index++;
   }
 
   await this.saveRotationIndex(branchId, index);
 }
+
 
 
   /**
@@ -382,6 +404,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
