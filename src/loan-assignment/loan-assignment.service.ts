@@ -152,9 +152,9 @@ export class LoanAssignmentService {
 
     const query = `
       SELECT u.id, u.username, u.BranchId
-      FROM [Nittan_App].[dbo].[User_Accounts] u
-      INNER JOIN [Nittan_App].[dbo].[User_Roles] ur ON ur.user_id = u.id
-      INNER JOIN [Nittan_App].[dbo].[Roles] r ON r.id = ur.role_id
+      FROM [dbo].[User_Accounts] u
+      INNER JOIN [dbo].[User_Roles] ur ON ur.user_id = u.id
+      INNER JOIN [dbo].[Roles] r ON r.id = ur.role_id
       WHERE r.name = '${roleName}'
         AND u.status = 'ACTIVE'
     `;
@@ -234,6 +234,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
