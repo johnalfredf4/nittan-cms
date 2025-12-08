@@ -408,11 +408,6 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
   return this.assignmentRepo.save(accounts);
 }
 
-async getAllAssignments() {
-  return this.assignmentRepo.find({
-    order: { createdAt: 'DESC' },
-  });
-}
 
  /**
    * Returns all agents who can receive assignments
@@ -478,7 +473,32 @@ async getAgentsList() {
     return this.assignmentRepo.save(row);
   }
 
+  async getAllAgents() {
+  const query = `
+    SELECT 
+      ua.EmployeeId AS agentId,
+      ua.BranchId,
+      r.name AS roleName
+    FROM dbo.User_Accounts ua
+    INNER JOIN dbo.User_Roles ur ON ur.user_id = ua.id
+    INNER JOIN dbo.Roles r ON r.id = ur.role_id
+    WHERE ua.status = 1
+      AND r.name LIKE 'Collection Agent%'
+  `;
+
+  const agents = await this.mainDataSource.query(query);
+  return agents;
 }
+
+async getAllAssignments() {
+  return await this.assignmentRepo.find({
+    order: { createdAt: 'DESC' }
+  });
+}
+
+
+}
+
 
 
 
