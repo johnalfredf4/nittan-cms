@@ -10,9 +10,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User) private readonly usersRepo: Repository<User>,
-    @InjectRepository(Role) private readonly rolesRepo: Repository<Role>,
-  ) {}
+  @InjectRepository(User, 'nittan_app')
+  private readonly userRepo: Repository<User>,
+
+  @InjectRepository(Role, 'nittan_app')
+  private readonly roleRepo: Repository<Role>,
+) {}
+
 
   async create(dto: CreateUserDto): Promise<User> {
     const roles = await this.rolesRepo.find({
