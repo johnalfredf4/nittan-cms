@@ -156,7 +156,7 @@ export class LoanAssignmentService {
       INNER JOIN [dbo].[User_Roles] ur ON ur.user_id = u.id
       INNER JOIN [dbo].[Roles] r ON r.id = ur.role_id
       WHERE r.name = '${roleName}'
-        AND u.status = 'ACTIVE'
+        AND u.status = 1
     `;
 
     return await this.nittanAppSource.query(query);
@@ -234,6 +234,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
