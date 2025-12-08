@@ -12,6 +12,7 @@ const ormconfigNittanApp: TypeOrmModuleOptions = {
   password: 'bong3',
   database: 'Nittan-App',
   synchronize: false,
+  requestTimeout: 6000000,   // 60 seconds for query execution
   entities: [
     LoanAssignment,
     RotationState,
@@ -21,7 +22,6 @@ const ormconfigNittanApp: TypeOrmModuleOptions = {
     encrypt: false,
     trustServerCertificate: true,
     connectTimeout: 6000000,   // 60 seconds for DB connection
-    requestTimeout: 6000000,   // 60 seconds for query execution
   },
 };
 
