@@ -63,18 +63,18 @@ export class LoanAssignmentService {
     const query = `
       WITH NextReceivables AS (
           SELECT *,
+                 DATEDIFF(DAY, DueDate, GETDATE()) AS DPD,
                  ROW_NUMBER() OVER (
                      PARTITION BY LoanApplicationId
                      ORDER BY DueDate ASC
                  ) AS rn
           FROM [Nittan].[dbo].[tblLoanReceivables]
           WHERE Cleared = 0
-            AND DueDate >= CAST(GETDATE() AS DATE)
-            AND DueDate < DATEADD(DAY, 7, CAST(GETDATE() AS DATE))
+            AND DueDate <= DATEADD(DAY, 7, CAST(GETDATE() AS DATE))
       )
-      SELECT * FROM NextReceivables
-      WHERE rn = 1
-    `;
+      SELECT *
+      FROM NextReceivables
+      WHERE rn = 1;
 
     return await this.nittanSource.query(query);
   }
@@ -124,6 +124,16 @@ private async getAgentsForLocation(location: string) {
     agentId: r.agentId,
     BranchId: r.BranchId
   }));
+}
+
+private computeRetentionUntil(dpd: number): Date {
+  let days = 7;
+
+  if (dpd >= 181) days = 120;
+
+  const now = new Date();
+  now.setDate(now.getDate() + days);
+  return now;
 }
 
 private async getAgentsForBranch(branchId: number) {
@@ -201,6 +211,7 @@ private async saveRotationIndex(branchId: number | null, newIndex: number): Prom
       accountClass: loan.CustomerClass ?? '',
       branchId: null,
       locationType: LOCATION_HQ,
+      retentionUntil: this.computeRetentionUntil(loan.DPD),
       updatedAt: new Date(),
     });
 
@@ -226,12 +237,13 @@ private async assignForBranch(branchId: number, loans: any[]) {
   let index = await this.getRotationIndex(branchId);
 
   for (const loan of loans) {
-    await this.assignmentRepo.save({
+     await this.assignmentRepo.save({
       loanApplicationId: loan.LoanApplicationId,
       agentId: agents[index % agents.length].agentId,
       accountClass: loan.CustomerClass ?? '',
       branchId: branchId,
       locationType: LOCATION_BRANCH,
+      retentionUntil: this.computeRetentionUntil(loan.DPD),
       updatedAt: new Date(),
     });
 
@@ -368,6 +380,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
