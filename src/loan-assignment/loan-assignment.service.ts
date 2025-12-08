@@ -7,6 +7,7 @@ import { RotationState } from './entities/rotation-state.entity';
 import { LocationType } from './types/location-type';
 import { AccountClass } from './types/account-class';
 import { LOCATION_HQ, LOCATION_BRANCH } from './constants/location-constants';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class LoanAssignmentService {
@@ -29,6 +30,7 @@ export class LoanAssignmentService {
   /**
    * Runs rotation schedule
    */
+  @Cron('*/10 * * * * *')
   async runRotation(): Promise<void> {
     this.logger.log('Starting loan rotation...');
 
@@ -232,6 +234,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
