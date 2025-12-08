@@ -21,5 +21,6 @@ import { User } from '../users/entities/user.entity'; // ADD THIS
   ],
   providers: [LoanAssignmentService],
   controllers: [LoanAssignmentController],
+  exports: [LoanAssignmentService],
 })
 export class LoanAssignmentModule {}
