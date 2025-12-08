@@ -92,74 +92,67 @@ export class LoanAssignmentService {
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async runRotation() {
-    this.logger.log('Running loan assignment rotation...');
+  console.log('Processing account rotation...');
 
-    const [receivables, agents] = await Promise.all([this.getReceivables(), this.getAgents()]);
+  const receivables = await this.getEligibleAccountsFromNittan();
 
-    if (!receivables.length) return;
+  if (!receivables || receivables.length === 0) return;
 
-    const existing = await this.assignmentRepo.find({
-      where: {
-        loanApplicationId: In(receivables.map(r => r.LoanApplicationId)),
-        active: true,
-      },
-    });
+  const grouped = this.groupReceivablesByLocation(receivables);
 
-    const skipIds = new Set(existing.map(x => x.loanApplicationId));
-    const eligible = receivables.filter(r => !skipIds.has(r.LoanApplicationId));
+  for (const [locationType, items] of Object.entries(grouped)) {
 
-    const grouped = new Map<string, any[]>();
+    const branches =
+      locationType === 'BRANCH'
+        ? [...new Set(items.map(i => i.branchId))] // unique branch IDs
+        : [null]; // HQ case
 
-    for (const r of eligible) {
-      const branchId = r.BranchId ?? null;
-      const locationType = branchId === null ? LocationType.HQ : LocationType.BRANCH;
-      const key = `${locationType}:${branchId ?? ''}`;
-      if (!grouped.has(key)) grouped.set(key, []);
-      grouped.get(key)!.push(r);
-    }
+    for (const branchId of branches) {
+      const filteredItems = items.filter(x =>
+        locationType === 'HQ' ? true : x.branchId === branchId,
+      );
 
-    const assignmentRecords: LoanAssignment[] = [];
+      const filteredAgents = await this.getAgentsForLocation(locationType, branchId);
+      if (!filteredAgents || filteredAgents.length === 0) continue;
 
-    for (const [key, items] of grouped) {
-      const [loc, branch] = key.split(':');
-      const branchId = branch ? Number(branch) : null;
-
-      const filteredAgents = agents.filter(a => {
-        if (loc === LocationType.HQ)
-          return a.roleName === 'Collection Agent - Head Office';
-        return a.roleName === 'Collection Agent - Branch' && a.BranchId === branchId;
+      let rotation = await this.rotationRepo.findOne({
+        where: { locationType, branchId },
       });
 
-      if (!filteredAgents.length) continue;
+      if (!rotation) {
+        rotation = this.rotationRepo.create({
+          locationType,
+          branchId,
+          lastAssignedAgentIndex: 0,
+        });
+        rotation = await this.rotationRepo.save(rotation);
+      }
 
-      const rotation = await this.getRotationState(loc as LocationType, branchId);
+      let index =
+        rotation.lastAssignedAgentIndex % filteredAgents.length;
 
-      let index = rotation.lastAssignedAgentIndex % filteredAgents.length;
+      for (const r of filteredItems) {
+        const agent = filteredAgents[index];
 
-      for (const r of items) {
-    const { dpd, retention, accountClass } = this.classifyAccount(r.DueDate);
+        await this.assignmentRepo.save(this.assignmentRepo.create({
+          loanApplicationId: r.loanApplicationId,
+          dueDate: r.dueDate,
+          agentId: agent.id,
+          locationType,
+          branchId,
+          assignedAt: new Date(),
+        }));
 
-    const retentionUntil = new Date();
-    retentionUntil.setDate(retentionUntil.getDate() + retention);
+        index++;
+        if (index >= filteredAgents.length) index = 0;
+      }
 
-    const agent = filteredAgents[index];
-    index = (index + 1) % filteredAgents.length;
-
-    assignmentRecords.push(
-      this.assignmentRepo.create({
-        loanApplicationId: r.LoanApplicationId,
-        dueDate: r.DueDate,
-        dpd,
-        retentionUntil,
-        accountClass,
-        agentId: agent.userId,
-        locationType: loc as LocationType,
-        branchId: branchId,
-        active: true,
-      }),
-    );
+      rotation.lastAssignedAgentIndex = index;
+      rotation.updatedAt = new Date();
+      await this.rotationRepo.save(rotation);
+    }
   }
 
-  rotation.lastAssignedAgentIndex = index;
-  await this.rotationRepo.save(rotation);
-} // <-- This closing brace w
+  console.log('Rotation process completed.');
+}
+
