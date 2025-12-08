@@ -60,6 +60,8 @@ import { ScheduleModule } from '@nestjs/schedule';
       options: {
         encrypt: false,
         trustServerCertificate: true,
+        connectionTimeout: 6000000,
+        requestTimeout: 6000000,
       },
     }),
 
@@ -78,6 +80,8 @@ import { ScheduleModule } from '@nestjs/schedule';
       options: {
         encrypt: false,
         trustServerCertificate: true,
+        connectionTimeout: 6000000,
+        requestTimeout: 6000000,
       },
     }),
 
