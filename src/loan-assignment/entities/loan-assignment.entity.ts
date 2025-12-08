@@ -51,8 +51,12 @@ export class LoanAssignment {
   @Column({ type: 'int' })
   dpd: number;
 
-  @Column({ type: 'enum', enum: AccountClass })
+  @Column({
+    type: 'varchar',
+    length: 50,
+  })
   accountClass: AccountClass;
+
 
   @Column({ type: 'datetime' })
   retentionUntil: Date;
