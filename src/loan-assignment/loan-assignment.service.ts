@@ -9,6 +9,7 @@ import { AccountClass } from './types/account-class';
 import { LOCATION_HQ, LOCATION_BRANCH } from './constants/location-constants';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { User } from '../users/entities/user.entity';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 
 @Injectable()
@@ -504,6 +505,7 @@ async getAllAssignments() {
 
 
 }
+
 
 
 
