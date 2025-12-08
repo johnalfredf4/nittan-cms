@@ -8,7 +8,7 @@ import { UpdateRetentionDto } from './dto/update-retention.dto';
 @Injectable()
 export class AccountRetentionService {
   constructor(
-    @InjectRepository(AccountRetention)
+    @InjectRepository(AccountRetention, 'nittan_app')
     private repo: Repository<AccountRetention>,
   ) {}
 
@@ -53,3 +53,4 @@ export class AccountRetentionService {
     return await this.repo.remove(record);
   }
 }
+
