@@ -11,10 +11,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersService {
   constructor(
   @InjectRepository(User, 'nittan_app')
-  private readonly userRepo: Repository<User>,
+  private readonly usersRepo: Repository<User>,
 
   @InjectRepository(Role, 'nittan_app')
-  private readonly roleRepo: Repository<Role>,
+  private readonly rolesRepo: Repository<Role>,
 ) {}
 
 
