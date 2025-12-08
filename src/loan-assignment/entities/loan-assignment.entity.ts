@@ -35,8 +35,12 @@ export class LoanAssignment {
   @Column()
   agentId: number; // maps User_Accounts.id
 
-  @Column({ type: 'enum', enum: LocationType })
-  locationType: LocationType;
+  @Column({
+    type: 'varchar',
+    length: 10,
+  })
+  locationType: 'HQ' | 'BRANCH';
+
 
   @Column({ nullable: true })
   branchId: number | null;
