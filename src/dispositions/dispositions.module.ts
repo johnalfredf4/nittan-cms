@@ -9,7 +9,10 @@ import { Disposition } from './entities/disposition.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([DispositionCategory, Disposition]),
+    TypeOrmModule.forFeature(
+      [DispositionCategory, Disposition],
+      'nittan_app',  // 👈 REQUIRED FIX
+    ),
   ],
   controllers: [
     DispositionCategoriesController,
@@ -19,5 +22,9 @@ import { Disposition } from './entities/disposition.entity';
     DispositionsService,
     DispositionCategoriesService,
   ],
+  exports: [
+    DispositionsService,
+    DispositionCategoriesService,
+  ], // 👈 Recommended
 })
 export class DispositionsModule {}
