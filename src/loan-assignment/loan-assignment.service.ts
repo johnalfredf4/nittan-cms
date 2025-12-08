@@ -8,7 +8,7 @@ import { LocationType } from './types/location-type';
 import { AccountClass } from './types/account-class';
 import { LOCATION_HQ, LOCATION_BRANCH } from './constants/location-constants';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { UserAccounts } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 
 
 @Injectable()
@@ -479,6 +479,7 @@ async getAgentsList() {
   }
 
 }
+
 
 
 
