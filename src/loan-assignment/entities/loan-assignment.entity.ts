@@ -7,11 +7,6 @@ import {
   Index,
 } from 'typeorm';
 
-import { LocationType } from '../types/location-type';
-
-@Column({ type: 'varchar', length: 10 })
-locationType: LocationType;
-
 export enum LocationType {
   HQ = 'HQ',
   BRANCH = 'BRANCH',
@@ -44,8 +39,7 @@ export class LoanAssignment {
     type: 'varchar',
     length: 10,
   })
-  locationType: 'HQ' | 'BRANCH';
-
+  locationType: LocationType;
 
   @Column({ nullable: true })
   branchId: number | null;
@@ -61,7 +55,6 @@ export class LoanAssignment {
     length: 50,
   })
   accountClass: AccountClass;
-
 
   @Column({ type: 'datetime' })
   retentionUntil: Date;
