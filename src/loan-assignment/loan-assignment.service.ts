@@ -130,10 +130,11 @@ async bulkOverride(dto: {
   // GROUPING & AGENT FILTERS
   // ----------------------------
   private groupReceivablesByLocation(receivables: any[]): Record<LocationType, any[]> {
-    const grouped: Record<LocationType, any[]> = {
-      [LocationType.HQ]: [],
-      [LocationType.BRANCH]: [],
+    const grouped = {
+      HQ: [],
+      BRANCH: [],
     };
+
 
     for (const r of receivables) {
       if (r.BranchId === null) grouped[LocationType.HQ].push(r);
@@ -282,6 +283,7 @@ async bulkOverride(dto: {
   // TODO: keep your overrideAssignment / bulkOverride / getAgentQueue methods below…
   // (Left out here so we focus just on fixing compile issues around runRotation & LocationType)
 }
+
 
 
 
