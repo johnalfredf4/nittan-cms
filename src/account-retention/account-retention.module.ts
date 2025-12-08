@@ -5,8 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountRetention } from './entities/account-retention.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([AccountRetention])],
+  imports: [
+    TypeOrmModule.forFeature([AccountRetention], 'nittan_app'), // 👈 IMPORTANT
+  ],
   controllers: [AccountRetentionController],
   providers: [AccountRetentionService],
+  exports: [AccountRetentionService], // 👈 recommended for reuse by LoanAssignment
 })
 export class AccountRetentionModule {}
