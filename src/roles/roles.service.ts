@@ -7,7 +7,7 @@ import { Role } from './entities/role.entity';
 export class RolesService {
   constructor(
   @InjectRepository(Role, 'nittan_app')
-  private readonly repo: Repository<Role>,
+  private readonly rolesRepo: Repository<Role>,
 ) {}
 
 
