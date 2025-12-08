@@ -62,7 +62,7 @@ export class LoanAssignmentService {
   private async fetchLoansFromSource(): Promise<any[]> {
   const query = `
       WITH NextReceivables AS (
-          SELECT *,
+          SELECT TOP 200 LoanApplicationID,
                  DATEDIFF(DAY, DueDate, GETDATE()) AS DPD,
                  ROW_NUMBER() OVER (
                      PARTITION BY LoanApplicationId
@@ -382,6 +382,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
