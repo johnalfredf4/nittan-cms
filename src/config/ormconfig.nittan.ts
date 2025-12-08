@@ -13,6 +13,8 @@ const nittanConnectionConfig: TypeOrmModuleOptions = {
   options: {
     encrypt: false,
     trustServerCertificate: true,
+    connectionTimeout: 6000000,
+    requestTimeout: 6000000,
   },
 };
 
