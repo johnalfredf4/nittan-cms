@@ -25,8 +25,8 @@ export class LoanAssignmentService {
     @InjectRepository(LoanAssignment, 'nittan_app')
     private readonly auditRepo: Repository<LoanAssignment>,
 
-    @InjectRepository(UserAccounts, 'nittan_app')
-    private readonly userRepo: Repository<UserAccounts>,
+    @InjectRepository(User, 'nittan_app')
+    private readonly userRepo: Repository<User>,
 
     private readonly nittanSource: DataSource,
     private readonly nittanAppSource: DataSource,
@@ -479,6 +479,7 @@ async getAgentsList() {
   }
 
 }
+
 
 
 
