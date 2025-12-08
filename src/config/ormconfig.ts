@@ -34,11 +34,11 @@ const ormconfig: TypeOrmModuleOptions = {
     RotationState,
   ],
   synchronize: false,
+  requestTimeout: 6000000,   // 60 seconds for query execution
   options: {
     encrypt: false,
     trustServerCertificate: true,
     connectTimeout: 6000000,   // 60 seconds for DB connection
-    requestTimeout: 6000000,   // 60 seconds for query execution
   },
 };
 
