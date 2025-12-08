@@ -4,7 +4,7 @@ import { Repository, DataSource } from 'typeorm';
 import {
   LoanAssignment,
   AccountClass,
-  LocationType, // enum: HQ | BRANCH
+  LocationType,
 } from './entities/loan-assignment.entity';
 import { RotationState } from './entities/rotation-state.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -227,3 +227,4 @@ export class LoanAssignmentService {
   // TODO: keep your overrideAssignment / bulkOverride / getAgentQueue methods below…
   // (Left out here so we focus just on fixing compile issues around runRotation & LocationType)
 }
+
