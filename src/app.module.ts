@@ -24,10 +24,10 @@ import { LoanAssignmentModule } from './loan-assignment/loan-assignment.module';
     TypeOrmModule.forRoot({
       name: 'nittan',
       type: 'mssql',
-      host: process.env.NITTAN_DB_HOST || 'nittan-rds.chsm6icykzm3.ap-southeast-1.rds.amazonaws.com',
-      port: Number(process.env.NITTAN_DB_PORT) || 1433,
-      username: process.env.NITTAN_DB_USER || 'bong3',
-      password: process.env.NITTAN_DB_PWD || 'bong3',
+      host: 'nittan-rds.chsm6icykzm3.ap-southeast-1.rds.amazonaws.com',
+      port: 1433,
+      username: 'bong3',
+      password: 'bong3',
       database: 'Nittan',
       synchronize: false,
       options: {
