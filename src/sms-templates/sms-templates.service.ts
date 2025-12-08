@@ -8,7 +8,7 @@ import { UpdateSmsTemplateDto } from './dto/update-sms-template.dto';
 @Injectable()
 export class SmsTemplatesService {
  constructor(
-  @InjectRepository(SmsTemplate, 'default')
+  @InjectRepository(SmsTemplate, 'nittan_app')
   private smsRepo: Repository<SmsTemplate>,
 ) {}
 
