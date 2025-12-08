@@ -12,7 +12,7 @@ import { User } from '../users/entities/user.entity'; // ADD THIS
     ScheduleModule.forRoot(),
     // REGISTER WRITE DB REPOSITORIES HERE
     TypeOrmModule.forFeature(
-      [LoanAssignment, RotationState, Users],
+      [LoanAssignment, RotationState, User],
       'nittan_app',
     ),
 
