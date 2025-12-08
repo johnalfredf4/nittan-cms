@@ -22,13 +22,13 @@ export class LoanAssignmentService {
   @InjectRepository(RotationState)
   private readonly rotationRepo: Repository<RotationState>,
 
-  // Nittan = external DB
   @InjectDataSource('nittan')
   private readonly nittanDs: DataSource,
 
-  // default DB = CMS DB
+  @InjectDataSource('nittan_app')
   private readonly nittanAppDs: DataSource,
 ) {}
+
 
 
   private async getReceivables() {
@@ -221,5 +221,6 @@ export class LoanAssignmentService {
     return this.assignmentRepo.find({ where: { agentId, active: true } });
   }
 }
+
 
 
