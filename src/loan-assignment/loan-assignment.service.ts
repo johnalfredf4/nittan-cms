@@ -27,9 +27,9 @@ export class LoanAssignmentService {
     private readonly nittanAppDs: DataSource,
   ) {}
 
-  // ----------------------------
-  // DB HELPERS
-  // ----------------------------
+  // ----------------------------------------------------
+  // DB QUERIES
+  // ----------------------------------------------------
   private async getReceivables() {
     const sql = `
       WITH NextReceivables AS (
@@ -46,9 +46,7 @@ export class LoanAssignmentService {
           AND r.DueDate >= CAST(GETDATE() AS DATE)
           AND r.DueDate < DATEADD(DAY, 7, CAST(GETDATE() AS DATE))
       )
-      SELECT *
-      FROM NextReceivables
-      WHERE rn = 1;
+      SELECT * FROM NextReceivables WHERE rn = 1;
     `;
     return this.nittanDs.query(sql);
   }
@@ -75,70 +73,61 @@ export class LoanAssignmentService {
         agentId,
         active: true,
       },
-      order: {
-        createdAt: 'DESC',
-      },
+      order: { createdAt: 'DESC' },
     });
   }
 
-async overrideAssignment(dto: { assignmentId: number; newAgentId: number }) {
-  const assignment = await this.assignmentRepo.findOne({
-    where: { id: dto.assignmentId },
-  });
+  // ----------------------------------------------------
+  // REASSIGNMENT FUNCTIONS
+  // ----------------------------------------------------
+  async overrideAssignment(dto: OverrideAssignmentDto) {
+    const assignment = await this.assignmentRepo.findOne({
+      where: { id: Number(dto.assignmentId) },
+    });
 
-  if (!assignment) throw new Error('Assignment not found');
+    if (!assignment) throw new Error('Assignment not found');
 
-  assignment.agentId = dto.newAgentId;
-  assignment.active = true;
-  assignment.updatedAt = new Date();
+    assignment.agentId = Number(dto.newAgentId);
+    assignment.updatedAt = new Date();
+    assignment.active = true;
 
-  await this.assignmentRepo.save(assignment);
+    await this.assignmentRepo.save(assignment);
 
-  return { success: true };
-}
-
-async bulkOverride(dto: {
-  fromAgentId: number;
-  toAgentId: number;
-  accountClass?: string;
-}) {
-  const conditions: any = {
-    agentId: dto.fromAgentId,
-    active: true,
-  };
-
-  if (dto.accountClass) {
-    conditions.accountClass = dto.accountClass;
+    return { success: true };
   }
 
-  const affectedRows = await this.assignmentRepo.find({
-    where: conditions,
-  });
+  async bulkOverride(dto: BulkOverrideAssignmentDto) {
+    const where: any = {
+      agentId: Number(dto.fromAgentId),
+      active: true,
+    };
 
-  for (const row of affectedRows) {
-    row.agentId = dto.toAgentId;
-    row.updatedAt = new Date();
+    if (dto.accountClass) where.accountClass = dto.accountClass;
+
+    const list = await this.assignmentRepo.find({ where });
+
+    for (const assignment of list) {
+      assignment.agentId = Number(dto.toAgentId);
+      assignment.active = true;
+      assignment.updatedAt = new Date();
+      await this.assignmentRepo.save(assignment);
+    }
+
+    return { updated: list.length };
   }
 
-  await this.assignmentRepo.save(affectedRows);
-
-  return { updated: affectedRows.length };
-}
-
-
-  // ----------------------------
-  // GROUPING & AGENT FILTERS
-  // ----------------------------
+  // ----------------------------------------------------
+  // AGENT GROUPING & LOCATION FILTERING
+  // ----------------------------------------------------
   private groupReceivablesByLocation(receivables: any[]): Record<LocationType, any[]> {
-    const grouped = {
+    const grouped: Record<LocationType, any[]> = {
       HQ: [],
       BRANCH: [],
     };
 
-
     for (const r of receivables) {
-      if (r.BranchId === null) grouped[LocationType.HQ].push(r);
-      else grouped[LocationType.BRANCH].push(r);
+      if (r.BranchId === null) grouped['HQ'].push(r);
+      else grouped['BRANCH'].push(r);
     }
 
     return grouped;
@@ -150,9 +139,9 @@ async bulkOverride(dto: {
   ) {
     const allAgents = await this.getAgents();
 
-    if (locationType === LocationType.HQ) {
-      return allAgents.filter(
-        (a: any) => a.roleName === 'Collection Agent - Head Office',
+    if (locationType === 'HQ') {
+      return allAgents.filter((a: any) =>
+        a.roleName === 'Collection Agent - Head Office',
       );
     }
 
@@ -163,42 +152,41 @@ async bulkOverride(dto: {
     );
   }
 
-  // ----------------------------
-  // ACCOUNT CLASS & RETENTION
-  // ----------------------------
+  // ----------------------------------------------------
+  // CLASSIFICATION AND RETENTION
+  // ----------------------------------------------------
   private classifyAccount(dueDate: Date) {
     const now = new Date();
-    const diff = Math.floor(
-      (now.getTime() - new Date(dueDate).getTime()) / (1000 * 60 * 60 * 24),
+    const dpd = Math.floor(
+      (now.getTime() - new Date(dueDate).getTime()) / 86400000,
     );
 
     let retention = 7;
     let cls: AccountClass;
 
-    if (diff <= 0) cls = AccountClass.DPD_0;
-    else if (diff <= 30) cls = AccountClass.DPD_1_30;
-    else if (diff <= 60) cls = AccountClass.DPD_31_60;
-    else if (diff <= 90) cls = AccountClass.DPD_61_90;
-    else if (diff <= 120) cls = AccountClass.DPD_91_120;
-    else if (diff <= 150) cls = AccountClass.DPD_121_150;
-    else if (diff <= 180) cls = AccountClass.DPD_151_180;
+    if (dpd <= 0) cls = AccountClass.DPD_0;
+    else if (dpd <= 30) cls = AccountClass.DPD_1_30;
+    else if (dpd <= 60) cls = AccountClass.DPD_31_60;
+    else if (dpd <= 90) cls = AccountClass.DPD_61_90;
+    else if (dpd <= 120) cls = AccountClass.DPD_91_120;
+    else if (dpd <= 150) cls = AccountClass.DPD_121_150;
+    else if (dpd <= 180) cls = AccountClass.DPD_151_180;
     else {
       cls = AccountClass.DPD_181_PLUS;
       retention = 120;
     }
 
-    return { dpd: diff, retention, accountClass: cls };
+    return { dpd, retention, accountClass: cls };
   }
 
-  // ----------------------------
-  // MAIN CRON JOB
-  // ----------------------------
+  // ----------------------------------------------------
+  // MAIN ROTATION LOGIC (CRON JOB)
+  // ----------------------------------------------------
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async runRotation() {
-    this.logger.log('Processing rotation...');
+    this.logger.log('Starting loan rotation...');
 
     const receivables = await this.getReceivables();
-
     if (!receivables?.length) {
       this.logger.log('No receivables found.');
       return;
@@ -206,26 +194,22 @@ async bulkOverride(dto: {
 
     const grouped = this.groupReceivablesByLocation(receivables);
 
-    // grouped: { HQ: [...], BRANCH: [...] }
-    for (const [locationTypeKey, items] of Object.entries(grouped)) {
-      const locationType = locationTypeKey as LocationType;
+    for (const [locationKey, items] of Object.entries(grouped)) {
+      const locationType = locationKey as LocationType;
 
       const branchIds =
-        locationType === LocationType.HQ
+        locationType === 'HQ'
           ? [null]
-          : [...new Set(items.map((r: any) => r.BranchId))]; // unique BranchId values
+          : [...new Set(items.map((r: any) => r.BranchId))];
 
       for (const branchId of branchIds) {
         const filteredReceivables =
-          locationType === LocationType.HQ
+          locationType === 'HQ'
             ? items
             : items.filter((r: any) => r.BranchId === branchId);
 
-        const filteredAgents = await this.getAgentsForLocation(
-          locationType,
-          branchId,
-        );
-        if (!filteredAgents?.length) continue;
+        const agents = await this.getAgentsForLocation(locationType, branchId);
+        if (!agents?.length) continue;
 
         let rotation = await this.rotationRepo.findOne({
           where: { locationType, branchId },
@@ -240,20 +224,17 @@ async bulkOverride(dto: {
           rotation = await this.rotationRepo.save(rotation);
         }
 
-        let index =
-          rotation.lastAssignedAgentIndex % filteredAgents.length;
+        let index = rotation.lastAssignedAgentIndex % agents.length;
 
         for (const rec of filteredReceivables) {
-          const agent = filteredAgents[index];
+          const agent = agents[index];
 
-          const { dpd, retention, accountClass } = this.classifyAccount(
-            rec.DueDate,
-          );
+          const { dpd, retention, accountClass } = this.classifyAccount(rec.DueDate);
 
-          const retentionUntil = new Date();
-          retentionUntil.setDate(retentionUntil.getDate() + retention);
+          const until = new Date();
+          until.setDate(until.getDate() + retention);
 
-          const assignment = this.assignmentRepo.create({
+          const assign = this.assignmentRepo.create({
             loanApplicationId: rec.LoanApplicationId,
             agentId: agent.userId,
             branchId,
@@ -261,14 +242,14 @@ async bulkOverride(dto: {
             dueDate: rec.DueDate,
             dpd,
             accountClass,
-            retentionUntil,
+            retentionUntil: until,
             active: true,
           });
 
-          await this.assignmentRepo.save(assignment);
+          await this.assignmentRepo.save(assign);
 
           index++;
-          if (index >= filteredAgents.length) index = 0;
+          if (index >= agents.length) index = 0;
         }
 
         rotation.lastAssignedAgentIndex = index;
@@ -277,14 +258,6 @@ async bulkOverride(dto: {
       }
     }
 
-    this.logger.log('Rotation completed.');
+    this.logger.log('Loan rotation completed.');
   }
-
-  // TODO: keep your overrideAssignment / bulkOverride / getAgentQueue methods below…
-  // (Left out here so we focus just on fixing compile issues around runRotation & LocationType)
 }
-
-
-
-
-
