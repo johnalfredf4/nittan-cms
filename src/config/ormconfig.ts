@@ -20,7 +20,7 @@ const ormconfig: TypeOrmModuleOptions = {
   port: 1433,
   username: 'bong3',
   password: 'bong3',
-  database: 'Nittan_App',
+  database: 'Nittan-App',
   entities: [
     User,
     Role,
