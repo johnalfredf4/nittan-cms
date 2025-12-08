@@ -82,7 +82,7 @@ export class LoanAssignmentService {
   // ----------------------------------------------------
   async overrideAssignment(dto: OverrideAssignmentDto) {
     const assignment = await this.assignmentRepo.findOne({
-      where: { id: Number(dto.assignmentId) },
+      where: { id: dto.assignmentId.toString() },
     });
 
     if (!assignment) throw new Error('Assignment not found');
@@ -261,3 +261,4 @@ export class LoanAssignmentService {
     this.logger.log('Loan rotation completed.');
   }
 }
+
