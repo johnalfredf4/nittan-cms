@@ -22,21 +22,6 @@ export class LoanAssignmentController {
     return this.service.bulkOverride(dto);
   }
 
-  import {
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Body,
-} from '@nestjs/common';
-import { LoanAssignmentService } from './loan-assignment.service';
-
-@Controller('loan-assignment')
-export class LoanAssignmentController {
-  constructor(
-    private readonly service: LoanAssignmentService
-  ) {}
-
   // -----------------------------------------------------
   // Get ALL assignments
   // -----------------------------------------------------
