@@ -2,20 +2,21 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { LocationType } from '../types/location-type';
 import { LOCATION_HQ, LOCATION_BRANCH } from '../constants/location-constants';
 
-
-
-@Entity('Loan_Assignment_Rotation')
+@Entity({ name: 'Loan_Assignment_Rotation' })
 export class RotationState {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 20 })
-  locationType: string;
+  @Column({ type: 'varchar', length: 10 })
+  locationType: LocationType;
 
   @Column({ type: 'int', nullable: true })
-  branchId: number;
+  branchId: number | null;
 
   @Column({ type: 'int', default: 0 })
   lastIndex: number;
+
+  @Column({ type: 'datetime', default: () => 'GETDATE()' })
+  updatedAt: Date;
 }
 
