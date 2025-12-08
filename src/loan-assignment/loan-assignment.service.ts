@@ -403,7 +403,35 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
   return this.assignmentRepo.save(accounts);
 }
 
+async getAllAssignments() {
+  return this.assignmentRepo.find({
+    order: { createdAt: 'DESC' },
+  });
 }
+
+async getAgentsList() {
+  const rows = await this.nittanAppSource.query(`
+    SELECT 
+      ua.EmployeeId AS agentId,
+      ua.BranchId,
+      r.name AS roleName
+    FROM User_Accounts ua
+    INNER JOIN User_Roles ur ON ur.user_id = ua.id
+    INNER JOIN Roles r ON r.id = ur.role_id
+    WHERE ua.status = 1
+      AND r.name LIKE 'Collection Agent%'
+  `);
+
+  return rows.map((r) => ({
+    agentId: r.agentId,
+    branchId: r.BranchId,
+    roleName: r.roleName,
+  }));
+}
+
+
+}
+
 
 
 
