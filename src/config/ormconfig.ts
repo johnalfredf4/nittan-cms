@@ -9,7 +9,6 @@ import { ProductType } from '../product-types/entities/product-type.entity';
 import { AccountRetention } from '../account-retention/entities/account-retention.entity';
 import { DispositionCategory } from '../dispositions/entities/disposition-category.entity';
 import { Disposition } from '../dispositions/entities/disposition.entity';
-
 import { LoanAssignment } from '../loan-assignment/entities/loan-assignment.entity';
 import { RotationState } from '../loan-assignment/entities/rotation-state.entity';
 
