@@ -148,16 +148,17 @@ export class LoanAssignmentService {
   /**
    * MAP DPD TO ACCOUNT CLASS
    */
-  getAccountClass(dpd: number): AccountClass {
-  if (dpd <= 0) return AccountClass.ZeroDPD;
-  if (dpd <= 30) return AccountClass.OneTo30DPD;
-  if (dpd <= 60) return AccountClass.ThirtyOneTo60DPD;
-  if (dpd <= 90) return AccountClass.SixtyOneTo90DPD;
-  if (dpd <= 120) return AccountClass.NinetyOneTo120DPD;
-  if (dpd <= 150) return AccountClass.OneTwentyOneTo150DPD;
-  if (dpd <= 180) return AccountClass.OneFiftyOneTo180DPD;
-  return AccountClass.OneEightyPlusDPD;
+  private getAccountClass(dpd: number): AccountClass {
+  if (dpd <= 0) return AccountClass.DPD_0;
+  if (dpd <= 30) return AccountClass.DPD_1_30;
+  if (dpd <= 60) return AccountClass.DPD_31_60;
+  if (dpd <= 90) return AccountClass.DPD_61_90;
+  if (dpd <= 120) return AccountClass.DPD_91_120;
+  if (dpd <= 150) return AccountClass.DPD_121_150;
+  if (dpd <= 180) return AccountClass.DPD_151_180;
+  return AccountClass.DPD_181_PLUS;
 }
+
 
   /**
    * CALCULATE END OF RETENTION
@@ -236,4 +237,5 @@ export class LoanAssignmentService {
     };
   }
 }
+
 
