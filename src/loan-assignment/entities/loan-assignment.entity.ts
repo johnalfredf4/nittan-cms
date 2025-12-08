@@ -8,7 +8,8 @@ import {
 } from 'typeorm';
 import { LocationType } from '../types/location-type';
 import { AccountClass } from '../types/account-class';
-import { LOCATION_HQ, LOCATION_BRANCH } from './constants/location-constants';
+import { LOCATION_HQ, LOCATION_BRANCH } from '../constants/location-constants';
+
 
 
 @Entity({ name: 'Loan_Assignments' })
