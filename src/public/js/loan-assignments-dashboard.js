@@ -1,64 +1,88 @@
-const apiUrl = "/account-retention";
+const apiUrl = "/loan-assignment";
 
-async function loadRetentionRecords() {
-    const tbody = document.getElementById("retentionRows");
+async function loadAgents() {
+    const dropdown = document.getElementById("agentFilter");
 
     try {
-        const res = await fetch(apiUrl);
-        const data = await res.json();
+        const res = await fetch(`${apiUrl}/agents`);
+        const agents = await res.json();
 
+        dropdown.innerHTML = `<option value="">All Agents</option>`;
+
+        agents.forEach(a => {
+            const opt = document.createElement("option");
+            opt.value = a.agentId;
+            opt.textContent = `Agent ${a.agentId}`;
+            dropdown.appendChild(opt);
+        });
+    } catch (err) {
+        console.error("Failed to load agents", err);
+    }
+}
+
+async function loadAssignments() {
+    const tbody = document.getElementById("assignmentRows");
+    const agentId = document.getElementById("agentFilter").value;
+
+    try {
+        let url = `${apiUrl}/all`;
+        if (agentId) url = `${apiUrl}/agent/${agentId}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
         tbody.innerHTML = "";
 
         data.forEach(item => {
             const row = document.createElement("tr");
 
             row.innerHTML = `
-                <td class="py-2">${item.accountClass}</td>
-                <td class="py-2">${item.retentionDays} day(s)</td>
-                <td class="py-2">${item.description || ""}</td>
-                <td class="py-2">
-                    <span class="px-2 py-1 rounded text-white text-xs ${item.isActive ? "bg-green-600" : "bg-gray-500"}">
-                        ${item.isActive ? "Active" : "Inactive"}
-                    </span>
-                </td>
-                <td class="py-2">
-                    <button onclick="edit(${item.id})" class="px-2 py-1 text-blue-600 hover:text-blue-800">Edit</button>
-                    <button onclick="toggleActive(${item.id})" class="px-2 py-1 text-yellow-600 hover:text-yellow-800">
-                        ${item.isActive ? "Deactivate" : "Activate"}
+                <td class="py-2 px-2">${item.loanApplicationId}</td>
+                <td class="py-2 px-2">${item.agentId}</td>
+                <td class="py-2 px-2">${item.branchId ?? "-"}</td>
+                <td class="py-2 px-2">${formatDate(item.dueDate)}</td>
+                <td class="py-2 px-2">${item.dpd ?? ""}</td>
+                <td class="py-2 px-2">${item.accountClass ?? ""}</td>
+                <td class="py-2 px-2">${formatDate(item.retentionUntil)}</td>
+                <td class="py-2 px-2">
+                    <button onclick="reassign(${item.id})"
+                        class="px-2 py-1 text-blue-600 hover:text-blue-800">
+                        Reassign
                     </button>
-                    <button onclick="removeRecord(${item.id})" class="px-2 py-1 text-red-600 hover:text-red-800">Delete</button>
                 </td>
             `;
+
             tbody.appendChild(row);
         });
 
     } catch (err) {
-        console.error("Failed to load records", err);
+        console.error("Failed to load loan assignments", err);
     }
 }
 
-function edit(id) {
-    location.href = `account-retention-form.html?id=${id}`;
-}
+async function reassign(id) {
+    const newAgent = prompt("Enter new Agent ID:");
+    if (!newAgent) return;
 
-async function toggleActive(id) {
-    if (!confirm("Are you sure you want to change status?")) return;
-
-    await fetch(`${apiUrl}/${id}/toggle-active`, {
-        method: "PATCH"
+    await fetch(`/loan-assignment/reassign/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newAgentId: Number(newAgent) }),
     });
 
-    loadRetentionRecords();
+    loadAssignments();
 }
 
-async function removeRecord(id) {
-    if (!confirm("Are you sure you want to delete this?")) return;
+document.getElementById("filterBtn").addEventListener("click", loadAssignments);
+document.getElementById("clearBtn").addEventListener("click", () => {
+    document.getElementById("agentFilter").value = "";
+    loadAssignments();
+});
 
-    await fetch(`${apiUrl}/${id}`, {
-        method: "DELETE"
-    });
-
-    loadRetentionRecords();
+function formatDate(dateString) {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
 }
 
-loadRetentionRecords();
+loadAgents();
+loadAssignments();
