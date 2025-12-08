@@ -141,6 +141,36 @@ export class LoanAssignmentService {
   await this.saveRotationIndex(null, index);
 }
 
+private async assignForBranch(branchId: number, loans: any[]) {
+  if (!loans.length) {
+    this.logger.warn(`[NO BRANCH LOANS] Branch ${branchId}`);
+    return;
+  }
+
+  const agents = await this.getAgentsForBranch(branchId);
+
+  if (!agents.length) {
+    this.logger.warn(`[NO AGENTS AVAILABLE FOR BRANCH ID ${branchId}]`);
+    return;
+  }
+
+  let index = await this.getRotationIndex(branchId);
+
+  for (const loan of loans) {
+    await this.assignmentRepo.save({
+      loanApplicationId: loan.LoanApplicationId,
+      agentId: agents[index % agents.length].agentId,
+      accountClass: loan.CustomerClass,
+      branchId: branchId,
+      updatedAt: new Date(),
+    });
+
+    index++;
+  }
+
+  await this.saveRotationIndex(branchId, index);
+}
+
 
   /**
    * Fetch agents assigned to location
@@ -268,6 +298,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
