@@ -43,8 +43,14 @@ export class LoanAssignmentService {
 
     const grouped = this.groupByLocation(loans);
 
-    await this.assignForLocation('HQ', grouped['HQ']);
-    await this.assignForLocation('BRANCH', grouped['BRANCH']);
+    // Assign HQ Loans
+    await this.assignForLocation('HQ', grouped.HQ);
+    
+    // Assign Branch Loans PER BRANCH
+    for (const branchId of Object.keys(grouped.BRANCH)) {
+      const branchLoans = grouped.BRANCH[Number(branchId)];
+      await this.assignForBranch(Number(branchId), branchLoans);
+    }
 
 
     this.logger.log('Loan rotation completed.');
@@ -105,54 +111,36 @@ export class LoanAssignmentService {
   /**
    * Assign accounts to available agents
    */
-  private async assignForLocation(location: LocationType, loans: any[]): Promise<void> {
-    if (!loans.length) return;
-
-    const agents = await this.fetchAgents(location);
-
-    if (!agents.length) {
-      this.logger.warn(`No agents available for location ${location}`);
-      return;
-    }
-
-    const { branchId } = loans[0];
-
-    let rotation = await this.rotationRepo.findOne({ where: { locationType: location, branchId } });
-
-    if (!rotation) {
-      rotation = this.rotationRepo.create({
-        locationType: location,
-        branchId: branchId,
-        lastIndex: 0,
-      });
-
-      rotation = await this.rotationRepo.save(rotation);
-    }
-
-    let index = rotation.lastIndex ?? 0;
-
-    for (const loan of loans) {
-      const agent = agents[index % agents.length];
-
-      const newAssignment = this.assignmentRepo.create({
-        loanApplicationId: loan.LoanApplicationId,
-        agentId: agent.id,
-        branchId,
-        locationType: location,
-        accountClass: this.getAccountClass(loan.DPD ?? 0),
-        retentionUntil: this.calculateRetention(loan.DPD ?? 0),
-        createdAt: new Date(),
-        active: true,
-      });
-
-      await this.assignmentRepo.save(newAssignment);
-
-      index++;
-    }
-
-    rotation.lastIndex = index;
-    await this.rotationRepo.save(rotation);
+  private async assignForLocation(location: string, loans: any[]) {
+  if (!loans.length) {
+    this.logger.warn(`[NO HQ LOANS]`);
+    return;
   }
+
+  const agents = await this.getAgentsForLocation(location);
+
+  if (!agents.length) {
+    this.logger.warn(`[NO HQ AGENTS AVAILABLE]`);
+    return;
+  }
+
+  let index = await this.getRotationIndex(null);
+
+  for (const loan of loans) {
+    await this.assignmentRepo.save({
+      loanApplicationId: loan.LoanApplicationId,
+      agentId: agents[index % agents.length].agentId,
+      accountClass: loan.CustomerClass,
+      branchId: null,
+      updatedAt: new Date(),
+    });
+
+    index++;
+  }
+
+  await this.saveRotationIndex(null, index);
+}
+
 
   /**
    * Fetch agents assigned to location
@@ -280,6 +268,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
