@@ -8,6 +8,8 @@ import { LocationType } from './types/location-type';
 import { AccountClass } from './types/account-class';
 import { LOCATION_HQ, LOCATION_BRANCH } from './constants/location-constants';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { UserAccounts } from '../users/entities/user.entity';
+
 
 @Injectable()
 export class LoanAssignmentService {
@@ -22,6 +24,9 @@ export class LoanAssignmentService {
 
     @InjectRepository(LoanAssignment, 'nittan_app')
     private readonly auditRepo: Repository<LoanAssignment>,
+
+    @InjectRepository(UserAccounts, 'nittan_app')
+    private readonly userRepo: Repository<UserAccounts>,
 
     private readonly nittanSource: DataSource,
     private readonly nittanAppSource: DataSource,
@@ -409,6 +414,33 @@ async getAllAssignments() {
   });
 }
 
+ /**
+   * Returns all agents who can receive assignments
+   */
+  async getAvailableAgents() {
+    return await this.userRepo.query(`
+      SELECT 
+        ua.EmployeeId AS agentId,
+        ua.BranchId,
+        r.name AS roleName
+      FROM dbo.User_Accounts ua
+      INNER JOIN dbo.User_Roles ur ON ur.user_id = ua.id
+      INNER JOIN dbo.Roles r ON r.id = ur.role_id
+      WHERE ua.status = 1
+        AND r.name LIKE 'Collection Agent%'
+    `);
+  }
+
+  /**
+   * Returns assignments only for selected agent
+   */
+  async getAssignmentsForAgent(agentId: number) {
+    return await this.assignmentRepo.find({
+      where: { agentId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+  
 async getAgentsList() {
   const rows = await this.nittanAppSource.query(`
     SELECT 
@@ -428,9 +460,26 @@ async getAgentsList() {
     roleName: r.roleName,
   }));
 }
+/**
+   * Updates record with new Agent ID
+   */
+  async reassignAssignment(assignmentId: number, newAgentId: number) {
+    const row = await this.assignmentRepo.findOne({
+      where: { id: assignmentId },
+    });
 
+    if (!row) {
+      throw new Error('Assignment not found');
+    }
+
+    row.agentId = Number(newAgentId);
+    row.updatedAt = new Date();
+
+    return this.assignmentRepo.save(row);
+  }
 
 }
+
 
 
 
