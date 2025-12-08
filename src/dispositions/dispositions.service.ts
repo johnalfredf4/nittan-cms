@@ -8,7 +8,7 @@ import { UpdateDispositionDto } from './dto/update-disposition.dto';
 @Injectable()
 export class DispositionsService {
   constructor(
-    @InjectRepository(Disposition)
+    @InjectRepository(Disposition, 'nittan_app')
     private repo: Repository<Disposition>,
   ) {}
 
@@ -47,3 +47,4 @@ export class DispositionsService {
     return await this.repo.remove(record);
   }
 }
+
