@@ -158,7 +158,7 @@ export class LoanAssignmentService {
       AND r.name LIKE 'Collection Agent%'
   `;
 
-  const pool = await this.nittanAppDataSource.manager.connection;
+  const pool = await this.nittanAppSource.manager.connection;
   const agents = await pool.query(query);
 
   console.log('🔍 Raw Agents From DB:', agents);
@@ -268,6 +268,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
