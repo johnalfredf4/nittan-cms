@@ -75,7 +75,7 @@ export class LoanAssignmentService {
       SELECT *
       FROM NextReceivables
       WHERE rn = 1;
-
+  ;
     return await this.nittanSource.query(query);
   }
 
@@ -380,6 +380,7 @@ async bulkOverride(dto: { fromAgentId: number; toAgentId: number }) {
 }
 
 }
+
 
 
 
