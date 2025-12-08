@@ -16,25 +16,19 @@ export class LoanAssignment {
   id: number;
 
   @Column({ type: 'int' })
-  loanApplicationId: number;
+  loanApplicationId: number;  // from Nittan.tblLoanApplications (Id INT)
 
   @Column({ type: 'int' })
-  agentId: number; // maps User_Accounts.id
+  agentId: number;            // from Nittan_App.dbo.User_Accounts (id INT)
+
+  @Column({ type: 'int', nullable: true })
+  branchId: number | null;
 
   @Column({ type: 'varchar', length: 10 })
   locationType: LocationType; // 'HQ' | 'BRANCH'
 
-  @Column({ type: 'int', nullable: true })
-  branchId: number | null; // NULL means HQ
-
-  @Column({ type: 'date' })
-  dueDate: Date;
-
-  @Column({ type: 'int' })
-  dpd: number;
-
   @Column({ type: 'varchar', length: 50 })
-  accountClass: AccountClass;
+  accountClass: AccountClass; // stored as string
 
   @Column({ type: 'datetime' })
   retentionUntil: Date;
@@ -42,12 +36,6 @@ export class LoanAssignment {
   @Column({ type: 'bit', default: true })
   active: boolean;
 
-  @Column({ type: 'int', nullable: true })
-  previousAssignmentId: number | null;
-
-  @CreateDateColumn()
+  @Column({ type: 'datetime', default: () => 'GETDATE()' })
   createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }
