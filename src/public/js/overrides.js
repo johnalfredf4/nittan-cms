@@ -12,7 +12,6 @@ async function searchAssignments() {
         console.log("🔍 Fetching:", endpoint);
 
         const res = await fetch(endpoint);
-
         if (!res.ok) {
             console.error("API error:", res.status);
             alert("Failed to fetch assignments");
@@ -36,7 +35,6 @@ async function searchAssignments() {
     }
 }
 
-
 function renderTable(agentId) {
     const rows = document.getElementById("assignmentRows");
     rows.innerHTML = "";
@@ -45,10 +43,11 @@ function renderTable(agentId) {
     document.getElementById("resultsWrap").classList.remove("hidden");
 
     currentAssignments.forEach(a => {
-        const tr = document.createElement("tr");
+        const dateStr = a.retentionUntil
+            ? new Date(a.retentionUntil).toLocaleDateString()
+            : "N/A";
 
-        const dateStr =
-            a.retentionUntil ? new Date(a.retentionUntil).toLocaleDateString() : "N/A";
+        const tr = document.createElement("tr");
 
         tr.innerHTML = `
             <td class="px-2 py-1">${a.loanReceivableId}</td>
@@ -71,17 +70,15 @@ function renderTable(agentId) {
     });
 }
 
-
 async function overrideSingle(assignmentId, fromAgent) {
     const field = document.getElementById(`toAgent_${assignmentId}`);
-    if (!field value) return alert("Enter new agent ID");
+    if (!field.value) return alert("Enter new agent ID");
 
     const newAgent = field.value;
-
     const ok = confirm(`Override assignment#${assignmentId} from ${fromAgent} → ${newAgent}?`);
     if (!ok) return;
 
-    const result = await fetch(`${apiUrl}${BASE_URL}/override-single/${assignmentId}`, {
+    await fetch(`${apiUrl}${BASE_URL}/override-single/${assignmentId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -90,15 +87,9 @@ async function overrideSingle(assignmentId, fromAgent) {
         })
     });
 
-    if (!result.ok) {
-        alert("Failed to override assignment");
-        return;
-    }
-
     alert("Updated successfully!");
     searchAssignments();
 }
-
 
 async function bulkOverride() {
     const fromAgentId = document.getElementById("searchAgentId").value;
@@ -109,7 +100,7 @@ async function bulkOverride() {
     const ok = confirm(`Override ALL assignments from ${fromAgentId} → ${toAgentId}?`);
     if (!ok) return;
 
-    const result = await fetch(`${apiUrl}${BASE_URL}/bulk-override`, {
+    await fetch(`${apiUrl}${BASE_URL}/bulk-override`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -117,11 +108,6 @@ async function bulkOverride() {
             toAgentId: Number(toAgentId)
         })
     });
-
-    if (!result.ok) {
-        alert("Bulk override failed");
-        return;
-    }
 
     alert("Bulk override completed!");
     searchAssignments();
