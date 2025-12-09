@@ -7,14 +7,10 @@ import {
   Param,
   ParseIntPipe
 } from '@nestjs/common';
-import {
-  LoanReceivableAssignment,
-  DpdCategory,
-  AccountClass,
-  AssignmentStatus,
-} from './entities/loanreceivable-assignment.entity';
 import { LoanReceivableAssignmentService } from './loanreceivable-assignment.service';
 import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
+import { OverrideSingleDto } from './dto/override-single.dto';
+import { AgentFilterDto } from './dto/agent-filter.dto';
 
 @Controller('loanreceivable-assignment')
 export class LoanReceivableAssignmentController {
@@ -30,11 +26,9 @@ export class LoanReceivableAssignmentController {
   }
 
   /** 🔹 Get agent load */
-  @Get('load')
-  async getAgentLoad(@Query('agentId') agentId?: number) {
-    return this.service.getAgentLoad({
-      agentId: agentId ? Number(agentId) : undefined,
-    });
+  @Get('agent-load')
+  async getAgentLoad(@Query() query: AgentFilterDto) {
+    return this.service.getAgentLoad(query);
   }
 
   /** 🔹 Override multiple assignments */
@@ -43,30 +37,21 @@ export class LoanReceivableAssignmentController {
     return this.service.bulkOverrideAssignments(dto);
   }
 
-  /** 🔹 Mark a record processed */
+  /** 🔹 Override a single assignment */
+  @Post('override/:assignmentId')
+  async overrideSingle(
+    @Param('assignmentId', ParseIntPipe) assignmentId: number,
+    @Body() dto: OverrideSingleDto
+  ) {
+    return this.service.overrideSingle(assignmentId, dto);
+  }
+
+  /** 🔹 Mark as processed  */
   @Post('mark-processed/:assignmentId/:agentId')
   async markProcessed(
     @Param('assignmentId', ParseIntPipe) assignmentId: number,
     @Param('agentId', ParseIntPipe) agentId: number,
   ) {
     return this.service.markProcessed(assignmentId, agentId);
-  }
-
-  @Get('agent-load')
-  async getAgentLoad(@Query('agentId') agentId: number) {
-    return this.service.getAgentLoad(agentId);
-  }
-
-  @Post('override/:id')
-  async overrideSingle(
-    @Param('id') assignmentId: number,
-    @Body() dto: any
-  ) {
-    return this.service.overrideSingle(assignmentId, dto);
-  }
-
-  @Post('bulk-override')
-  async bulkOverride(@Body() dto: BulkOverrideAssignmentDto) {
-    return this.service.bulkOverrideAssignments(dto);
   }
 }
