@@ -1,125 +1,199 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, LessThan, Repository } from 'typeorm';
 import {
-  LoanReceivableAssignment,
-  AccountClass,
-} from './entities/loanreceivable-assignment.entity';
-import { BulkOverrideAssignmentDto } from './dto/bulk-override-assignment.dto';
+  Repository,
+  LessThan,
+  DataSource,
+  In,
+} from 'typeorm';
+import { LoanReceivableAssignment, DpdCategory, AccountClass } from './entities/loanreceivable-assignment.entity';
+import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
 
 @Injectable()
 export class LoanReceivableAssignmentService {
   private readonly logger = new Logger(LoanReceivableAssignmentService.name);
 
   constructor(
-    @InjectRepository(LoanReceivableAssignment)
+    @InjectRepository(LoanReceivableAssignment, 'nittan_app')
     private readonly assignmentRepo: Repository<LoanReceivableAssignment>,
 
-    private readonly mainDs: DataSource,
+    private readonly dataSource: DataSource, // main DB connection for receivables
   ) {}
 
-  async markProcessed(id: number) {
-    const assignment = await this.assignmentRepo.findOne({ where: { id } });
+  /**
+   * Fetch receivables to assign.
+   * Includes past due and near due (7 days ahead)
+   */
+  private async loadReceivablesForAssignment(): Promise<any[]> {
+    const sql = `
+      WITH NextReceivables AS (
+          SELECT TOP 200 LoanApplicationId,
+                 DueDate,
+                 DATEDIFF(DAY, DueDate, GETDATE()) AS DPD,
+                 ROW_NUMBER() OVER (
+                     PARTITION BY LoanApplicationId
+                     ORDER BY DueDate ASC
+                 ) AS rn
+          FROM [Nittan].[dbo].[tblLoanReceivables]
+          WHERE Cleared = 0
+            AND DueDate <= DATEADD(DAY, 7, CAST(GETDATE() AS DATE))
+      )
+      SELECT *
+      FROM NextReceivables
+      WHERE rn = 1;
+    `;
 
-    if (!assignment) {
-      throw new Error('Assignment not found');
-    }
-
-    assignment.status = 'PROCESSED';
-    assignment.updatedAt = new Date();
-
-    await this.assignmentRepo.save(assignment);
-    return assignment;
+    const rows = await this.dataSource.query(sql);
+    return rows;
   }
 
-  async bulkOverrideAssignments(dto: BulkOverrideAssignmentDto) {
-    return await this.assignmentRepo.update(
+  /**
+   * Determine retention days based on DPD
+   */
+  private getRetentionDays(dpd: number): number {
+    if (dpd >= 181) return 120;
+    return 7;
+  }
+
+  /**
+   * Determine dpd category enum
+   */
+  private getDpdCategory(dpd: number): DpdCategory {
+    if (dpd <= 0) return DpdCategory.DPD_0;
+    if (dpd <= 30) return DpdCategory.DPD_1_30;
+    if (dpd <= 60) return DpdCategory.DPD_31_60;
+    if (dpd <= 90) return DpdCategory.DPD_61_90;
+    if (dpd <= 120) return DpdCategory.DPD_91_120;
+    if (dpd <= 150) return DpdCategory.DPD_121_150;
+    if (dpd <= 180) return DpdCategory.DPD_151_180;
+    return DpdCategory.DPD_181_PLUS;
+  }
+
+  /**
+   * Assign receivables to agents
+   */
+  async assignLoans(): Promise<void> {
+    this.logger.log('Starting receivable assignment process...');
+
+    // Step 1. Expire assignments exceeding retention
+    await this.autoExpireAssignments();
+
+    // Step 2. Load receivables from main DB
+    const loans = await this.loadReceivablesForAssignment();
+    if (!loans.length) {
+      this.logger.warn('No receivables available.');
+      return;
+    }
+
+    // Step 3. Load agents and current active counts
+    const agents = await this.getAgentLoad({});
+    if (!agents.length) {
+      this.logger.warn('No agents found.');
+      return;
+    }
+
+    // Step 4. Loop and assign loans fairly
+    for (const loan of loans) {
+      const dpd = loan.DPD;
+      const dpdCat = this.getDpdCategory(dpd);
+      const retentionDays = this.getRetentionDays(dpd);
+
+      // find agent with the least active assignments
+      const sortedAgents = [...agents].sort((a, b) => a.assignedCount - b.assignedCount);
+      const selectedAgent = sortedAgents[0];
+      if (!selectedAgent) continue;
+
+      if (selectedAgent.assignedCount >= 10) continue; // skip agents at full load
+
+      await this.assignmentRepo.save({
+        agentId: selectedAgent.agentId,
+        loanApplicationId: loan.LoanApplicationId,
+        dpdCategory: dpdCat,
+        retentionUntil: new Date(new Date().getTime() + retentionDays * 86400000),
+        status: 'ACTIVE',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      selectedAgent.assignedCount++;
+    }
+
+    this.logger.log('Loan receivable assignment completed.');
+  }
+
+  /**
+   * Release expired receivables
+   */
+  private async autoExpireAssignments(): Promise<void> {
+    await this.assignmentRepo.update(
       {
-        agentId: dto.fromAgentId,
+        retentionUntil: LessThan(new Date()),
         status: 'ACTIVE',
       },
       {
-        agentId: dto.toAgentId,
-        accountClass: dto.accountClass ?? AccountClass.STANDARD,
+        status: 'EXPIRED',
         updatedAt: new Date(),
       },
     );
   }
 
-  async expireAssignments() {
-    const expired = await this.assignmentRepo.find({
+  /**
+   * Returns how many items each agent currently has
+   */
+  async getAgentLoad(query: { agentId?: number }) {
+    const qb = this.assignmentRepo.createQueryBuilder('a');
+
+    qb.select('a.agentId', 'agentId')
+      .addSelect('COUNT(*)', 'assignedCount')
+      .where('a.status = :status', { status: 'ACTIVE' })
+      .groupBy('a.agentId');
+
+    if (query.agentId) {
+      qb.having('a.agentId = :agentId', { agentId: query.agentId });
+    }
+
+    const result = await qb.getRawMany();
+
+    return result.map((r) => ({
+      agentId: Number(r.agentId),
+      assignedCount: Number(r.assignedCount),
+    }));
+  }
+
+  /**
+   * Mark single loan as processed by agent
+   */
+  async markProcessed(assignmentId: number, agentId: number) {
+    const assignment = await this.assignmentRepo.findOne({ where: { id: assignmentId, agentId } });
+    if (!assignment) throw new NotFoundException('Assignment not found');
+
+    assignment.status = 'PROCESSED';
+    assignment.updatedAt = new Date();
+
+    await this.assignmentRepo.save(assignment);
+  }
+
+  /**
+   * Bulk override moving processed loans from one agent to another
+   */
+  async bulkOverrideAssignments(dto: BulkOverrideAssignmentDto) {
+    const records = await this.assignmentRepo.find({
       where: {
+        agentId: dto.fromAgentId,
         status: 'ACTIVE',
-        retentionUntil: LessThan(new Date()),
       },
     });
 
-    for (const assignment of expired) {
-      assignment.status = 'EXPIRED';
-      assignment.updatedAt = new Date();
-      await this.assignmentRepo.save(assignment);
+    for (const rec of records) {
+      rec.agentId = dto.toAgentId;
+      rec.updatedAt = new Date();
+      await this.assignmentRepo.save(rec);
     }
 
-    return expired.length;
-  }
-
-  async getReceivablesToAssign(maxCount: number) {
-    const sql = `
-      ;WITH Ordered AS (
-        SELECT TOP (${maxCount})
-            id AS LoanReceivableID,
-            LoanApplicationID,
-            DueDate,
-            DATEDIFF(DAY, DueDate, GETDATE()) AS DPD,
-            ROW_NUMBER() OVER (
-                PARTITION BY LoanApplicationID
-                ORDER BY DueDate ASC
-            ) AS rn
-        FROM dbo.tblLoanReceivables
-        WHERE Cleared = 0
-          AND DueDate <= DATEADD(DAY, 7, GETDATE())
-      )
-      SELECT LoanReceivableID, LoanApplicationID, DueDate,
-          CASE 
-            WHEN DPD <= 0 THEN '0DPD'
-            WHEN DPD BETWEEN 1 AND 30 THEN '1_30DPD'
-            WHEN DPD BETWEEN 31 AND 60 THEN '31_60DPD'
-            WHEN DPD BETWEEN 61 AND 90 THEN '61_90DPD'
-            WHEN DPD BETWEEN 91 AND 120 THEN '91_120DPD'
-            WHEN DPD BETWEEN 121 AND 150 THEN '121_150DPD'
-            WHEN DPD BETWEEN 151 AND 180 THEN '151_180DPD'
-            ELSE '180PLUS'
-          END AS DPDCategory,
-          CASE 
-            WHEN DPD >= 181 THEN DATEADD(DAY, 120, GETDATE())
-            ELSE DATEADD(DAY, 7, GETDATE())
-          END AS RetentionUntil
-      FROM Ordered
-      WHERE rn = 1;
-    `;
-
-    return await this.mainDs.query(sql);
-  }
-
-  async assignLoans(agentId: number, loans: any[]) {
-    const rows = loans.map((loan) =>
-      this.assignmentRepo.create({
-        agentId,
-        loanReceivableId: loan.LoanReceivableID,
-        loanApplicationId: loan.LoanApplicationID,
-        dpdCategory: loan.DPDCategory,
-        retentionUntil: loan.RetentionUntil,
-        status: 'ACTIVE',
-        createdAt: new Date(),
-      }),
-    );
-
-    await this.assignmentRepo.save(rows);
-
-    this.logger.log(
-      `Assigned ${rows.length} receivables to agent ${agentId}`,
-    );
-
-    return rows;
+    return {
+      moved: records.length,
+      from: dto.fromAgentId,
+      to: dto.toAgentId,
+    };
   }
 }
