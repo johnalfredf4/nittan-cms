@@ -23,6 +23,13 @@ export enum AccountClass {
   CLASS_C = 'C',
 }
 
+export enum AssignmentStatus {
+  ACTIVE = 'ACTIVE',
+  PROCESSED = 'PROCESSED',
+  EXPIRED = 'EXPIRED',
+}
+
+
 @Entity('LoanReceivable_Assignments')
 export class LoanReceivableAssignment {
   @PrimaryGeneratedColumn()
