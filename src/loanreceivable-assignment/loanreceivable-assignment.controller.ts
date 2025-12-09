@@ -51,4 +51,22 @@ export class LoanReceivableAssignmentController {
   ) {
     return this.service.markProcessed(assignmentId, agentId);
   }
+
+  @Get('agent-load')
+  async getAgentLoad(@Query('agentId') agentId: number) {
+    return this.service.getAgentLoad(agentId);
+  }
+
+  @Post('override/:id')
+  async overrideSingle(
+    @Param('id') assignmentId: number,
+    @Body() dto: any
+  ) {
+    return this.service.overrideSingle(assignmentId, dto);
+  }
+
+  @Post('bulk-override')
+  async bulkOverride(@Body() dto: BulkOverrideAssignmentDto) {
+    return this.service.bulkOverrideAssignments(dto);
+  }
 }
