@@ -118,7 +118,7 @@ export class LoanReceivableAssignmentService {
         locationType: selectedAgent.branchId === null ? 'HQ' : 'BRANCH',
         retentionDays: retentionDays,
         retentionUntil: new Date(Date.now() + retentionDays * 86400000),
-        status: 'ACTIVE',
+        status: AssignmentStatus.ACTIVE,
       });
 
 
@@ -212,6 +212,7 @@ async getAgentLoad(query: { agentId?: number }) {
     };
   }
 }
+
 
 
 
