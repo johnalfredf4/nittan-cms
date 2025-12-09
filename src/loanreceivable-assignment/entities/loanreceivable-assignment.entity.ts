@@ -3,7 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
+  UpdateDateColumn
 } from 'typeorm';
 
 export enum DpdCategory {
@@ -23,41 +23,46 @@ export enum AccountClass {
   CLASS_C = 'C',
 }
 
-export enum AssignmentStatus {
-  ACTIVE = 'ACTIVE',
-  PROCESSED = 'PROCESSED',
-  EXPIRED = 'EXPIRED'
-}
-
 @Entity('LoanReceivable_Assignments')
 export class LoanReceivableAssignment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'int' })
-  loanApplicationId: number;
+  @Column()
+  loanApplicationId: string;
 
-  @Column({ type: 'int' })
+  @Column()
+  loanReceivableId: number;
+
+  @Column()
   agentId: number;
 
-  @Column({ type: 'varchar', length: 20 })
-  dpdCategory: DpdCategory;
+  @Column()
+  branchId: number;
 
-  @Column({ type: 'varchar', length: 1 })
-  accountClass: AccountClass;
+  @Column()
+  locationType: string;
 
-  @Column({ type: 'datetime' })
-  retentionUntil: Date;
+  @Column()
+  dpd: number;
 
   @Column({
     type: 'varchar',
     length: 20,
-    default: AssignmentStatus.ACTIVE,
   })
-  status: AssignmentStatus;
+  dpdCategory: DpdCategory;
+
+  @Column()
+  retentionDays: number;
+
+  @Column()
+  retentionUntil: Date;
+
+  @Column()
+  status: string;
 
   @CreateDateColumn()
-  assignedAt: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
