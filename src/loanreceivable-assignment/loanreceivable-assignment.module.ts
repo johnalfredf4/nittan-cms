@@ -15,7 +15,7 @@ import { LoanreceivableAssignmentController } from './loanreceivable-assignment.
     ),
   ],
   controllers: [LoanreceivableAssignmentController],
-  providers: [LoanreceivableAssignmentService],
-  exports: [LoanreceivableAssignmentService],
+  providers: [LoanReceivableAssignmentService],
+  exports: [LoanReceivableAssignmentService],
 })
 export class LoanreceivableAssignmentModule {}
