@@ -59,8 +59,4 @@ export class LoanReceivableAssignment {
   updatedAt: Date;
 }
 
-////////////////////////////////////////////////////////
-// 👇 PUT THIS AT THE BOTTOM OF THIS FILE
-////////////////////////////////////////////////////////
 
-export { LoanReceivableAssignment, DpdCategory, AccountClass };
