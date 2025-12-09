@@ -29,13 +29,16 @@ export class LoanReceivableAssignment {
   id: number;
 
   @Column({ type: 'int' })
-  loanReceivableId: number; // NEW FIELD
+  loanReceivableId: number;
 
   @Column({ type: 'int' })
   loanApplicationId: number;
 
-  @Column({ type: 'varchar', length: 100 })
-  dpdCategory: string;
+  @Column({
+    type: 'enum',
+    enum: DpdCategory,
+  })
+  dpdCategory: DpdCategory;
 
   @Column({ type: 'datetime' })
   retentionUntil: Date;
@@ -44,7 +47,7 @@ export class LoanReceivableAssignment {
   status: string; // ACTIVE | PROCESSED | EXPIRED
 
   @Column({ type: 'int' })
-  agentId: number; // Receiver
+  agentId: number;
 
   @Column({
     type: 'enum',
@@ -58,11 +61,4 @@ export class LoanReceivableAssignment {
 
   @UpdateDateColumn({ type: 'datetime', nullable: true })
   updatedAt: Date;
-
-  @Column({
-  type: 'varchar',
-  length: 10
-  })
-  dpdCategory: DpdCategory;
-
 }
