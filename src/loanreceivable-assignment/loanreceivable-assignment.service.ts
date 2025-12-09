@@ -13,6 +13,7 @@ import {
 } from './entities/loanreceivable-assignment.entity';
 import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { OverrideSingleDto } from './dto/override-single.dto';
 @Injectable()
 export class LoanReceivableAssignmentService {
   private readonly logger = new Logger(LoanReceivableAssignmentService.name);
@@ -57,6 +58,21 @@ export class LoanReceivableAssignmentService {
   /**
    * Query valid, active agents from system DB
    */
+  async overrideSingle(assignmentId: number, dto: OverrideSingleDto) {
+  const assignment = await this.assignmentRepo.findOne({
+    where: { id: assignmentId },
+  });
+
+  if (!assignment) {
+    throw new Error(`Assignment not found with id ${assignmentId}`);
+  }
+
+  assignment.agentId = dto.toAgentId;
+  assignment.updatedAt = new Date();
+
+  return this.assignmentRepo.save(assignment);
+}
+
   
   private async loadAgents(): Promise<any[]> {
     const sql = `
@@ -279,6 +295,7 @@ async markProcessed(assignmentId: number, agentId: number) {
 }
 
 }
+
 
 
 
