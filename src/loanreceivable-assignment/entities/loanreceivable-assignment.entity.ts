@@ -3,7 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
 } from 'typeorm';
 
 export enum DpdCategory {
@@ -23,34 +23,38 @@ export enum AccountClass {
   CLASS_C = 'C',
 }
 
+export enum AssignmentStatus {
+  ACTIVE = 'ACTIVE',
+  PROCESSED = 'PROCESSED',
+  EXPIRED = 'EXPIRED'
+}
+
 @Entity('LoanReceivable_Assignments')
 export class LoanReceivableAssignment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  loanApplicationId: string;
+  @Column({ type: 'int' })
+  loanApplicationId: number;
 
-  @Column()
+  @Column({ type: 'int' })
   agentId: number;
+
+  @Column({ type: 'varchar', length: 20 })
+  dpdCategory: DpdCategory;
+
+  @Column({ type: 'varchar', length: 1 })
+  accountClass: AccountClass;
+
+  @Column({ type: 'datetime' })
+  retentionUntil: Date;
 
   @Column({
     type: 'varchar',
     length: 20,
+    default: AssignmentStatus.ACTIVE,
   })
-  dpdCategory: DpdCategory;
-
-  @Column({
-    type: 'varchar',
-    length: 1,
-  })
-  accountClass: AccountClass;
-
-  @Column()
-  retentionUntil: Date;
-
-  @Column()
-  status: string;
+  status: AssignmentStatus;
 
   @CreateDateColumn()
   assignedAt: Date;
@@ -58,5 +62,3 @@ export class LoanReceivableAssignment {
   @UpdateDateColumn()
   updatedAt: Date;
 }
-
-
