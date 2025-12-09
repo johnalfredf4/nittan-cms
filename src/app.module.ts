@@ -27,6 +27,7 @@ import { Disposition } from './dispositions/entities/disposition.entity';
 import { LoanAssignment } from './loan-assignment/entities/loan-assignment.entity';
 import { RotationState } from './loan-assignment/entities/rotation-state.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { LoanreceivableAssignmentModule } from './loanreceivable-assignment/loanreceivable-assignment.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { ScheduleModule } from '@nestjs/schedule';
         Disposition,
         LoanAssignment,
         RotationState,
+        LoanreceivableAssignmentModule,
       ],
       options: {
         encrypt: false,
