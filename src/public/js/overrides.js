@@ -3,37 +3,46 @@ const BASE_URL = "/loanreceivable-assignment";
 let currentAssignments = [];
 
 async function searchAssignments() {
-  const searchTerm = document.getElementById('searchInput').value;
+    const agentId = document.getElementById("searchAgentId").value;
 
-  const response = await fetch(`${apiUrl}/loan-receivable-assignments/search?filter=${searchTerm}`);
+    if (!agentId) {
+        alert("Please enter an Agent ID");
+        return;
+    }
 
-  if (!response.ok) {
-    console.error("API returned an error:", response.status);
-    alert("Failed to retrieve results.");
-    return;
-  }
+    try {
+        const response = await fetch(
+            `${apiUrl}${BASE_URL}/agent-load?agentId=${agentId}`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "application/json"
+                }
+            }
+        );
 
-  let data;
-  try {
-    data = await response.json();
-  } catch (err) {
-    console.error("Failed to parse response JSON", err);
-    alert("Server returned invalid response");
-    return;
-  }
+        if (!response.ok) {
+            console.error("Failed response", response.status);
+            alert("No assignments found.");
+            return;
+        }
 
-  if (!Array.isArray(data)) {
-    console.warn("Unexpected API result:", data);
-    alert("No assignments found.");
-    return;
-  }
+        const data = await response.json();
 
-  if (data.length === 0) {
-    alert("No assignments found.");
-    return;
-  }
+        if (!Array.isArray(data) || data.length === 0) {
+            alert("No assignments found.");
+            return;
+        }
 
-  console.log("Assignments loaded:", data);
+        currentAssignments = data;
+        console.log("Assignments loaded:", currentAssignments);
+
+        renderTable(agentId);
+
+    } catch (err) {
+        console.error("Error fetching assignments", err);
+        alert("Unable to retrieve assignments");
+    }
 }
 
 function renderTable(agentId) {
@@ -48,16 +57,16 @@ function renderTable(agentId) {
 
         tr.innerHTML = `
             <td class="px-2 py-1">${a.loanReceivableId}</td>
-            <td class="px-2 py-1">${a.dpd}</td>
+            <td class="px-2 py-1">${a.dpd ?? '-'}</td>
             <td class="px-2 py-1">${a.status}</td>
             <td class="px-2 py-1">${new Date(a.retentionUntil).toLocaleDateString()}</td>
             <td class="px-2 py-1 text-center">
-                <input type="number" id="toAgent_${a.id}"
-                       placeholder="Agent ID"
-                       class="border px-2 py-1 rounded w-28 mr-2"/>
+                <input type="number" id="toAgent_${a.id}" 
+                    placeholder="New Agent ID"
+                    class="border px-2 py-1 rounded w-28 mr-2"/>
                 <button onclick="overrideSingle(${a.id}, ${a.agentId})"
-                        class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs">
-                        Override
+                    class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs">
+                    Override
                 </button>
             </td>
         `;
@@ -68,36 +77,43 @@ function renderTable(agentId) {
 
 async function overrideSingle(assignmentId, fromAgent) {
     const newAgent = document.getElementById(`toAgent_${assignmentId}`).value;
-    if (!newAgent) return alert("Enter new agent ID");
 
-    const ok = confirm(`Override assignment #${assignmentId} from ${fromAgent} → ${newAgent}?`);
+    if (!newAgent) return alert("Enter new agent ID.");
+
+    const ok = confirm(`Override assignment #${assignmentId} from Agent ${fromAgent} → ${newAgent}?`);
     if (!ok) return;
 
-    await fetch(`${BASE_URL}/override/${assignmentId}`, {
+    await fetch(`${apiUrl}${BASE_URL}/override-single/${assignmentId}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fromAgentId: fromAgent, toAgentId: newAgent })
+        headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ toAgentId: Number(newAgent) })
     });
 
-    alert("Assignment updated!");
+    alert("Assignment updated successfully!");
     searchAssignments();
 }
 
 async function bulkOverride() {
-    const fromAgentId = document.getElementById("searchAgentId").value;
+    const fromAgentId = document.getElementById("searchedAgent").innerText;
     const toAgentId = document.getElementById("bulkNewAgentId").value;
 
-    if (!toAgentId) return alert("Enter new agent ID");
+    if (!toAgentId) return alert("Enter replacement Agent ID");
 
-    const ok = confirm(`Override ALL assignments from ${fromAgentId} → ${toAgentId}?`);
+    const ok = confirm(`Override ALL assignments from Agent ${fromAgentId} → ${toAgentId}?`);
     if (!ok) return;
 
-    await fetch(`${BASE_URL}/bulk-override`, {
+    await fetch(`${apiUrl}${BASE_URL}/bulk-override`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json"
+        },
         body: JSON.stringify({
-            fromAgentId,
-            toAgentId
+            fromAgentId: Number(fromAgentId),
+            toAgentId: Number(toAgentId),
         })
     });
 
