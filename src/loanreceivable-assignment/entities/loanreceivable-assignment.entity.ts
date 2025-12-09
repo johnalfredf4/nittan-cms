@@ -12,6 +12,17 @@ export enum AccountClass {
   VIP = 'VIP',
 }
 
+export enum DpdCategory {
+  ZERO = '0',
+  ONE_TO_30 = '1-30',
+  THIRTY_ONE_TO_60 = '31-60',
+  SIXTY_ONE_TO_90 = '61-90',
+  NINETY_ONE_TO_120 = '91-120',
+  ONE_TWENTY_ONE_TO_150 = '121-150',
+  ONE_FIFTY_ONE_TO_180 = '151-180',
+  GREATER_THAN_180 = '>=181',
+}
+
 @Entity('LoanReceivable_Assignments')
 export class LoanReceivableAssignment {
   @PrimaryGeneratedColumn()
