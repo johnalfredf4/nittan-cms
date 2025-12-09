@@ -35,14 +35,15 @@ export class LoanReceivableAssignment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  loanApplicationId: string;
+  @Column({ type: 'int' })
+loanApplicationId: number;
 
-  @Column()
-  loanReceivableId: number;
+@Column({ type: 'int' })
+loanReceivableId: number;
 
-  @Column()
-  agentId: number;
+@Column({ type: 'int' })
+agentId: number;
+
 
   @Column()
   branchId: number;
