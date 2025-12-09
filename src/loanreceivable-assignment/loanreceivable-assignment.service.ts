@@ -153,16 +153,20 @@ export class LoanReceivableAssignmentService {
 
 
       await this.assignmentRepo.save({
-    loanReceivableId: loan.LoanReceivableId,
+  loanReceivableId: loan.LoanReceivableId,
   loanApplicationId: loan.LoanApplicationID,
   dpd: loan.DPD,
-  dpdCategory: this.getDpdCategory(loan.DPD), // FIXED
+  dpdCategory: this.getDpdCategory(loan.DPD),
   agentId: selectedAgent.agentId,
   branchId: selectedAgent.branchId,
   locationType: selectedAgent.branchId === null ? 'HQ' : 'BRANCH',
   retentionDays,
   retentionUntil: new Date(Date.now() + retentionDays * 86400000),
   status: AssignmentStatus.ACTIVE,
+
+  // NEWLY ADDED FIELDS
+  createdAt: new Date(),
+  updatedAt: new Date(),
 });
 
 
@@ -260,6 +264,7 @@ async markProcessed(assignmentId: number, agentId: number) {
 }
 
 }
+
 
 
 
