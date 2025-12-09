@@ -1,5 +1,5 @@
+const apiUrl = "";
 const BASE_URL = "/loanreceivable-assignment";
-const apiUrl = ""; // leave empty if same domain
 
 let currentAssignments = [];
 
@@ -9,114 +9,119 @@ async function searchAssignments() {
 
     try {
         const endpoint = `${apiUrl}${BASE_URL}/assignments?agentId=${agentId}`;
-        console.log("🔍 Loading:", endpoint);
+        console.log("🔍 Fetching:", endpoint);
 
         const res = await fetch(endpoint);
+
         if (!res.ok) {
-            alert("Failed to load assignments.");
+            console.error("API error:", res.status);
+            alert("Failed to fetch assignments");
             return;
         }
 
         const data = await res.json();
-        console.log("📌 Assignments received:", data);
+        console.log("📌 Result received:", data);
 
         if (!Array.isArray(data) || data.length === 0) {
-            document.getElementById("resultsWrap").classList.add("hidden");
-            alert("No assignments found.");
+            alert("No assignments found for this agent");
             return;
         }
 
         currentAssignments = data;
         renderTable(agentId);
 
-    } catch (error) {
-        console.error("💥 Error:", error);
-        alert("Error retrieving assignments.");
+    } catch (err) {
+        console.error("Request failed:", err);
+        alert("Error retrieving assignments");
     }
 }
 
-@Get('assignments')
-async getAssignments(@Query('agentId') agentId: number) {
-  return this.service.getAssignmentsByAgent(agentId);
-}
-
-async getAssignmentsByAgent(agentId: number) {
-  return this.assignmentRepo.find({
-      where: { agentId, status: AssignmentStatus.ACTIVE },
-      order: { retentionUntil: 'ASC' }
-  });
-}
 
 function renderTable(agentId) {
+    const rows = document.getElementById("assignmentRows");
+    rows.innerHTML = "";
+
     document.getElementById("searchedAgent").textContent = agentId;
     document.getElementById("resultsWrap").classList.remove("hidden");
 
-    const tbody = document.getElementById("assignmentRows");
-    tbody.innerHTML = "";
-
     currentAssignments.forEach(a => {
-        const retention = a.retentionUntil
-            ? new Date(a.retentionUntil).toLocaleDateString()
-            : "-";
-
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td class="px-2 py-1 border">${a.loanReceivableId ?? "-"}</td>
-            <td class="px-2 py-1 border">${a.dpd ?? "-"}</td>
-            <td class="px-2 py-1 border">${a.status ?? "-"}</td>
-            <td class="px-2 py-1 border">${retention}</td>
 
-            <td class="px-2 py-1 border text-center">
-                <input type="number" id="newAgent_${a.id}" class="px-2 py-1 border rounded w-28" placeholder="Agent ID"/>
+        const dateStr =
+            a.retentionUntil ? new Date(a.retentionUntil).toLocaleDateString() : "N/A";
+
+        tr.innerHTML = `
+            <td class="px-2 py-1">${a.loanReceivableId}</td>
+            <td class="px-2 py-1">${a.dpd}</td>
+            <td class="px-2 py-1">${a.status}</td>
+            <td class="px-2 py-1">${dateStr}</td>
+            <td class="px-2 py-1 text-center">
+                <input type="number" id="toAgent_${a.id}"
+                    placeholder="Agent ID"
+                    class="border px-2 py-1 rounded w-28 mr-2"/>
 
                 <button onclick="overrideSingle(${a.id}, ${a.agentId})"
-                    class="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">
-                    Apply
+                    class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs">
+                    Override
                 </button>
             </td>
         `;
 
-        tbody.appendChild(tr);
+        rows.appendChild(tr);
     });
 }
 
-async function overrideSingle(assignmentId, fromAgent) {
-    const input = document.getElementById(`newAgent_${assignmentId}`);
-    if (!input.value) return alert("Enter replacement agent");
 
-    const ok = confirm(`Override #${assignmentId} from Agent ${fromAgent} → Agent ${input.value}?`);
+async function overrideSingle(assignmentId, fromAgent) {
+    const field = document.getElementById(`toAgent_${assignmentId}`);
+    if (!field value) return alert("Enter new agent ID");
+
+    const newAgent = field.value;
+
+    const ok = confirm(`Override assignment#${assignmentId} from ${fromAgent} → ${newAgent}?`);
     if (!ok) return;
 
-    await fetch(`${apiUrl}${BASE_URL}/override/${assignmentId}`, {
-        method: "POST",
+    const result = await fetch(`${apiUrl}${BASE_URL}/override-single/${assignmentId}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             fromAgentId: fromAgent,
-            toAgentId: parseInt(input.value)
+            toAgentId: Number(newAgent)
         })
     });
 
-    alert("Override saved!");
+    if (!result.ok) {
+        alert("Failed to override assignment");
+        return;
+    }
+
+    alert("Updated successfully!");
     searchAssignments();
 }
 
+
 async function bulkOverride() {
-    const fromAgent = document.getElementById("searchAgentId").value;
-    const toAgent = document.getElementById("bulkNewAgentId").value;
+    const fromAgentId = document.getElementById("searchAgentId").value;
+    const toAgentId = document.getElementById("bulkNewAgentId").value;
 
-    if (!toAgent) return alert("Enter new agent ID");
+    if (!toAgentId) return alert("Enter new agent ID");
 
-    const ok = confirm(`Override ALL assignments from Agent ${fromAgent} → Agent ${toAgent}?`);
+    const ok = confirm(`Override ALL assignments from ${fromAgentId} → ${toAgentId}?`);
     if (!ok) return;
 
-    await fetch(`${apiUrl}${BASE_URL}/bulk-override`, {
+    const result = await fetch(`${apiUrl}${BASE_URL}/bulk-override`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            fromAgentId: parseInt(fromAgent),
-            toAgentId: parseInt(toAgent)
+            fromAgentId: Number(fromAgentId),
+            toAgentId: Number(toAgentId)
         })
     });
+
+    if (!result.ok) {
+        alert("Bulk override failed");
+        return;
+    }
 
     alert("Bulk override completed!");
     searchAssignments();
