@@ -2,6 +2,7 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
@@ -14,6 +15,7 @@ import { AccountRetentionModule } from './account-retention/account-retention.mo
 import { DispositionsModule } from './dispositions/dispositions.module';
 import { LoanAssignmentModule } from './loan-assignment/loan-assignment.module';
 import ormconfig from './config/ormconfig';
+
 // 👉 Entities belonging to the writable DB (nittan_app)
 import { User } from './users/entities/user.entity';
 import { Role } from './roles/entities/role.entity';
@@ -26,18 +28,21 @@ import { DispositionCategory } from './dispositions/entities/disposition-categor
 import { Disposition } from './dispositions/entities/disposition.entity';
 import { LoanAssignment } from './loan-assignment/entities/loan-assignment.entity';
 import { RotationState } from './loan-assignment/entities/rotation-state.entity';
-import { ScheduleModule } from '@nestjs/schedule';
-import { LoanreceivableAssignmentModule } from './loanreceivable-assignment/loanreceivable-assignment.module';
+import { LoanReceivableAssignment } from './loanreceivable-assignment/entities/loanreceivable-assignment.entity';
 
+// NEW MODULE
+import { LoanReceivableAssignmentModule } from './loanreceivable-assignment/loanreceivable-assignment.module';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-     // DEFAULT DATABASE (CMS writable DB)
+
+    // DEFAULT DB connection (CMS DB)
     TypeOrmModule.forRoot(ormconfig),
-    // MAIN connection -> all repositories use this automatically
+
+    // Writable DB connection
     TypeOrmModule.forRoot({
-      name: 'nittan_app', // MUST MATCH injection usage
+      name: 'nittan_app',
       type: 'mssql',
       host: 'nittan-rds.chsm6icykzm3.ap-southeast-1.rds.amazonaws.com',
       port: 1433,
@@ -46,7 +51,6 @@ import { LoanreceivableAssignmentModule } from './loanreceivable-assignment/loan
       database: 'Nittan-App',
       synchronize: false,
       autoLoadEntities: false,
-      requestTimeout: 6000000,   // 60 seconds for query execution
       entities: [
         User,
         Role,
@@ -59,16 +63,16 @@ import { LoanreceivableAssignmentModule } from './loanreceivable-assignment/loan
         Disposition,
         LoanAssignment,
         RotationState,
-        LoanreceivableAssignmentModule,
+        LoanReceivableAssignment,
       ],
       options: {
         encrypt: false,
         trustServerCertificate: true,
-        connectTimeout: 6000000,   // 60 seconds for DB connection
+        connectTimeout: 600000,
       },
     }),
 
-    // SECOND connection → raw SQL queries, NO models
+    // Reporting/raw connection (no entities)
     TypeOrmModule.forRoot({
       name: 'nittan',
       type: 'mssql',
@@ -79,13 +83,11 @@ import { LoanreceivableAssignmentModule } from './loanreceivable-assignment/loan
       database: 'Nittan',
       synchronize: false,
       autoLoadEntities: false,
-      requestTimeout: 6000000,
-      entities: [], // must stay empty
+      entities: [],
       options: {
         encrypt: false,
         trustServerCertificate: true,
-        connectTimeout: 6000000,
-        
+        connectTimeout: 600000,
       },
     }),
 
@@ -98,6 +100,7 @@ import { LoanreceivableAssignmentModule } from './loanreceivable-assignment/loan
     AccountRetentionModule,
     DispositionsModule,
     LoanAssignmentModule,
+    LoanReceivableAssignmentModule, // 👈 Register NEW MODULE
 
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'src', 'public'),
