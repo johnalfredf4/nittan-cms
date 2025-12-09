@@ -44,24 +44,23 @@ loanReceivableId: number;
 @Column({ type: 'int' })
 agentId: number;
 
+  @Column({ type: 'int' })
+branchId: number;
 
-  @Column()
-  branchId: number;
+@Column({ type: 'int' })
+dpd: number;
+
+@Column({ type: 'int' })
+retentionDays: number;
 
   @Column()
   locationType: string;
-
-  @Column()
-  dpd: number;
 
   @Column({
     type: 'varchar',
     length: 20,
   })
   dpdCategory: DpdCategory;
-
-  @Column()
-  retentionDays: number;
 
   @Column()
   retentionUntil: Date;
