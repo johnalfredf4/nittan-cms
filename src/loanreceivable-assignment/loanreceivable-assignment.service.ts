@@ -12,7 +12,7 @@ import {
   AssignmentStatus
 } from './entities/loanreceivable-assignment.entity';
 import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
-
+import { Cron, CronExpression } from '@nestjs/schedule';
 @Injectable()
 export class LoanReceivableAssignmentService {
   private readonly logger = new Logger(LoanReceivableAssignmentService.name);
@@ -243,5 +243,6 @@ async markProcessed(assignmentId: number, agentId: number) {
 }
 
 }
+
 
 
