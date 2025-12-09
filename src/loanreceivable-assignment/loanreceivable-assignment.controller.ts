@@ -11,6 +11,8 @@ import { LoanReceivableAssignmentService } from './loanreceivable-assignment.ser
 import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
 import { OverrideSingleDto } from './dto/override-single.dto';
 import { AgentFilterDto } from './dto/agent-filter.dto';
+import { HttpException, HttpStatus } from '@nestjs/common';
+
 
 @Controller('loanreceivable-assignment')
 export class LoanReceivableAssignmentController {
