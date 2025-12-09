@@ -65,9 +65,6 @@ export class LoanReceivableAssignment {
   @Column()
   retentionUntil: Date;
 
-  @Column()
-  status: string;
-
   @CreateDateColumn()
   createdAt: Date;
 
