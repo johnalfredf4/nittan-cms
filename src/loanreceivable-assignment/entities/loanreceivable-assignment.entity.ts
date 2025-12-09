@@ -1,49 +1,69 @@
 import {
-  Column,
   Entity,
   PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   Index,
 } from 'typeorm';
-import { LocationType, DpdCategory } from '../types';
 
-@Entity({ name: 'LoanReceivable_Assignments' })
+export enum AccountClass {
+  CURRENT = 'CURRENT',
+  AGING_1_30 = 'AGING_1_30',
+  AGING_31_60 = 'AGING_31_60',
+  AGING_61_90 = 'AGING_61_90',
+  AGING_91_120 = 'AGING_91_120',
+  AGING_121_150 = 'AGING_121_150',
+  AGING_151_180 = 'AGING_151_180',
+  AGING_181_PLUS = 'AGING_181_PLUS',
+}
+
+@Entity('LoanReceivable_Assignments')
 export class LoanReceivableAssignment {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'int' })
-  loanApplicationId: number;
-
-  @Column({ type: 'int', nullable: true })
-  loanReceivableId: number | null;
+  loanReceivableId: number;
 
   @Column({ type: 'int' })
   agentId: number;
 
-  @Column({ type: 'int', nullable: true })
-  branchId: number | null;
-
-  @Column({ type: 'varchar', length: 10 })
-  locationType: LocationType;
-
+  /**  
+   * Calculated automatically based on DueDate  
+   */
   @Column({ type: 'int' })
   dpd: number;
 
-  @Column({ type: 'varchar', length: 30 })
-  dpdCategory: DpdCategory;
+  /**
+   * Categorized based on DPD
+   */
+  @Column({
+    type: 'varchar',
+    length: 20,
+  })
+  accountClass: AccountClass;
 
+  /**
+   * Retention logic in days:
+   * 0 - 180 DPD → 7 days
+   * 181+ → 120 days
+   */
   @Column({ type: 'int' })
   retentionDays: number;
 
+  /**
+   * After retention days expires, this record is reallocatable
+   */
   @Column({ type: 'datetime' })
   retentionUntil: Date;
 
-  @Column({ type: 'varchar', length: 20, default: 'ACTIVE' })
-  status: string; // ACTIVE | PROCESSED | EXPIRED
+  @Column({ type: 'bit', default: 0 })
+  processed: boolean;
 
-  @Column({ type: 'datetime', default: () => 'GETDATE()' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ type: 'datetime', default: () => 'GETDATE()' })
+  @UpdateDateColumn()
   updatedAt: Date;
 }
