@@ -106,13 +106,19 @@ export class LoanReceivableAssignmentService {
       const retentionDays = this.getRetentionDays(dpd);
 
       await this.assignmentRepo.save({
-        agentId: selectedAgent.agentId,
+        loanReceivableId: loan.Id, // must match query
         loanApplicationId: loan.LoanApplicationId,
+        dpd: loan.DPD,
         dpdCategory: dpdCat,
+        agentId: selectedAgent.agentId,
+        branchId: selectedAgent.branchId,
+        locationType: selectedAgent.branchId === null ? 'HQ' : 'BRANCH',
+        retentionDays: retentionDays,
         retentionUntil: new Date(Date.now() + retentionDays * 86400000),
-        accountClass: AccountClass.CLASS_A,
-        status: AssignmentStatus.ACTIVE,
+        status: 'ACTIVE',
       });
+
+
 
       selectedAgent.assignedCount++;
     }
@@ -195,3 +201,4 @@ export class LoanReceivableAssignmentService {
     };
   }
 }
+
