@@ -61,7 +61,7 @@ import { LoanReceivableAssignmentModule } from './loanreceivable-assignment/loan
         AccountRetention,
         DispositionCategory,
         Disposition,
-        //LoanAssignment,
+        LoanAssignment,
         RotationState,
         LoanReceivableAssignment,
       ],
@@ -99,7 +99,6 @@ import { LoanReceivableAssignmentModule } from './loanreceivable-assignment/loan
     ProductTypesModule,
     AccountRetentionModule,
     DispositionsModule,
-    LoanAssignmentModule,
     LoanReceivableAssignmentModule, // 👈 Register NEW MODULE
 
     ServeStaticModule.forRoot({
