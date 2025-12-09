@@ -6,6 +6,7 @@ import {
   Patch,
 } from '@nestjs/common';
 import { LoanreceivableAssignmentService } from './loanreceivable-assignment.service';
+import { BulkOverrideAssignmentDto } from './dto/bulk-override-assignment.dto';
 
 @Controller('loanreceivable-assignment')
 export class LoanreceivableAssignmentController {
