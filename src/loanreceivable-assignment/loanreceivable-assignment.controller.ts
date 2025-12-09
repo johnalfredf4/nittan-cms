@@ -31,6 +31,15 @@ export class LoanReceivableAssignmentController {
     return this.service.getAgentLoad(query);
   }
 
+  @Get('assignments')
+  async getAssignments(@Query('agentId') agentId: number) {
+    if (!agentId) {
+      throw new HttpException('agentId is required', HttpStatus.BAD_REQUEST);
+    }
+  
+    return await this.service.findActiveAssignmentsByAgent(agentId);
+  }
+
   /** 🔹 Override multiple assignments */
   @Post('bulk-override')
   async bulkOverride(@Body() dto: BulkOverrideAssignmentDto) {
