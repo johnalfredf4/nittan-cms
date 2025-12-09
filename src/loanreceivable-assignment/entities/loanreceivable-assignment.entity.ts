@@ -3,14 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
+  UpdateDateColumn
 } from 'typeorm';
-
-export enum AccountClass {
-  STANDARD = 'STANDARD',
-  PRIORITY = 'PRIORITY',
-  VIP = 'VIP',
-}
 
 export enum DpdCategory {
   DPD_0 = '0',
@@ -23,49 +17,50 @@ export enum DpdCategory {
   DPD_181_PLUS = '>=181',
 }
 
+export enum AccountClass {
+  CLASS_A = 'A',
+  CLASS_B = 'B',
+  CLASS_C = 'C',
+}
+
 @Entity('LoanReceivable_Assignments')
 export class LoanReceivableAssignment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'int' })
-  loanReceivableId: number;
+  @Column()
+  loanApplicationId: string;
 
-  @Column({ type: 'int' })
-  loanApplicationId: number;
-
-  @Column({
-    type: 'enum',
-    enum: DpdCategory,
-  })
-  dpdCategory: DpdCategory;
-
-  @Column({ type: 'datetime' })
-  retentionUntil: Date;
-
-  @Column({ type: 'varchar', length: 20 })
-  status: string; // ACTIVE | PROCESSED | EXPIRED
-
-  @Column({ type: 'int' })
+  @Column()
   agentId: number;
 
   @Column({
-    type: 'enum',
-    enum: AccountClass,
-    default: AccountClass.STANDARD,
-  })
-  accountClass: AccountClass;
-
-  @CreateDateColumn({ type: 'datetime' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ type: 'datetime', nullable: true })
-  updatedAt: Date;
-
-  @Column({
-  type: 'varchar',
-  length: 20,
+    type: 'varchar',
+    length: 20,
   })
   dpdCategory: DpdCategory;
 
+  @Column({
+    type: 'varchar',
+    length: 1,
+  })
+  accountClass: AccountClass;
+
+  @Column()
+  retentionUntil: Date;
+
+  @Column()
+  status: string;
+
+  @CreateDateColumn()
+  assignedAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
+
+////////////////////////////////////////////////////////
+// 👇 PUT THIS AT THE BOTTOM OF THIS FILE
+////////////////////////////////////////////////////////
+
+export { LoanReceivableAssignment, DpdCategory, AccountClass };
