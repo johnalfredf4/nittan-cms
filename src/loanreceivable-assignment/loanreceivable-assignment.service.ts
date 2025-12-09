@@ -4,9 +4,13 @@ import {
   Repository,
   LessThan,
   DataSource,
-  In,
 } from 'typeorm';
-import { LoanReceivableAssignment, DpdCategory, AccountClass } from './entities/loanreceivable-assignment.entity';
+import {
+  LoanReceivableAssignment,
+  DpdCategory,
+  AccountClass,
+  AssignmentStatus
+} from './entities/loanreceivable-assignment.entity';
 import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
 
 @Injectable()
@@ -17,12 +21,11 @@ export class LoanReceivableAssignmentService {
     @InjectRepository(LoanReceivableAssignment, 'nittan_app')
     private readonly assignmentRepo: Repository<LoanReceivableAssignment>,
 
-    private readonly dataSource: DataSource, // main DB connection for receivables
+    private readonly dataSource: DataSource, // direct SQL DB connection
   ) {}
 
   /**
    * Fetch receivables to assign.
-   * Includes past due and near due (7 days ahead)
    */
   private async loadReceivablesForAssignment(): Promise<any[]> {
     const sql = `
@@ -43,8 +46,7 @@ export class LoanReceivableAssignmentService {
       WHERE rn = 1;
     `;
 
-    const rows = await this.dataSource.query(sql);
-    return rows;
+    return await this.dataSource.query(sql);
   }
 
   /**
@@ -70,49 +72,46 @@ export class LoanReceivableAssignmentService {
   }
 
   /**
-   * Assign receivables to agents
+   * Assign receivables to agents evenly
    */
   async assignLoans(): Promise<void> {
     this.logger.log('Starting receivable assignment process...');
 
-    // Step 1. Expire assignments exceeding retention
     await this.autoExpireAssignments();
 
-    // Step 2. Load receivables from main DB
     const loans = await this.loadReceivablesForAssignment();
     if (!loans.length) {
       this.logger.warn('No receivables available.');
       return;
     }
 
-    // Step 3. Load agents and current active counts
-    const agents = await this.getAgentLoad({});
+    let agents = await this.getAgentLoad({});
     if (!agents.length) {
       this.logger.warn('No agents found.');
       return;
     }
 
-    // Step 4. Loop and assign loans fairly
     for (const loan of loans) {
+      // Refresh load each time to ensure fairness
+      agents = await this.getAgentLoad({});
+
+      const sortedAgents = [...agents].sort((a, b) => a.assignedCount - b.assignedCount);
+      const selectedAgent = sortedAgents[0];
+
+      if (!selectedAgent) continue;
+      if (selectedAgent.assignedCount >= 10) continue;
+
       const dpd = loan.DPD;
       const dpdCat = this.getDpdCategory(dpd);
       const retentionDays = this.getRetentionDays(dpd);
-
-      // find agent with the least active assignments
-      const sortedAgents = [...agents].sort((a, b) => a.assignedCount - b.assignedCount);
-      const selectedAgent = sortedAgents[0];
-      if (!selectedAgent) continue;
-
-      if (selectedAgent.assignedCount >= 10) continue; // skip agents at full load
 
       await this.assignmentRepo.save({
         agentId: selectedAgent.agentId,
         loanApplicationId: loan.LoanApplicationId,
         dpdCategory: dpdCat,
-        retentionUntil: new Date(new Date().getTime() + retentionDays * 86400000),
-        status: 'ACTIVE',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        retentionUntil: new Date(Date.now() + retentionDays * 86400000),
+        accountClass: AccountClass.CLASS_A,
+        status: AssignmentStatus.ACTIVE,
       });
 
       selectedAgent.assignedCount++;
@@ -122,17 +121,16 @@ export class LoanReceivableAssignmentService {
   }
 
   /**
-   * Release expired receivables
+   * Release expired assignments
    */
   private async autoExpireAssignments(): Promise<void> {
     await this.assignmentRepo.update(
       {
         retentionUntil: LessThan(new Date()),
-        status: 'ACTIVE',
+        status: AssignmentStatus.ACTIVE,
       },
       {
-        status: 'EXPIRED',
-        updatedAt: new Date(),
+        status: AssignmentStatus.EXPIRED,
       },
     );
   }
@@ -145,7 +143,7 @@ export class LoanReceivableAssignmentService {
 
     qb.select('a.agentId', 'agentId')
       .addSelect('COUNT(*)', 'assignedCount')
-      .where('a.status = :status', { status: 'ACTIVE' })
+      .where('a.status = :status', { status: AssignmentStatus.ACTIVE })
       .groupBy('a.agentId');
 
     if (query.agentId) {
@@ -154,33 +152,33 @@ export class LoanReceivableAssignmentService {
 
     const result = await qb.getRawMany();
 
-    return result.map((r) => ({
+    return result.map(r => ({
       agentId: Number(r.agentId),
       assignedCount: Number(r.assignedCount),
     }));
   }
 
   /**
-   * Mark single loan as processed by agent
+   * Mark single loan as processed
    */
   async markProcessed(assignmentId: number, agentId: number) {
     const assignment = await this.assignmentRepo.findOne({ where: { id: assignmentId, agentId } });
     if (!assignment) throw new NotFoundException('Assignment not found');
 
-    assignment.status = 'PROCESSED';
+    assignment.status = AssignmentStatus.PROCESSED;
     assignment.updatedAt = new Date();
 
     await this.assignmentRepo.save(assignment);
   }
 
   /**
-   * Bulk override moving processed loans from one agent to another
+   * Move ALL active loans from one agent to another
    */
   async bulkOverrideAssignments(dto: BulkOverrideAssignmentDto) {
     const records = await this.assignmentRepo.find({
       where: {
         agentId: dto.fromAgentId,
-        status: 'ACTIVE',
+        status: AssignmentStatus.ACTIVE,
       },
     });
 
