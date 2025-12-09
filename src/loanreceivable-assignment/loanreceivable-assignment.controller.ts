@@ -1,36 +1,20 @@
-import {
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
+import { 
+  Controller, 
+  Get, 
+  Post, 
+  Body, 
+  Param 
 } from '@nestjs/common';
+
 import { LoanreceivableAssignmentService } from './loanreceivable-assignment.service';
-import { BulkOverrideAssignmentDto } from './dto/bulk-override-assignment.dto';
+import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
 
 @Controller('loanreceivable-assignment')
 export class LoanreceivableAssignmentController {
-  constructor(
-    private readonly service: LoanreceivableAssignmentService,
-  ) {}
-
-  // For Agent "My Queue"
-  @Get('agent/:agentId')
-  getQueueForAgent(
-    @Param('agentId', ParseIntPipe) agentId: number,
-  ) {
-    return this.service.getQueueForAgent(agentId);
-  }
+  constructor(private readonly service: LoanreceivableAssignmentService) {}
 
   @Post('bulk-override')
   async bulkOverride(@Body() dto: BulkOverrideAssignmentDto) {
     return this.service.bulkOverrideAssignments(dto);
-  }
-  
-  // Mark processed by agent (after they work the account)
-  @Patch(':id/processed')
-  markProcessed(@Param('id', ParseIntPipe) id: number) {
-    return this.service.markAsProcessed(id);
   }
 }
