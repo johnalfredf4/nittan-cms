@@ -8,8 +8,8 @@ async function searchAssignments() {
     if (!agentId) return alert("Enter agent ID first");
 
     try {
-        const endpoint = `${apiUrl}${BASE_URL}/agent-load?agentId=${agentId}`;
-        console.log("🔍 Fetching:", endpoint);
+        const endpoint = `${apiUrl}${BASE_URL}/assignments?agentId=${agentId}`;
+        console.log("🔍 Loading:", endpoint);
 
         const res = await fetch(endpoint);
         if (!res.ok) {
@@ -18,11 +18,11 @@ async function searchAssignments() {
         }
 
         const data = await res.json();
-        console.log("📌 Result received:", data);
+        console.log("📌 Assignments received:", data);
 
         if (!Array.isArray(data) || data.length === 0) {
-            alert("No assignments found.");
             document.getElementById("resultsWrap").classList.add("hidden");
+            alert("No assignments found.");
             return;
         }
 
@@ -30,10 +30,11 @@ async function searchAssignments() {
         renderTable(agentId);
 
     } catch (error) {
-        console.error("💥 Error searching assignments:", error);
-        alert("Unexpected error retrieving assignments.");
+        console.error("💥 Error:", error);
+        alert("Error retrieving assignments.");
     }
 }
+
 
 function renderTable(agentId) {
     document.getElementById("searchedAgent").textContent = agentId;
