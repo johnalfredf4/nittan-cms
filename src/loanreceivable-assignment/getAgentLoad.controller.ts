@@ -18,5 +18,6 @@ export class LoanReceivableAssignmentController {
   @Get('agent-load')
   async getAgentLoad(@Query() query: AgentFilterDto) {
     return await this.service.getAgentLoad(query);
-  }
+}
+
 }
