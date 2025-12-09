@@ -4,18 +4,12 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  Index,
 } from 'typeorm';
 
 export enum AccountClass {
-  CURRENT = 'CURRENT',
-  AGING_1_30 = 'AGING_1_30',
-  AGING_31_60 = 'AGING_31_60',
-  AGING_61_90 = 'AGING_61_90',
-  AGING_91_120 = 'AGING_91_120',
-  AGING_121_150 = 'AGING_121_150',
-  AGING_151_180 = 'AGING_151_180',
-  AGING_181_PLUS = 'AGING_181_PLUS',
+  STANDARD = 'STANDARD',
+  PRIORITY = 'PRIORITY',
+  VIP = 'VIP',
 }
 
 @Entity('LoanReceivable_Assignments')
@@ -24,46 +18,33 @@ export class LoanReceivableAssignment {
   id: number;
 
   @Column({ type: 'int' })
-  loanReceivableId: number;
+  loanReceivableId: number; // NEW FIELD
 
   @Column({ type: 'int' })
-  agentId: number;
+  loanApplicationId: number;
 
-  /**  
-   * Calculated automatically based on DueDate  
-   */
-  @Column({ type: 'int' })
-  dpd: number;
+  @Column({ type: 'varchar', length: 100 })
+  dpdCategory: string;
 
-  /**
-   * Categorized based on DPD
-   */
-  @Column({
-    type: 'varchar',
-    length: 20,
-  })
-  accountClass: AccountClass;
-
-  /**
-   * Retention logic in days:
-   * 0 - 180 DPD → 7 days
-   * 181+ → 120 days
-   */
-  @Column({ type: 'int' })
-  retentionDays: number;
-
-  /**
-   * After retention days expires, this record is reallocatable
-   */
   @Column({ type: 'datetime' })
   retentionUntil: Date;
 
-  @Column({ type: 'bit', default: 0 })
-  processed: boolean;
+  @Column({ type: 'varchar', length: 20 })
+  status: string; // ACTIVE | PROCESSED | EXPIRED
 
-  @CreateDateColumn()
+  @Column({ type: 'int' })
+  agentId: number; // Receiver
+
+  @Column({
+    type: 'enum',
+    enum: AccountClass,
+    default: AccountClass.STANDARD,
+  })
+  accountClass: AccountClass;
+
+  @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'datetime', nullable: true })
   updatedAt: Date;
 }
