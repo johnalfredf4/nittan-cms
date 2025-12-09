@@ -151,6 +151,18 @@ export class LoanreceivableAssignmentService {
     );
   }
 
+  async bulkOverrideAssignments(dto: BulkOverrideAssignmentDto) {
+    const { fromAgentId, toAgentId, accountClass } = dto;
+  
+    return await this.assignmentRepo.update(
+      {
+        agentId: fromAgentId,
+        ...(accountClass && { accountClass }),
+      },
+      { agentId: toAgentId }
+    );
+  }
+
   // Load HQ + Branch agents from Nittan-App
   private async fetchAllAgents(): Promise<AgentRow[]> {
     const sql = `
@@ -345,3 +357,4 @@ export class LoanreceivableAssignmentService {
     return created;
   }
 }
+
