@@ -21,6 +21,11 @@ export class LoanreceivableAssignmentController {
     return this.service.getQueueForAgent(agentId);
   }
 
+  @Post('bulk-override')
+  async bulkOverride(@Body() dto: BulkOverrideAssignmentDto) {
+    return this.service.bulkOverrideAssignments(dto);
+  }
+  
   // Mark processed by agent (after they work the account)
   @Patch(':id/processed')
   markProcessed(@Param('id', ParseIntPipe) id: number) {
