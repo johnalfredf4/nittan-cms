@@ -7,7 +7,12 @@ import {
   Param,
   ParseIntPipe
 } from '@nestjs/common';
-
+import {
+  LoanReceivableAssignment,
+  DpdCategory,
+  AccountClass,
+  AssignmentStatus,
+} from './entities/loanreceivable-assignment.entity';
 import { LoanReceivableAssignmentService } from './loanreceivable-assignment.service';
 import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
 
