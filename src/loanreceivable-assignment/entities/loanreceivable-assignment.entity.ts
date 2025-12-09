@@ -65,11 +65,11 @@ export class LoanReceivableAssignment {
   @Column()
   retentionUntil: Date;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  //@CreateDateColumn()
+  //createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+ //@UpdateDateColumn()
+  //updatedAt: Date;
 
   @Column({
   type: 'varchar',
