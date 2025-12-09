@@ -147,25 +147,33 @@ export class LoanReceivableAssignmentService {
   /**
    * Returns how many items each agent currently has
    */
-  async getAgentLoad(query: { agentId?: number }) {
-    const qb = this.assignmentRepo.createQueryBuilder('a');
+  /**
+ * Returns how many items each agent currently has
+ */
+async getAgentLoad(query: { agentId?: number }) {
+  const qb = this.assignmentRepo.createQueryBuilder('a');
 
-    qb.select('a.agentId', 'agentId')
-      .addSelect('COUNT(*)', 'assignedCount')
-      .where('a.status = :status', { status: AssignmentStatus.ACTIVE })
-      .groupBy('a.agentId');
+  qb.select('a.agentId', 'agentId')
+    .addSelect('a.branchId', 'branchId')
+    .addSelect('COUNT(*)', 'assignedCount')
+    .where('a.status = :status', { status: 'ACTIVE' })
+    .groupBy('a.agentId')
+    .addGroupBy('a.branchId');
 
-    if (query.agentId) {
-      qb.having('a.agentId = :agentId', { agentId: query.agentId });
-    }
-
-    const result = await qb.getRawMany();
-
-    return result.map(r => ({
-      agentId: Number(r.agentId),
-      assignedCount: Number(r.assignedCount),
-    }));
+  if (query.agentId) {
+    qb.having('a.agentId = :agentId', { agentId: query.agentId });
   }
+
+  const result = await qb.getRawMany();
+
+  // 👇 Put it here
+  return result.map((r) => ({
+    agentId: Number(r.agentId),
+    branchId: Number(r.branchId),
+    assignedCount: Number(r.assignedCount),
+  }));
+}
+
 
   /**
    * Mark single loan as processed
@@ -204,5 +212,6 @@ export class LoanReceivableAssignmentService {
     };
   }
 }
+
 
 
