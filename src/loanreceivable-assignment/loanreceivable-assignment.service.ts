@@ -152,22 +152,37 @@ export class LoanReceivableAssignmentService {
 }, null, 2));
 
 
-      await this.assignmentRepo.save({
-  loanReceivableId: loan.LoanReceivableId,
-  loanApplicationId: loan.LoanApplicationID,
-  dpd: loan.DPD,
-  dpdCategory: this.getDpdCategory(loan.DPD),
-  agentId: selectedAgent.agentId,
-  branchId: selectedAgent.branchId,
-  locationType: selectedAgent.branchId === null ? 'HQ' : 'BRANCH',
-  retentionDays,
-  retentionUntil: new Date(Date.now() + retentionDays * 86400000),
-  status: AssignmentStatus.ACTIVE,
+      try {
+  await this.assignmentRepo.save({
+    loanReceivableId: loan.LoanReceivableId,
+    loanApplicationId: loan.LoanApplicationID,
+    dpd: loan.DPD,
+    dpdCategory: this.getDpdCategory(loan.DPD),
+    agentId: selectedAgent.agentId,
+    branchId: selectedAgent.branchId,
+    locationType: selectedAgent.branchId === null ? 'HQ' : 'BRANCH',
+    retentionDays,
+    retentionUntil: new Date(Date.now() + retentionDays * 86400000),
+    status: AssignmentStatus.ACTIVE,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+} catch (error) {
+  console.error("🔥❌ ERROR ASSIGNING RECORD ❌🔥");
+  console.error("🎯 DATA THAT FAILED:");
+  console.log({
+    loanReceivableId: loan.LoanReceivableId,
+    loanApplicationId: loan.LoanApplicationID,
+    dpd: loan.DPD,
+    dpdCategory: this.getDpdCategory(loan.DPD),
+    agentId: selectedAgent.agentId,
+    branchId: selectedAgent.branchId,
+    retentionDays,
+  });
+  console.error("📌 FULL ERROR OBJECT:");
+  console.error(error);
+}
 
-  // NEWLY ADDED FIELDS
-  createdAt: new Date(),
-  updatedAt: new Date(),
-});
 
 
 
@@ -264,6 +279,7 @@ async markProcessed(assignmentId: number, agentId: number) {
 }
 
 }
+
 
 
 
