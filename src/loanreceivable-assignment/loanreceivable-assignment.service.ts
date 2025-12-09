@@ -30,20 +30,23 @@ export class LoanReceivableAssignmentService {
   private async loadReceivablesForAssignment(): Promise<any[]> {
     const sql = `
       WITH NextReceivables AS (
-          SELECT TOP 200 LoanApplicationId,
-                 DueDate,
-                 DATEDIFF(DAY, DueDate, GETDATE()) AS DPD,
-                 ROW_NUMBER() OVER (
+            SELECT TOP 200
+                Id AS LoanReceivableId,
+                LoanApplicationID,
+                DueDate,
+                DATEDIFF(DAY, DueDate, GETDATE()) AS DPD,
+                ROW_NUMBER() OVER (
                      PARTITION BY LoanApplicationId
                      ORDER BY DueDate ASC
-                 ) AS rn
-          FROM [Nittan].[dbo].[tblLoanReceivables]
-          WHERE Cleared = 0
-            AND DueDate <= DATEADD(DAY, 7, CAST(GETDATE() AS DATE))
+                ) AS rn
+            FROM [Nittan].[dbo].[tblLoanReceivables]
+            WHERE Cleared = 0
+              AND DueDate <= DATEADD(DAY, 7, CAST(GETDATE() AS DATE))
       )
       SELECT *
       FROM NextReceivables
       WHERE rn = 1;
+
     `;
 
     return await this.dataSource.query(sql);
@@ -201,4 +204,5 @@ export class LoanReceivableAssignmentService {
     };
   }
 }
+
 
