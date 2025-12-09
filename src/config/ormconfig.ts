@@ -11,15 +11,17 @@ import { DispositionCategory } from '../dispositions/entities/disposition-catego
 import { Disposition } from '../dispositions/entities/disposition.entity';
 import { LoanAssignment } from '../loan-assignment/entities/loan-assignment.entity';
 import { RotationState } from '../loan-assignment/entities/rotation-state.entity';
+import { LoanReceivableAssignment } from '../loanreceivable-assignment/entities/loanreceivable-assignment.entity';
 
 const ormconfig: TypeOrmModuleOptions = {
-  // ✅ NO `name` → this is the DEFAULT connection
   type: 'mssql',
   host: 'nittan-rds.chsm6icykzm3.ap-southeast-1.rds.amazonaws.com',
   port: 1433,
   username: 'bong3',
   password: 'bong3',
   database: 'Nittan-App',
+
+  // 👉 Make sure all entities belonging to Nittan-App are here:
   entities: [
     User,
     Role,
@@ -32,13 +34,17 @@ const ormconfig: TypeOrmModuleOptions = {
     Disposition,
     LoanAssignment,
     RotationState,
+    LoanReceivableAssignment, // ✅ Added!
   ],
+
   synchronize: false,
-  requestTimeout: 6000000,   // 60 seconds for query execution
+
+  requestTimeout: 6000000, // 60 seconds max execution time
+
   options: {
     encrypt: false,
     trustServerCertificate: true,
-    connectTimeout: 6000000,   // 60 seconds for DB connection
+    connectTimeout: 6000000,
   },
 };
 
