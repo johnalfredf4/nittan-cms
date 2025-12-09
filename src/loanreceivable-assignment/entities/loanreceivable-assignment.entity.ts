@@ -78,5 +78,9 @@ export class LoanReceivableAssignment {
   })
   status: AssignmentStatus;
 
-    
+  @Column({ type: 'datetime', default: () => 'GETDATE()' })
+createdAt: Date;
+
+  @Column({ type: 'datetime', default: () => 'GETDATE()', onUpdate: 'GETDATE()' })
+  updatedAt: Date;  
 }
