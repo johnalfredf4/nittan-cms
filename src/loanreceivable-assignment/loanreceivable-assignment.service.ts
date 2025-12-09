@@ -98,6 +98,39 @@ export class LoanReceivableAssignmentService {
     }));
   }
 
+  async findActiveAssignmentsByAgent(agentId: number) {
+  const results = await this.assignmentRepo.find({
+    where: {
+      agentId,
+      status: AssignmentStatus.ACTIVE
+    },
+    order: { dpd: 'DESC' }
+  });
+
+  return results.map(r => {
+    let daysLeft = 0;
+    if (r.retentionUntil) {
+      daysLeft = Math.ceil(
+        (new Date(r.retentionUntil).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+      );
+    }
+
+    return {
+      id: r.id,
+      loanReceivableId: r.loanReceivableId,
+      loanApplicationId: r.loanApplicationId,
+      dpd: r.dpd,
+      dpdCategory: r.dpdCategory,
+      retentionUntil: r.retentionUntil,
+      retentionDaysLeft: daysLeft,
+      status: r.status,
+      agentId: r.agentId,
+      branchId: r.branchId
+    };
+  });
+}
+
+
   private getRetentionDays(dpd: number): number {
     if (dpd >= 181) return 120;
     return 7;
@@ -295,6 +328,7 @@ async markProcessed(assignmentId: number, agentId: number) {
 }
 
 }
+
 
 
 
