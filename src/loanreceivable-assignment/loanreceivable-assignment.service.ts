@@ -1,121 +1,48 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
-import { DataSource, Repository, In } from 'typeorm';
+import { Repository, DataSource, LessThan } from 'typeorm';
 
-import { LoanReceivableAssignment } from './entities/loanreceivable-assignment.entity';
-import { LocationType, RawReceivableRow } from './types';
-import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
+import {
+  LoanReceivableAssignment,
+  AccountClass,
+} from './entities/loanreceivable-assignment.entity';
 
-interface AgentRow {
-  agentId: number;
-  branchId: number | null;
-  roleName: string;
-}
+import { BulkOverrideAssignmentDto } from './dto/bulk-override-assignment.dto';
 
 @Injectable()
 export class LoanreceivableAssignmentService {
+  private readonly MAX_RECORDS_PER_AGENT = 10;
   private readonly logger = new Logger(LoanreceivableAssignmentService.name);
-  private readonly MAX_PER_AGENT = 10;
 
   constructor(
     @InjectRepository(LoanReceivableAssignment, 'nittan_app')
     private readonly assignmentRepo: Repository<LoanReceivableAssignment>,
 
     @InjectDataSource('nittan_app')
-    private readonly cmsDb: DataSource,
+    private readonly appDataSource: DataSource,
 
     @InjectDataSource('nittan')
     private readonly coreDb: DataSource,
   ) {}
 
-  // GET ALL ACTIVE ASSIGNMENTS FOR AN AGENT
-  async getQueueForAgent(agentId: number) {
-    return this.assignmentRepo.find({
-      where: {
-        agentId,
-        processed: false,
-      },
-      order: { retentionUntil: 'ASC' },
-    });
-  }
-
-  async markAsProcessed(id: number) {
-    await this.assignmentRepo.update(
-      { id },
-      {
-        processed: true,
-        updatedAt: new Date(),
-      },
-    );
-  }
-
+  /**
+   * CRON: Runs every 5 minutes
+   * 1. Remove expired assignments
+   * 2. Assign new ones
+   */
   @Cron(CronExpression.EVERY_5_MINUTES)
-  async runAssignmentCron() {
-    this.logger.log('Starting loan receivable assignment rotation...');
-
+  async handleAssignmentsRotation() {
+    this.logger.log('Starting CRON assignment rotation...');
     await this.expireOldAssignments();
-
-    const agents = await this.fetchAllAgents();
-    if (!agents.length) {
-      this.logger.warn('No collection agents found.');
-      return;
-    }
-
-    const activeCounts = await this.getActiveCountsByAgent();
-    const receivables = await this.fetchCandidateReceivables();
-
-    if (!receivables.length) {
-      this.logger.log('No loan receivables available.');
-      return;
-    }
-
-    const toSave: LoanReceivableAssignment[] = [];
-
-    // HQ agents
-    const hqAgents = agents.filter(a => a.branchId == null);
-    const hqLoans = receivables.filter(r => r.BranchId == null);
-
-    if (hqAgents.length) {
-      toSave.push(...this.distributeToAgents(hqLoans, hqAgents, activeCounts, 'HQ'));
-    }
-
-    // Branch agents
-    const groupedAgents = new Map<number, AgentRow[]>();
-    for (const a of agents.filter(a => a.branchId != null)) {
-      if (!groupedAgents.has(a.branchId!)) groupedAgents.set(a.branchId!, []);
-      groupedAgents.get(a.branchId!)!.push(a);
-    }
-
-    const groupedLoans = new Map<number, RawReceivableRow[]>();
-    for (const r of receivables.filter(r => r.BranchId != null)) {
-      if (!groupedLoans.has(r.BranchId!)) groupedLoans.set(r.BranchId!, []);
-      groupedLoans.get(r.BranchId!)!.push(r);
-    }
-
-    for (const [branchId, branchLoans] of groupedLoans.entries()) {
-      const branchAgents = groupedAgents.get(branchId) ?? [];
-      toSave.push(...this.distributeToAgents(branchLoans, branchAgents, activeCounts, 'BRANCH', branchId));
-    }
-
-    if (toSave.length) {
-      await this.assignmentRepo.save(toSave);
-      this.logger.log(`Created ${toSave.length} new assignments.`);
-    } else {
-      this.logger.log('No new assignments created.');
-    }
+    await this.assignNewLoans();
+    this.logger.log('CRON assignment rotation finished.');
   }
 
-  // AUTO SETTER OF EXPIRED ASSIGNMENTS
+  /**
+   * Expire assignments when retention date is reached
+   */
   private async expireOldAssignments() {
-    await this.assignmentRepo.update(
-      {
-        retentionUntil: In([null]),
-        processed: false,
-      },
-      {}
-    );
-
     await this.assignmentRepo.update(
       {
         processed: false,
@@ -128,91 +55,149 @@ export class LoanreceivableAssignmentService {
     );
   }
 
-  async bulkOverrideAssignments(dto: BulkOverrideAssignmentDto) {
-    return await this.assignmentRepo.update(
-      {
-        agentId: dto.fromAgentId,
-        ...(dto.accountClass && { accountClass: dto.accountClass }),
-      },
-      { agentId: dto.toAgentId },
-    );
-  }
-
-  private async fetchAllAgents(): Promise<AgentRow[]> {
-    const sql = `
-      SELECT 
-        ua.id AS agentId,
-        ua.BranchId AS branchId,
-        r.name AS roleName
-      FROM dbo.User_Accounts ua
-      INNER JOIN dbo.User_Roles ur ON ur.user_id = ua.id
-      INNER JOIN dbo.Roles r ON r.id = ur.role_id
-      WHERE ua.status = 1
-        AND r.name IN ('Collection Agent - Head Office', 'Collection Agent - Branch')
+  /**
+   * Get loans ready for assignment from MSSQL
+   */
+  private async fetchUnassignedReceivables() {
+    const query = `
+      WITH Loans AS (
+        SELECT TOP 300
+          LoanApplicationID,
+          DueDate,
+          DATEDIFF(DAY, DueDate, GETDATE()) AS DPD,
+          ROW_NUMBER() OVER (PARTITION BY LoanApplicationID ORDER BY DueDate ASC) AS rn
+        FROM [Nittan].[dbo].[tblLoanReceivables]
+        WHERE Cleared = 0
+          AND DueDate <= DATEADD(DAY, 7, CAST(GETDATE() AS DATE))
+      )
+      SELECT LoanApplicationID, DPD
+      FROM Loans
+      WHERE rn = 1;
     `;
-    return await this.cmsDb.query(sql);
+
+    return await this.coreDb.query(query);
   }
 
-  private async getActiveCountsByAgent(): Promise<Map<number, number>> {
-    const rows = await this.assignmentRepo
-      .createQueryBuilder('a')
-      .select('a.agentId', 'agentId')
-      .addSelect('COUNT(*)', 'cnt')
-      .where('a.processed = 0')
-      .groupBy('a.agentId')
-      .getRawMany();
+  /**
+   * Assign new loans to agents
+   */
+  private async assignNewLoans() {
+    const receivables = await this.fetchUnassignedReceivables();
+    if (!receivables || receivables.length === 0) return;
 
-    return new Map(rows.map(r => [Number(r.agentId), Number(r.cnt)]));
-  }
+    const agents = await this.fetchAgentsWithCounts();
+    if (!agents.length) return;
 
-  private async fetchCandidateReceivables(): Promise<RawReceivableRow[]> {
-    return await this.coreDb.query(`
-      -- YOUR SAME SQL HERE
-    `);
-  }
+    for (const agent of agents) {
+      const remainingSlots = this.MAX_RECORDS_PER_AGENT - agent.activeCount;
+      if (remainingSlots <= 0) continue;
 
-  private distributeToAgents(
-    receivables: RawReceivableRow[],
-    agents: AgentRow[],
-    activeCounts: Map<number, number>,
-    locationType: LocationType,
-    branchId: number | null = null,
-  ): LoanReceivableAssignment[] {
+      const loansToAssign = receivables.splice(0, remainingSlots);
 
-    const created: LoanReceivableAssignment[] = [];
+      const records = loansToAssign.map((rec) => {
+        const { accountClass, retentionDays } =
+          this.getAccountClassAndRetention(rec.DPD);
 
-    for (const row of receivables) {
-      const availableAgent = agents.find(
-        a => (activeCounts.get(a.agentId) || 0) < this.MAX_PER_AGENT,
-      );
+        const retentionUntil = new Date();
+        retentionUntil.setDate(retentionUntil.getDate() + retentionDays);
 
-      if (!availableAgent) break;
-
-      const retentionUntil = new Date();
-      retentionUntil.setDate(retentionUntil.getDate() + row.RetentionDays);
-
-      created.push(
-        this.assignmentRepo.create({
-          agentId: availableAgent.agentId,
-          loanReceivableId: row.LoanReceivableId,
-          dpd: row.DPD,
-          dpdCategory: row.DPDCategory,
-          retentionDays: row.RetentionDays,
+        return this.assignmentRepo.create({
+          loanReceivableId: rec.LoanApplicationID,
+          agentId: agent.agentId,
+          dpd: rec.DPD,
+          accountClass,
+          retentionDays,
           retentionUntil,
-          branchId,
-          locationType,
           processed: false,
           createdAt: new Date(),
           updatedAt: new Date(),
-        }),
-      );
+        });
+      });
 
-      activeCounts.set(
-        availableAgent.agentId,
-        (activeCounts.get(availableAgent.agentId) || 0) + 1,
-      );
+      await this.assignmentRepo.save(records);
     }
+  }
 
-    return created;
+  /**
+   * Returns count of active unprocessed assignments per agent
+   */
+  private async fetchAgentsWithCounts() {
+    return await this.appDataSource.query(`
+      SELECT 
+        ua.EmployeeId AS agentId,
+        COUNT(a.id) AS activeCount
+      FROM dbo.User_Accounts ua
+      LEFT JOIN LoanAssignments a
+        ON a.agentId = ua.EmployeeId
+        AND a.processed = 0
+      WHERE ua.status = 1
+      GROUP BY ua.EmployeeId
+      ORDER BY agentId ASC;
+    `);
+  }
+
+  /**
+   * Categorize based on DPD
+   */
+  private getAccountClassAndRetention(dpd: number): {
+    accountClass: AccountClass;
+    retentionDays: number;
+  } {
+    if (dpd === 0) return { accountClass: AccountClass.CURRENT, retentionDays: 7 };
+    if (dpd >= 1 && dpd <= 30) return { accountClass: AccountClass.AGING_1_30, retentionDays: 7 };
+    if (dpd >= 31 && dpd <= 60) return { accountClass: AccountClass.AGING_31_60, retentionDays: 7 };
+    if (dpd >= 61 && dpd <= 90) return { accountClass: AccountClass.AGING_61_90, retentionDays: 7 };
+    if (dpd >= 91 && dpd <= 120) return { accountClass: AccountClass.AGING_91_120, retentionDays: 7 };
+    if (dpd >= 121 && dpd <= 150) return { accountClass: AccountClass.AGING_121_150, retentionDays: 7 };
+    if (dpd >= 151 && dpd <= 180) return { accountClass: AccountClass.AGING_151_180, retentionDays: 7 };
+
+    return { accountClass: AccountClass.AGING_181_PLUS, retentionDays: 120 };
+  }
+
+  /**
+   * Agent retrieves his work queue
+   */
+  async getQueueForAgent(agentId: number) {
+    return await this.assignmentRepo.find({
+      where: {
+        agentId,
+        processed: false,
+      },
+      order: {
+        dpd: 'DESC',
+      },
+    });
+  }
+
+  /**
+   * Agent processed a record and it becomes INACTIVE
+   */
+  async markAsProcessed(id: number) {
+    await this.assignmentRepo.update(
+      { id },
+      { processed: true, updatedAt: new Date() },
+    );
+    return { success: true };
+  }
+
+  /**
+   * Admin reassigns workloads
+   */
+  async bulkOverrideAssignments(dto: BulkOverrideAssignmentDto) {
+    const { fromAgentId, toAgentId, accountClass } = dto;
+
+    const where: any = {
+      agentId: fromAgentId,
+      processed: false,
+    };
+
+    if (accountClass) where.accountClass = accountClass;
+
+    const result = await this.assignmentRepo.update(where, {
+      agentId: toAgentId,
+      updatedAt: new Date(),
+    });
+
+    return { updated: result.affected ?? 0 };
   }
 }
