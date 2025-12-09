@@ -5,7 +5,13 @@ import { LoanReceivableAssignmentService } from './loanreceivable-assignment.ser
 import { LoanReceivableAssignmentController } from './loanreceivable-assignment.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([LoanReceivableAssignment], 'nittan_app')],
+  imports: [
+    // Repositories belong to writable DB
+    TypeOrmModule.forFeature([LoanReceivableAssignment], 'nittan_app'),
+
+    // Must import second connection so service can inject DataSource
+    TypeOrmModule.forFeature([], 'nittan'),
+  ],
   controllers: [LoanReceivableAssignmentController],
   providers: [LoanReceivableAssignmentService],
   exports: [LoanReceivableAssignmentService],
