@@ -58,4 +58,11 @@ export class LoanReceivableAssignment {
 
   @UpdateDateColumn({ type: 'datetime', nullable: true })
   updatedAt: Date;
+
+  @Column({
+  type: 'varchar',
+  length: 10
+  })
+  dpdCategory: DpdCategory;
+
 }
