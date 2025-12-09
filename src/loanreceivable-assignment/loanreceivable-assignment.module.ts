@@ -1,21 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ScheduleModule } from '@nestjs/schedule';
-
 import { LoanReceivableAssignment } from './entities/loanreceivable-assignment.entity';
-import { LoanreceivableAssignmentService } from './loanreceivable-assignment.service';
-import { LoanreceivableAssignmentController } from './loanreceivable-assignment.controller';
+import { LoanReceivableAssignmentService } from './loanreceivable-assignment.service';
+import { LoanReceivableAssignmentController } from './loanreceivable-assignment.controller';
 
 @Module({
-  imports: [
-    ScheduleModule.forRoot(),
-    TypeOrmModule.forFeature(
-      [LoanReceivableAssignment],
-      'nittan_app',
-    ),
-  ],
-  controllers: [LoanreceivableAssignmentController],
+  imports: [TypeOrmModule.forFeature([LoanReceivableAssignment], 'nittan_app')],
+  controllers: [LoanReceivableAssignmentController],
   providers: [LoanReceivableAssignmentService],
   exports: [LoanReceivableAssignmentService],
 })
-export class LoanreceivableAssignmentModule {}
+export class LoanReceivableAssignmentModule {}
