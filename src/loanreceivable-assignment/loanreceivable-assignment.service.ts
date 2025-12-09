@@ -57,7 +57,7 @@ export class LoanReceivableAssignmentService {
   /**
    * Query valid, active agents from system DB
    */
-  @Cron('*/10 * * * * *') // every 10 seconds for testing
+  
   private async loadAgents(): Promise<any[]> {
     const sql = `
       SELECT ua.EmployeeId AS agentId,
@@ -101,6 +101,7 @@ export class LoanReceivableAssignmentService {
   /**
    * Main assignment process
    */
+  @Cron('*/10 * * * * *') // every 10 seconds for testing
   async assignLoans(): Promise<void> {
     this.logger.log('Starting receivable assignment process...');
 
@@ -243,6 +244,7 @@ async markProcessed(assignmentId: number, agentId: number) {
 }
 
 }
+
 
 
 
