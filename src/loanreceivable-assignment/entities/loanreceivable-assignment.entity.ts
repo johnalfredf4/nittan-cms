@@ -13,14 +13,14 @@ export enum AccountClass {
 }
 
 export enum DpdCategory {
-  ZERO = '0',
-  ONE_TO_30 = '1-30',
-  THIRTY_ONE_TO_60 = '31-60',
-  SIXTY_ONE_TO_90 = '61-90',
-  NINETY_ONE_TO_120 = '91-120',
-  ONE_TWENTY_ONE_TO_150 = '121-150',
-  ONE_FIFTY_ONE_TO_180 = '151-180',
-  GREATER_THAN_180 = '>=181',
+  DPD_0 = '0',
+  DPD_1_30 = '1-30',
+  DPD_31_60 = '31-60',
+  DPD_61_90 = '61-90',
+  DPD_91_120 = '91-120',
+  DPD_121_150 = '121-150',
+  DPD_151_180 = '151-180',
+  DPD_181_PLUS = '>=181',
 }
 
 @Entity('LoanReceivable_Assignments')
@@ -61,4 +61,11 @@ export class LoanReceivableAssignment {
 
   @UpdateDateColumn({ type: 'datetime', nullable: true })
   updatedAt: Date;
+
+  @Column({
+  type: 'varchar',
+  length: 20,
+  })
+  dpdCategory: DpdCategory;
+
 }
