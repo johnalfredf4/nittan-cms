@@ -159,4 +159,60 @@ export class LoanreceivableAssignmentService {
       .select('a.agentId', 'agentId')
       .addSelect('COUNT(*)', 'cnt')
       .where('a.processed = 0')
-      .gr
+      .groupBy('a.agentId')
+      .getRawMany();
+
+    return new Map(rows.map(r => [Number(r.agentId), Number(r.cnt)]));
+  }
+
+  private async fetchCandidateReceivables(): Promise<RawReceivableRow[]> {
+    return await this.coreDb.query(`
+      -- YOUR SAME SQL HERE
+    `);
+  }
+
+  private distributeToAgents(
+    receivables: RawReceivableRow[],
+    agents: AgentRow[],
+    activeCounts: Map<number, number>,
+    locationType: LocationType,
+    branchId: number | null = null,
+  ): LoanReceivableAssignment[] {
+
+    const created: LoanReceivableAssignment[] = [];
+
+    for (const row of receivables) {
+      const availableAgent = agents.find(
+        a => (activeCounts.get(a.agentId) || 0) < this.MAX_PER_AGENT,
+      );
+
+      if (!availableAgent) break;
+
+      const retentionUntil = new Date();
+      retentionUntil.setDate(retentionUntil.getDate() + row.RetentionDays);
+
+      created.push(
+        this.assignmentRepo.create({
+          agentId: availableAgent.agentId,
+          loanReceivableId: row.LoanReceivableId,
+          dpd: row.DPD,
+          dpdCategory: row.DPDCategory,
+          retentionDays: row.RetentionDays,
+          retentionUntil,
+          branchId,
+          locationType,
+          processed: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+      );
+
+      activeCounts.set(
+        availableAgent.agentId,
+        (activeCounts.get(availableAgent.agentId) || 0) + 1,
+      );
+    }
+
+    return created;
+  }
+}
