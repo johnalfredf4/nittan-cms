@@ -184,4 +184,62 @@ export class LoanReceivableAssignmentService {
       assignedCount: Number(r.assignedCount),
     }));
   }
+
+  async bulkOverrideAssignments(dto: BulkOverrideAssignmentDto) {
+  const { fromAgentId, toAgentId, accountClass } = dto;
+
+  const whereCondition: any = {
+    agentId: fromAgentId,
+    status: AssignmentStatus.ACTIVE,
+  };
+
+  if (accountClass) {
+    whereCondition.accountClass = accountClass;
+  }
+
+  const assignments = await this.assignmentRepo.find({
+    where: whereCondition,
+  });
+
+  if (!assignments.length) {
+    return {
+      ok: true,
+      message: 'No active assignments found for override',
+    };
+  }
+
+  for (const record of assignments) {
+    record.agentId = toAgentId;
+    record.updatedAt = new Date();
+  }
+
+  await this.assignmentRepo.save(assignments);
+
+  return {
+    ok: true,
+    message: `${assignments.length} records reassigned`,
+  };
 }
+
+async markProcessed(assignmentId: number, agentId: number) {
+  const assignment = await this.assignmentRepo.findOne({
+    where: { id: assignmentId, agentId },
+  });
+
+  if (!assignment) {
+    throw new Error('Assignment not found');
+  }
+
+  assignment.status = AssignmentStatus.PROCESSED;
+  assignment.updatedAt = new Date();
+
+  await this.assignmentRepo.save(assignment);
+
+  return {
+    ok: true,
+    message: 'Assignment marked as processed',
+  };
+}
+
+}
+
