@@ -1,3 +1,5 @@
+const apiUrl = window.location.origin;
+
 const BASE_URL = "/loanreceivable-assignment";
 
 let currentAssignments = [];
