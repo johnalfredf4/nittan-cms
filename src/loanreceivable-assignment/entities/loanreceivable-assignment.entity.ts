@@ -73,4 +73,13 @@ export class LoanReceivableAssignment {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({
+  type: 'varchar',
+  length: 20,
+  default: AssignmentStatus.ACTIVE,
+  })
+  status: AssignmentStatus;
+
+    
 }
