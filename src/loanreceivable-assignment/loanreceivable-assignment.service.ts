@@ -137,19 +137,27 @@ export class LoanReceivableAssignmentService {
 
       const dpd = loan.DPD;
       const retentionDays = this.getRetentionDays(dpd);
+console.log("🟢 Saving assignment:", {
+  loanReceivableId: loan.LoanReceivableId,
+  loanApplicationId: loan.LoanApplicationID,
+  dpd: loan.DPD,
+  dpdCategory: this.getDpdCategory(loan.DPD),
+  agentId: selectedAgent.agentId,
+});
 
       await this.assignmentRepo.save({
-        loanReceivableId: loan.LoanReceivableId, // FIXED
-        loanApplicationId: loan.LoanApplicationID, // FIXED
-        dpd: loan.DPD,
-        dpdCategory: this.getDpdCategory(dpd),
-        agentId: selectedAgent.agentId,
-        branchId: selectedAgent.branchId,
-        locationType: selectedAgent.branchId === null ? 'HQ' : 'BRANCH',
-        retentionDays,
-        retentionUntil: new Date(Date.now() + retentionDays * 86400000),
-        status: AssignmentStatus.ACTIVE,
-      });
+  loanReceivableId: loan.LoanReceivableId,
+  loanApplicationId: loan.LoanApplicationID,
+  dpd: loan.DPD,
+  dpdCategory: this.getDpdCategory(loan.DPD), // FIXED
+  agentId: selectedAgent.agentId,
+  branchId: selectedAgent.branchId,
+  locationType: selectedAgent.branchId === null ? 'HQ' : 'BRANCH',
+  retentionDays,
+  retentionUntil: new Date(Date.now() + retentionDays * 86400000),
+  status: AssignmentStatus.ACTIVE,
+});
+
 
       selectedAgent.assignedCount++;
     }
@@ -244,6 +252,7 @@ async markProcessed(assignmentId: number, agentId: number) {
 }
 
 }
+
 
 
 
