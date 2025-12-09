@@ -137,26 +137,39 @@ export class LoanReceivableAssignmentService {
 
       const dpd = loan.DPD;
       const retentionDays = this.getRetentionDays(dpd);
-console.log("🟢 Saving assignment:", {
-  loanReceivableId: loan.LoanReceivableId,
-  loanApplicationId: loan.LoanApplicationID,
-  dpd: loan.DPD,
-  dpdCategory: this.getDpdCategory(loan.DPD),
-  agentId: selectedAgent.agentId,
-});
+
+      console.log('🟢 Final before save:', JSON.stringify({
+    loanReceivableId: assignment.loanReceivableId,
+    loanApplicationId: assignment.loanApplicationId,
+    agentId: assignment.agentId,
+    dpdCategory: assignment.dpdCategory,
+    retentionUntil: new Date(Date.now() + assignment.retentionDays * 86400000),
+    status: AssignmentStatus.ACTIVE,
+    accountClass: assignment.accountClass ?? 'REGULAR',
+    locationType: assignment.branchId ? 'BRANCH' : 'HQ',
+    branchId: assignment.branchId,
+}, null, 2));
+
 
       await this.assignmentRepo.save({
-  loanReceivableId: loan.LoanReceivableId,
-  loanApplicationId: loan.LoanApplicationID,
-  dpd: loan.DPD,
-  dpdCategory: this.getDpdCategory(loan.DPD), // FIXED
-  agentId: selectedAgent.agentId,
-  branchId: selectedAgent.branchId,
-  locationType: selectedAgent.branchId === null ? 'HQ' : 'BRANCH',
-  retentionDays,
-  retentionUntil: new Date(Date.now() + retentionDays * 86400000),
-  status: AssignmentStatus.ACTIVE,
+    loanReceivableId: assignment.loanReceivableId,
+    loanApplicationId: assignment.loanApplicationId,
+    agentId: assignment.agentId,
+    dpdCategory: assignment.dpdCategory,
+
+    status: AssignmentStatus.ACTIVE,
+
+    retentionUntil: new Date(Date.now() + assignment.retentionDays * 86400000),
+
+    // Fix accountClass
+    accountClass: assignment.accountClass ?? 'REGULAR',
+
+    // Determine branch location
+    locationType: assignment.branchId ? 'BRANCH' : 'HQ',
+
+    branchId: assignment.branchId ?? null,
 });
+
 
 
       selectedAgent.assignedCount++;
@@ -252,6 +265,7 @@ async markProcessed(assignmentId: number, agentId: number) {
 }
 
 }
+
 
 
 
