@@ -35,6 +35,17 @@ async function searchAssignments() {
     }
 }
 
+@Get('assignments')
+async getAssignments(@Query('agentId') agentId: number) {
+  return this.service.getAssignmentsByAgent(agentId);
+}
+
+async getAssignmentsByAgent(agentId: number) {
+  return this.assignmentRepo.find({
+      where: { agentId, status: AssignmentStatus.ACTIVE },
+      order: { retentionUntil: 'ASC' }
+  });
+}
 
 function renderTable(agentId) {
     document.getElementById("searchedAgent").textContent = agentId;
