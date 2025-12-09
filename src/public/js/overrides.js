@@ -3,21 +3,37 @@ const BASE_URL = "/loanreceivable-assignment";
 let currentAssignments = [];
 
 async function searchAssignments() {
-    const agentId = document.getElementById("searchAgentId").value;
-    if (!agentId) return alert("Enter Agent ID");
+  const searchTerm = document.getElementById('searchInput').value;
 
-    document.getElementById("resultsWrap").classList.add("hidden");
+  const response = await fetch(`${apiUrl}/loan-receivable-assignments/search?filter=${searchTerm}`);
 
-    const res = await fetch(`${BASE_URL}/agent-load?agentId=${agentId}`);
-    const data = await res.json();
+  if (!response.ok) {
+    console.error("API returned an error:", response.status);
+    alert("Failed to retrieve results.");
+    return;
+  }
 
-    if (!data.length || !data[0].assignments.length) {
-        alert("No active assignments found for this agent.");
-        return;
-    }
+  let data;
+  try {
+    data = await response.json();
+  } catch (err) {
+    console.error("Failed to parse response JSON", err);
+    alert("Server returned invalid response");
+    return;
+  }
 
-    currentAssignments = data[0].assignments;
-    renderTable(agentId);
+  if (!Array.isArray(data)) {
+    console.warn("Unexpected API result:", data);
+    alert("No assignments found.");
+    return;
+  }
+
+  if (data.length === 0) {
+    alert("No assignments found.");
+    return;
+  }
+
+  console.log("Assignments loaded:", data);
 }
 
 function renderTable(agentId) {
