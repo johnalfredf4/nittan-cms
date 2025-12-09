@@ -62,7 +62,7 @@ import { LoanReceivableAssignmentModule } from './loanreceivable-assignment/loan
         DispositionCategory,
         Disposition,
         //LoanAssignment,
-        //RotationState,
+        RotationState,
         LoanReceivableAssignment,
       ],
       options: {
