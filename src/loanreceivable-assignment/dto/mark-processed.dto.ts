@@ -1,5 +1,5 @@
 import { IsInt, IsEnum, IsOptional } from 'class-validator';
-import { AccountClass } from '../entities/loan-assignment.entity';
+import { AccountClass } from '../entities/loanreceivable-assignment.entity';
 
 export class BulkOverrideAssignmentDto {
   @IsInt()
