@@ -1,6 +1,5 @@
 export class ChangePasswordDto {
-  username: string;
+  username?: string;       // optional if you infer from JWT
+  currentPassword: string;
   newPassword: string;
-  oldPassword?: string; // not required for admin reset
-  resetMode?: boolean;  // true means admin forced reset
 }
