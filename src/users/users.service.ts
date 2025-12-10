@@ -82,4 +82,8 @@ export class UsersService {
     if (!user) throw new NotFoundException('User not found');
     await this.usersRepo.remove(user);
   }
+
+  async updatePassword(id: number, hash: string): Promise<void> {
+  await this.usersRepo.update({ id }, { passwordHash: hash });
+  }
 }
