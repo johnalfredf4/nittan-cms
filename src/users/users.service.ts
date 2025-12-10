@@ -61,7 +61,10 @@ export class UsersService {
   }
 
   async findByUsername(username: string): Promise<User | null> {
-    return this.usersRepo.findOne({ where: { username } });
+    return await this.usersRepo.findOne({
+      where: { username },
+      relations: ['roles'], // 👈 LOAD ROLES
+    });
   }
 
   async findAll(): Promise<User[]> {
