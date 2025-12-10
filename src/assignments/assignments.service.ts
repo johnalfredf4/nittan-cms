@@ -16,14 +16,6 @@ export class AssignmentsService {
               ,la.[loanReceivableId]
               ,la.[agentId]
               ,la.[branchId]
-              ,la.[locationType]
-              ,la.[dpd]
-              ,la.[dpdCategory]
-              ,la.[retentionDays]
-              ,la.[retentionUntil]
-              ,la.[status]
-              ,la.[createdAt]
-              ,la.[updatedAt]
               ,lr.DueDate
               ,lr.Balance
               ,l.*
