@@ -28,6 +28,11 @@ export class User {
   @Column({ name: 'last_name', length: 100 })
   lastName: string;
 
+  // 👉 ADD THESE PROPERTIES
+  branchId: number;
+  employeeId: number;
+
+
   @Column({
     type: 'varchar',
     length: 20,
