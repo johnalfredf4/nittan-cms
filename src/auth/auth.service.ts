@@ -3,7 +3,6 @@ import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class AuthService {
   constructor(
