@@ -28,8 +28,11 @@ export class User {
   @Column({ name: 'last_name', length: 100 })
   lastName: string;
 
-  // 👉 ADD THESE PROPERTIES
+  // 👇 Add these columns (match DB column names)
+  @Column({ name: 'BranchId' })
   branchId: number;
+
+  @Column({ name: 'EmployeeID' })
   employeeId: number;
 
 
