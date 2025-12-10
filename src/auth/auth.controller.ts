@@ -11,15 +11,28 @@ export class AuthController {
   login(@Req() req: any) {
     const user = req.user;
 
+    // Convert roles from entity to string array
+    const roles = user.roles?.map((r: any) => r.name) ?? [];
+
     const payload = {
-      id: user.id,
+      sub: user.id,
       username: user.username,
-      roles: user.roles.map((r: any) => r.name),
+      roles,
+      branchId: user.branchId,
+      employeeId: user.employeeId,
     };
 
     return {
+      status: true,
       token: this.jwtService.sign(payload),
-      user: payload,
+      user: {
+        id: user.id,
+        username: user.username,
+        full_name: `${user.firstName} ${user.lastName}`.trim(),
+        branchId: user.branchId,
+        employeeId: user.employeeId,
+        roles,
+      },
     };
   }
 }
