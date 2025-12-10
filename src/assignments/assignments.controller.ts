@@ -12,4 +12,11 @@ export class AssignmentsController {
     const employeeId = req.user.employeeId; // from JWT
     return await this.assignmentsService.getByEmployee(employeeId);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('by-receivable/:loanReceivableId')
+  async getByLoanReceivableId(@Req() req: any, @Param('loanReceivableId') loanReceivableId: string) {
+    return this.assignmentsService.getByLoanReceivableId(Number(loanReceivableId));
+  }
+
 }
