@@ -1,6 +1,9 @@
 import { Controller, Post, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
+import { Body, BadRequestException } from '@nestjs/common';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
@@ -34,5 +37,20 @@ export class AuthController {
         roles,
       },
     };
+  }
+}
+
+@Controller('auth')
+export class AuthController {
+
+  constructor(private readonly authService: AuthService) {}
+
+  // ✨ Change or Reset Password Endpoint
+  @UseGuards(AuthGuard('jwt'))
+  @Post('change-password')
+  async changePassword(@Body() dto: ChangePasswordDto, @Req() req: any) {
+    const requesterUsername = req.user.username;
+
+    return this.authService.changePassword(dto, requesterUsername);
   }
 }
