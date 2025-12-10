@@ -33,6 +33,7 @@ import { LoanReceivableAssignment } from './loanreceivable-assignment/entities/l
 // NEW MODULE
 import { LoanReceivableAssignmentModule } from './loanreceivable-assignment/loanreceivable-assignment.module';
 import { AssignmentsModule } from './assignments/assignments.module';
+import { EmailSenderModule } from './email-sender/email-sender.module';
 
 @Module({
   imports: [
@@ -102,6 +103,7 @@ import { AssignmentsModule } from './assignments/assignments.module';
     DispositionsModule,
     LoanReceivableAssignmentModule, // 👈 Register NEW MODULE
     AssignmentsModule,
+    EmailSenderModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'src', 'public'),
     }),
