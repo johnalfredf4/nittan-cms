@@ -1,5 +1,6 @@
 export class ChangePasswordDto {
-  username?: string;       // optional if you infer from JWT
-  currentPassword: string;
-  newPassword: string;
+  username: string;         // username of the account being changed
+  oldPassword?: string;     // optional for admin resetting
+  newPassword: string;      // new password
+  resetMode?: boolean;      // true = admin override reset
 }
