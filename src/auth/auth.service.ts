@@ -50,4 +50,33 @@ export class AuthService {
       },
     };
   }
+
+import * as bcrypt from 'bcryptjs';
+
+async changePassword(dto: ChangePasswordDto, requesterUsername: string) {
+  const { username, newPassword, oldPassword, resetMode } = dto;
+
+  // Load target user from DB
+  const user = await this.usersService.findByUsername(username);
+  if (!user) throw new Error('User account not found');
+
+  // If user is changing their own password
+  if (!resetMode) {
+    if (username !== requesterUsername) {
+      throw new Error('Unauthorized password change attempt');
+    }
+
+    const match = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!match) throw new Error('Old password does not match');
+  }
+
+  const hashed = await bcrypt.hash(newPassword, 10);
+  await this.usersService.updatePassword(user.id, hashed);
+
+  return {
+    status: true,
+    message: 'Password updated successfully',
+  };
+}
+  
 }
