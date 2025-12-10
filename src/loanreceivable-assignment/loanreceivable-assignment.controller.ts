@@ -49,13 +49,22 @@ export class LoanReceivableAssignmentController {
   }
 
   /** 🔹 Override a single assignment */
-  @Post('override/:assignmentId')
-  async overrideSingle(
-    @Param('assignmentId', ParseIntPipe) assignmentId: number,
-    @Body() dto: OverrideSingleDto
-  ) {
-    return this.service.overrideSingle(assignmentId, dto);
-  }
+  //@Post('override/:assignmentId')
+  //async overrideSingle(
+  //  @Param('assignmentId', ParseIntPipe) assignmentId: number,
+  //  @Body() dto: OverrideSingleDto
+  //) {
+  //  return this.service.overrideSingle(assignmentId, dto);
+  //}
+
+  @Patch('override-single/:id')
+async overrideSingle(
+  @Param('id') id: number,
+  @Body() dto: OverrideSingleDto
+) {
+  return this.service.overrideSingle(id, dto);
+}
+
 
   /** 🔹 Mark as processed  */
   @Post('mark-processed/:assignmentId/:agentId')
