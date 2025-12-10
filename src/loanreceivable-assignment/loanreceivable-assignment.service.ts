@@ -150,7 +150,7 @@ export class LoanReceivableAssignmentService {
   /**
    * Main assignment process
    */
-  @Cron('*/10 * * * * *') // every 10 seconds for testing
+  @Cron('0 */30 * * * *') // every 30 minutes for testing
   async assignLoans(): Promise<void> {
     this.logger.log('Starting receivable assignment process...');
 
@@ -328,6 +328,7 @@ async markProcessed(assignmentId: number, agentId: number) {
 }
 
 }
+
 
 
 
