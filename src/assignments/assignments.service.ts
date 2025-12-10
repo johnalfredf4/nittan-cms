@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { ConnectionPool } from 'mssql';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
 
 @Injectable()
 export class AssignmentsService {
-  constructor(private readonly db: ConnectionPool) {}
+  constructor(
+    @InjectConnection('nittan_app')
+    private readonly reportingConnection: Connection,
+  ) {}
 
   async getByEmployee(employeeId: number) {
-    const result = await this.db.request()
-      .input('EmployeeID', employeeId)
-      .query(`
+    const result = await this.reportingConnection.query(
+      `
         SELECT la.[loanApplicationId]
               ,la.[loanReceivableId]
               ,la.[agentId]
@@ -27,9 +30,11 @@ export class AssignmentsService {
         FROM [Nittan-App].[dbo].[LoanReceivable_Assignments] AS la
         INNER JOIN Nittan.dbo.tblLoanReceivables AS lr ON lr.ID=la.loanReceivableId
         INNER JOIN Nittan.dbo.tblLoanApplications AS l ON l.ID=la.loanApplicationId
-        WHERE la.[agentId] = @EmployeeID
-      `);
+        WHERE la.[agentId] = @0
+      `,
+      [employeeId],
+    );
 
-    return result.recordset;
+    return result;
   }
 }
