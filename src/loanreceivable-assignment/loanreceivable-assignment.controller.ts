@@ -57,7 +57,7 @@ export class LoanReceivableAssignmentController {
   //  return this.service.overrideSingle(assignmentId, dto);
   //}
 
-  @Patch('override-single/:id')
+  @Patch('override/:id')
 async overrideSingle(
   @Param('id') id: number,
   @Body() dto: OverrideSingleDto
