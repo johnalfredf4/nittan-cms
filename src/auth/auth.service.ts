@@ -3,7 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
-
+import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class AuthService {
   constructor(
@@ -51,7 +51,7 @@ export class AuthService {
     };
   }
 
-import * as bcrypt from 'bcryptjs';
+
 
 async changePassword(dto: ChangePasswordDto, requesterUsername: string) {
   const { username, newPassword, oldPassword, resetMode } = dto;
