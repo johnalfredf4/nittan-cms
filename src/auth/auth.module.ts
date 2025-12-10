@@ -10,13 +10,22 @@ import { AuthController } from './auth.controller';
 @Module({
   imports: [
     UsersModule,
-    PassportModule,
+    PassportModule.register({ session: false }), // make explicit
     JwtModule.register({
-      secret: 'super-secret-key', // TODO: move to env var in production
-      signOptions: { expiresIn: '1h' },
+      global: true, // 🔍 allows injection without re-importing
+      secret: process.env.JWT_SECRET || 'super-secret-key', // improved
+      signOptions: { expiresIn: '1d' }, // recommended longer expiration
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+  ],
   controllers: [AuthController],
+  exports: [
+    AuthService, // 🔥 allow login() reuse in other modules
+    JwtModule,   // allow token verification elsewhere
+  ],
 })
 export class AuthModule {}
