@@ -12,7 +12,8 @@ export class AssignmentsService {
   async getByEmployee(employeeId: number) {
     const result = await this.reportingConnection.query(
       `
-        SELECT la.[loanApplicationId]
+        SELECT p.*
+              ,la.[loanApplicationId]
               ,la.[loanReceivableId]
               ,la.[agentId]
               ,la.[branchId]
@@ -22,6 +23,7 @@ export class AssignmentsService {
         FROM [Nittan-App].[dbo].[LoanReceivable_Assignments] AS la
         INNER JOIN Nittan.dbo.tblLoanReceivables AS lr ON lr.ID=la.loanReceivableId
         INNER JOIN Nittan.dbo.tblLoanApplications AS l ON l.ID=la.loanApplicationId
+        INNER JOIN Nittan.dbo.tblPersonalInfos AS p ON p.ID=l.BorrowerId
         WHERE la.[agentId] = @0
       `,
       [employeeId],
@@ -33,7 +35,8 @@ export class AssignmentsService {
   async getByLoanReceivableId(loanReceivableId: number) {
   const result = await this.reportingConnection.query(
     `
-      SELECT la.[loanApplicationId]
+      SELECT p.*
+            ,la.[loanApplicationId]
             ,la.[loanReceivableId]
             ,la.[agentId]
             ,la.[branchId]
@@ -51,6 +54,7 @@ export class AssignmentsService {
       FROM [Nittan-App].[dbo].[LoanReceivable_Assignments] AS la
       INNER JOIN Nittan.dbo.tblLoanReceivables AS lr ON lr.ID = la.loanReceivableId
       INNER JOIN Nittan.dbo.tblLoanApplications AS l ON l.ID = la.loanApplicationId
+      INNER JOIN Nittan.dbo.tblPersonalInfos AS p ON p.ID=l.BorrowerId
       WHERE la.[loanReceivableId] = @0
     `,
     [loanReceivableId],
