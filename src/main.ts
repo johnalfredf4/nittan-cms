@@ -5,10 +5,17 @@ import * as express from 'express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 🚀 ENABLE BODY PARSING FOR JSON
+  // Allow frontend origin (Vite: http://localhost:5173)
+  app.enableCors({
+    origin: ['http://localhost:5173'],  // 🔥 allow your frontend
+    methods: 'GET,POST,PUT,PATCH,DELETE',
+    credentials: true,
+  });
+
+  // Enable body parsing
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-  //app.setGlobalPrefix('api');
-  await app.listen(3000);
+
+  await app.listen(3000, '0.0.0.0');
 }
 bootstrap();
