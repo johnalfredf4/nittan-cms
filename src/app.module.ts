@@ -36,6 +36,8 @@ import { AssignmentsModule } from './assignments/assignments.module';
 import { EmailSenderModule } from './email-sender/email-sender.module';
 import { SmsSenderModule } from './sms-sender/sms-sender.module';
 import { CoBorrowerModule } from './coborrower/coborrower.module';
+import { PaymentHistoryModule } from './paymenthistory/paymenthistory.module';
+
 
 @Module({
   imports: [
@@ -108,6 +110,7 @@ import { CoBorrowerModule } from './coborrower/coborrower.module';
     EmailSenderModule,
     SmsSenderModule,
     CoBorrowerModule,
+    PaymentHistoryModule
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'src', 'public'),
     }),
