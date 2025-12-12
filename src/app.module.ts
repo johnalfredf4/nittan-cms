@@ -110,7 +110,7 @@ import { PaymentHistoryModule } from './paymenthistory/paymenthistory.module';
     EmailSenderModule,
     SmsSenderModule,
     CoBorrowerModule,
-    PaymentHistoryModule
+    PaymentHistoryModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'src', 'public'),
     }),
