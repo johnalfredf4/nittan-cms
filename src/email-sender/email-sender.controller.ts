@@ -5,8 +5,9 @@ class SendEmailDto {
   to: string;
   subject: string;
   message: string;
+  referenceId: number;        // LoanReceivable_Assignments.ID
+  emailTemplateId?: number;   // optional
 }
-
 @Controller('email')
 export class EmailSenderController {
   constructor(private readonly emailSenderService: EmailSenderService) {}
