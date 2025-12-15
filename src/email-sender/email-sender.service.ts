@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { EmailSendLog } from './entities/email-send-log.entity';
 
 @Injectable()
 export class EmailSenderService {
@@ -13,26 +16,47 @@ export class EmailSenderService {
     },
   });
 
-  async sendEmail(to: string, subject: string, message: string) {
+  async sendEmail(dto: {
+    to: string;
+    subject: string;
+    message: string;
+    referenceId: number;
+    emailTemplateId?: number;
+  }) {
+    let sentStatus = false;
+    let errorMessage: string | null = null;
+
     try {
-      const result = await this.transporter.sendMail({
-        from: 'nittancloudstorage@gmail.com',
-        to,
-        subject,
-        html: message,
+      await this.transporter.sendMail({
+        from: process.env.SMTP_FROM,
+        to: dto.to,
+        subject: dto.subject,
+        html: dto.message,
       });
 
-      return {
-        status: true,
-        message: "Email sent successfully",
-        response: result,
-      };
+      sentStatus = true;
     } catch (error) {
-      return {
-        status: false,
-        message: "Failed to send email",
-        error: error.message,
-      };
+      errorMessage = error.message;
     }
+
+    // 🔹 SAVE EMAIL LOG
+    await this.emailLogRepo.save({
+      toEmail: dto.to,
+      emailTemplateId: dto.emailTemplateId,
+      subject: dto.subject,
+      message: dto.message,
+      referenceId: dto.referenceId,
+      sentStatus,
+      errorMessage,
+    });
+
+    if (!sentStatus) {
+      throw new Error(errorMessage);
+    }
+
+    return {
+      status: true,
+      message: 'Email sent and logged successfully',
+    };
   }
 }
