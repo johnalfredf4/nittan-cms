@@ -6,6 +6,13 @@ import { EmailSendLog } from './entities/email-send-log.entity';
 
 @Injectable()
 export class EmailSenderService {
+
+  // ✅ DECLARE emailLogRepo via constructor injection
+  constructor(
+    @InjectRepository(EmailSendLog, 'nittan_app')
+    private readonly emailLogRepo: Repository<EmailSendLog>,
+  ) {}
+  
   private readonly transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
