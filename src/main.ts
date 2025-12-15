@@ -7,7 +7,8 @@ async function bootstrap() {
 
   // Allow frontend origin (Vite: http://localhost:5173)
   app.enableCors({
-    origin: ['http://localhost:5173'],  // 🔥 allow your frontend
+    origin: ['http://localhost:5173','http://10.254.0.3',],  // 🔥 allow your frontend
+    
     methods: 'GET,POST,PUT,PATCH,DELETE',
     credentials: true,
   });
