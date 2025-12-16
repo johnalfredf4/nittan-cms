@@ -38,6 +38,7 @@ import { SmsSenderModule } from './sms-sender/sms-sender.module';
 import { CoBorrowerModule } from './coborrower/coborrower.module';
 import { PaymentHistoryModule } from './paymenthistory/paymenthistory.module';
 import { EmailSendLog } from './email-sender/entities/email-send-log.entity';
+import { SmsSendLog } from './sms-sender/entities/sms-send-log.entity';
 
 
 @Module({
@@ -72,6 +73,7 @@ import { EmailSendLog } from './email-sender/entities/email-send-log.entity';
         RotationState,
         LoanReceivableAssignment,
         EmailSendLog,
+        SmsSendLog,
       ],
       options: {
         encrypt: false,
