@@ -76,7 +76,7 @@ export class LoanReceivableAssignmentService {
       WHERE rn = 1;
     `;
 
-    const rows = await this.dataSource.query(sql);
+    const rows = await this.nittanDataSource.query(sql);
     this.logger.log(`📌 Receivables fetched: ${rows.length}`);
     return rows;
   }
@@ -294,6 +294,7 @@ async findActiveAssignmentsByAgent(agentId: number) {
     return { ok: true };
   }
 }
+
 
 
 
