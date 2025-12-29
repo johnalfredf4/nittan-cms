@@ -1,9 +1,18 @@
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+} from 'typeorm';
+
+import { LoanAssignmentPersonalSnapshot } from './loanassignment-personal-snapshot.entity';
+
 @Entity('LoanAssignment_ContactReferences')
 export class LoanAssignmentContactReference {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => LoanAssignmentPersonalSnapshot, s => s.references)
+  @ManyToOne(() => LoanAssignmentPersonalSnapshot, snapshot => snapshot.references)
   snapshot: LoanAssignmentPersonalSnapshot;
 
   @Column()
