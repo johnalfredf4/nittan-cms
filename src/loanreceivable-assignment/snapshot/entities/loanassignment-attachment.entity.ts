@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 
 import { LoanAssignmentPersonalSnapshot } from './loanassignment-personal-snapshot.entity';
@@ -13,15 +14,20 @@ export class LoanAssignmentAttachment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => PersonalSnapshotId, snapshot => snapshot.attachments)
-  snapshot: PersonalSnapshotId;
+  @ManyToOne(
+    () => LoanAssignmentPersonalSnapshot,
+    snapshot => snapshot.attachments,
+    { onDelete: 'CASCADE' },
+  )
+  @JoinColumn({ name: 'personalSnapshotId' }) // 👈 MUST match DB column
+  snapshot: LoanAssignmentPersonalSnapshot;
 
-  @Column()
+  @Column({ length: 50 })
   attachmentType: string;
 
-  @Column()
+  @Column({ length: 255 })
   filePath: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime' })
   uploadedAt: Date;
 }
