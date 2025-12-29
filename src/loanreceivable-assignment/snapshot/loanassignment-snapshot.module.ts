@@ -17,9 +17,6 @@ import { LoanAssignmentPersonalSnapshotService } from './loanassignment-personal
 
 @Module({
   imports: [
-    /* ============================================
-       Writable DB (Snapshot tables)
-    ============================================ */
     TypeOrmModule.forFeature(
       [
         LoanAssignmentPersonalSnapshot,
@@ -31,9 +28,6 @@ import { LoanAssignmentPersonalSnapshotService } from './loanassignment-personal
       'nittan_app',
     ),
 
-    /* ============================================
-       Read-only DB (tblPersonalInfos)
-    ============================================ */
     TypeOrmModule.forFeature([], 'nittan'),
   ],
 
@@ -42,7 +36,8 @@ import { LoanAssignmentPersonalSnapshotService } from './loanassignment-personal
   ],
 
   exports: [
-    LoanAssignmentPersonalSnapshotService, // 🔑 REQUIRED
+    LoanAssignmentPersonalSnapshotService,
   ],
 })
 export class LoanAssignmentSnapshotModule {}
+
