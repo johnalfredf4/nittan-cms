@@ -9,35 +9,17 @@ import { LoanReceivableAssignmentService } from './loanreceivable-assignment.ser
 import { LoanReceivableAssignmentController } from './loanreceivable-assignment.controller';
 
 /* =======================
-   Snapshot Entities
+   Snapshot Module
 ======================= */
-import { LoanAssignmentPersonalSnapshot } from './snapshot/entities/loanassignment-personal-snapshot.entity';
-import { LoanAssignmentIdentification } from './snapshot/entities/loanassignment-identification.entity';
-import { LoanAssignmentMonthlyIncome } from './snapshot/entities/loanassignment-monthly-income.entity';
-import { LoanAssignmentMonthlyExpense } from './snapshot/entities/loanassignment-monthly-expense.entity';
-import { LoanAssignmentContactReference } from './snapshot/entities/loanassignment-contact-reference.entity';
-
-/* =======================
-   Snapshot Service
-======================= */
-import { LoanAssignmentPersonalSnapshotService } from './snapshot/loanassignment-personal-snapshot.service';
+import { LoanAssignmentSnapshotModule } from './snapshot/loanassignment-snapshot.module';
 
 @Module({
   imports: [
     /* ============================================
-       Writable DB (Assignments + Snapshots)
+       Writable DB (Assignments ONLY)
     ============================================ */
     TypeOrmModule.forFeature(
-      [
-        LoanReceivableAssignment,
-
-        // Snapshot tables
-        LoanAssignmentPersonalSnapshot,
-        LoanAssignmentIdentification,
-        LoanAssignmentMonthlyIncome,
-        LoanAssignmentMonthlyExpense,
-        LoanAssignmentContactReference,
-      ],
+      [LoanReceivableAssignment],
       'nittan_app',
     ),
 
@@ -46,6 +28,11 @@ import { LoanAssignmentPersonalSnapshotService } from './snapshot/loanassignment
        (tblLoanReceivables, tblPersonalInfos, Users)
     ============================================ */
     TypeOrmModule.forFeature([], 'nittan'),
+
+    /* ============================================
+       Snapshot module (exports snapshot service)
+    ============================================ */
+    LoanAssignmentSnapshotModule,
   ],
 
   controllers: [
@@ -54,7 +41,6 @@ import { LoanAssignmentPersonalSnapshotService } from './snapshot/loanassignment
 
   providers: [
     LoanReceivableAssignmentService,
-    LoanAssignmentPersonalSnapshotService,
   ],
 
   exports: [
