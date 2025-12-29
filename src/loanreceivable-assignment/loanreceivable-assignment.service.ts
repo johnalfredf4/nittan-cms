@@ -123,66 +123,69 @@ export class LoanReceivableAssignmentService {
      CRON JOB — EVERY 1 MINUTE
   ============================================================ */
   @Cron('0 */1 * * * *')
-  async assignLoans(): Promise<void> {
-    this.logger.log('🔄 Starting receivable assignment process');
+async assignLoans(): Promise<void> {
+  this.logger.log('🔄 Starting receivable assignment process');
 
-    await this.autoExpireAssignments();
+  await this.autoExpireAssignments();
 
-    const loans = await this.loadReceivablesForAssignment();
-    if (!loans.length) return;
+  const loans = await this.loadReceivablesForAssignment();
+  if (!loans.length) {
+    this.logger.log('ℹ️ No receivables to assign');
+    return;
+  }
 
-    let agents = await this.loadAgents();
-    if (!agents.length) return;
+  let agents = await this.loadAgents();
+  if (!agents.length) {
+    this.logger.warn('⚠ No active agents found');
+    return;
+  }
 
-    const loads = await this.getAgentLoad({});
-    agents = agents.map(a => ({
-      ...a,
-      assignedCount:
-        loads.find(l => l.agentId === a.agentId)?.assignedCount ?? 0,
-    }));
+  const loads = await this.getAgentLoad({});
+  agents = agents.map(a => ({
+    ...a,
+    assignedCount:
+      loads.find(l => l.agentId === a.agentId)?.assignedCount ?? 0,
+  }));
 
-    for (const loan of loans) {
-      agents.sort((a, b) => a.assignedCount - b.assignedCount);
-      const agent = agents[0];
+  for (const loan of loans) {
+    agents.sort((a, b) => a.assignedCount - b.assignedCount);
+    const agent = agents[0];
 
-      if (!agent || agent.assignedCount >= 10) continue;
-
-      const retentionDays = this.getRetentionDays(loan.DPD);
-
-      try {
-        /* ===============================
-           SAVE ASSIGNMENT
-        =============================== */
-        const assignment = await this.assignmentRepo.save({
-          loanReceivableId: loan.LoanReceivableId,
-          loanApplicationId: loan.LoanApplicationID,
-          borrowerId: loan.BorrowerID,
-          dpd: loan.DPD,
-          dpdCategory: this.getDpdCategory(loan.DPD),
-          agentId: agent.agentId,
-          branchId: agent.branchId,
-          locationType: agent.branchId ? 'BRANCH' : 'HQ',
-          retentionDays,
-          retentionUntil: new Date(Date.now() + retentionDays * 86400000),
-          status: AssignmentStatus.ACTIVE,
-        });
-
-        /* ===============================
-           SNAPSHOT (AFTER SAVE)
-        =============================== */
-        await this.snapshotService.createSnapshot(
-          assignment.id,
-          assignment.borrowerId,
-        );
-
-        agent.assignedCount++;
-      } catch (err) {
-        this.logger.error('❌ Failed to assign receivable', err);
-      }
+    if (!agent || agent.assignedCount >= 10) {
+      continue;
     }
 
-    this.logger.log('✅ Loan receivable assignment completed');
+    const retentionDays = this.getRetentionDays(loan.DPD);
+
+    try {
+      const assignment = await this.assignmentRepo.save({
+        loanReceivableId: loan.LoanReceivableId,
+        loanApplicationId: loan.LoanApplicationID,
+        borrowerId: loan.BorrowerID,
+        dpd: loan.DPD,
+        dpdCategory: this.getDpdCategory(loan.DPD),
+        agentId: agent.agentId,
+        branchId: agent.branchId,
+        locationType: agent.branchId ? 'BRANCH' : 'HQ',
+        retentionDays,
+        retentionUntil: new Date(Date.now() + retentionDays * 86400000),
+        status: AssignmentStatus.ACTIVE,
+      });
+
+      await this.snapshotService.createSnapshot(
+        assignment.id,
+        assignment.borrowerId,
+      );
+
+      agent.assignedCount++;
+    } catch (err) {
+      this.logger.error('❌ Failed to assign receivable', err);
+    }
   }
+
+  this.logger.log('✅ Loan receivable assignment completed');
+}
+
 
   /* ============================================================
      AUTO EXPIRE ASSIGNMENTS
@@ -294,3 +297,4 @@ export class LoanReceivableAssignmentService {
     return { ok: true };
   }
 }
+
