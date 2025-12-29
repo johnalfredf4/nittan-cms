@@ -3,10 +3,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  InjectRepository,
-  InjectDataSource,
-} from '@nestjs/typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import {
   Repository,
   LessThan,
@@ -30,7 +27,7 @@ export class LoanReceivableAssignmentService {
 
   constructor(
     /* ===============================
-       ASSIGNMENT REPOSITORY (nittan_app)
+       ASSIGNMENTS DB (nittan_app)
     =============================== */
     @InjectRepository(LoanReceivableAssignment, 'nittan_app')
     private readonly assignmentRepo: Repository<LoanReceivableAssignment>,
@@ -41,14 +38,14 @@ export class LoanReceivableAssignmentService {
     private readonly snapshotService: LoanAssignmentPersonalSnapshotService,
 
     /* ===============================
-       LEGACY CORE DB (nittan)
+       CORE / LEGACY DB (nittan)
     =============================== */
     @InjectDataSource('nittan')
     private readonly dataSource: DataSource,
   ) {}
 
   /* ============================================================
-     FETCH RECEIVABLES
+     FETCH RECEIVABLES FOR ASSIGNMENT
   ============================================================ */
   private async loadReceivablesForAssignment(): Promise<any[]> {
     const sql = `
@@ -80,7 +77,7 @@ export class LoanReceivableAssignmentService {
   }
 
   /* ============================================================
-     FETCH AGENTS
+     FETCH ACTIVE AGENTS
   ============================================================ */
   private async loadAgents(): Promise<any[]> {
     const sql = `
@@ -123,7 +120,7 @@ export class LoanReceivableAssignmentService {
   }
 
   /* ============================================================
-     CRON JOB (EVERY 1 MINUTE)
+     CRON JOB — EVERY 1 MINUTE
   ============================================================ */
   @Cron('0 */1 * * * *')
   async assignLoans(): Promise<void> {
@@ -153,9 +150,9 @@ export class LoanReceivableAssignmentService {
       const retentionDays = this.getRetentionDays(loan.DPD);
 
       try {
-        /* ================================
+        /* ===============================
            SAVE ASSIGNMENT
-        ================================ */
+        =============================== */
         const assignment = await this.assignmentRepo.save({
           loanReceivableId: loan.LoanReceivableId,
           loanApplicationId: loan.LoanApplicationID,
@@ -170,9 +167,9 @@ export class LoanReceivableAssignmentService {
           status: AssignmentStatus.ACTIVE,
         });
 
-        /* ================================
+        /* ===============================
            SNAPSHOT (AFTER SAVE)
-        ================================ */
+        =============================== */
         await this.snapshotService.createSnapshot(
           assignment.id,
           assignment.borrowerId,
@@ -188,7 +185,7 @@ export class LoanReceivableAssignmentService {
   }
 
   /* ============================================================
-     AUTO EXPIRE
+     AUTO EXPIRE ASSIGNMENTS
   ============================================================ */
   private async autoExpireAssignments(): Promise<void> {
     await this.assignmentRepo.update(
@@ -201,7 +198,20 @@ export class LoanReceivableAssignmentService {
   }
 
   /* ============================================================
-     QUERY ASSIGNMENTS
+     QUERY ASSIGNMENTS BY AGENT  ✅ FIX
+  ============================================================ */
+  async findActiveAssignmentsByAgent(agentId: number) {
+    return this.assignmentRepo.find({
+      where: {
+        agentId,
+        status: AssignmentStatus.ACTIVE,
+      },
+      order: { dpd: 'DESC' },
+    );
+  }
+
+  /* ============================================================
+     AGENT LOAD
   ============================================================ */
   async getAgentLoad(query: { agentId?: number }) {
     const qb = this.assignmentRepo
@@ -244,10 +254,6 @@ export class LoanReceivableAssignmentService {
       agentId: dto.fromAgentId,
       status: AssignmentStatus.ACTIVE,
     };
-
-    if (dto.accountClass) {
-      where.accountClass = dto.accountClass;
-    }
 
     const records = await this.assignmentRepo.find({ where });
 
