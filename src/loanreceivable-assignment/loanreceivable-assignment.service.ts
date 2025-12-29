@@ -132,33 +132,45 @@ export class LoanReceivableAssignmentService {
     }));
 
     for (const loan of loans) {
-      agents.sort((a, b) => a.assignedCount - b.assignedCount);
-      const agent = agents[0];
+      // 🚫 Prevent duplicate active assignments
+      const exists = await this.assignmentRepo.findOne({
+        where: {
+          loanReceivableId: loan.LoanReceivableId,
+          status: AssignmentStatus.ACTIVE,
+        },
+      });
+      if (exists) continue;
 
-      if (!agent || agent.assignedCount >= 10) continue;
+      agents.sort((a, b) => a.assignedCount - b.assignedCount);
+      const agent = agents.find(a => a.assignedCount < 10);
+      if (!agent) break;
 
       const retentionDays = this.getRetentionDays(loan.DPD);
 
-      const assignment = await this.assignmentRepo.save({
-        loanReceivableId: loan.LoanReceivableId,
-        loanApplicationId: loan.LoanApplicationID,
-        borrowerId: loan.BorrowerID,
-        dpd: loan.DPD,
-        dpdCategory: this.getDpdCategory(loan.DPD),
-        agentId: agent.agentId,
-        branchId: agent.branchId,
-        locationType: agent.branchId ? 'BRANCH' : 'HQ',
-        retentionDays,
-        retentionUntil: new Date(Date.now() + retentionDays * 86400000),
-        status: AssignmentStatus.ACTIVE,
-        accountClass: AccountClass.REGULAR,
-      });
+      await this.dataSource.transaction(async manager => {
+        const assignment = await manager
+          .getRepository(LoanReceivableAssignment)
+          .save({
+            loanReceivableId: loan.LoanReceivableId,
+            loanApplicationId: loan.LoanApplicationID,
+            borrowerId: loan.BorrowerID,
+            dpd: loan.DPD,
+            dpdCategory: this.getDpdCategory(loan.DPD),
+            agentId: agent.agentId,
+            branchId: agent.branchId,
+            locationType: agent.branchId ? 'BRANCH' : 'HQ',
+            retentionDays,
+            retentionUntil: new Date(Date.now() + retentionDays * 86400000),
+            status: AssignmentStatus.ACTIVE,
+            accountClass: AccountClass.REGULAR,
+          });
 
-      // 📸 SNAPSHOT (CRITICAL)
-      await this.snapshotService.createSnapshot(
-        assignment.id,
-        assignment.borrowerId,
-      );
+        // 📸 SNAPSHOT (ATOMIC)
+        await this.snapshotService.createSnapshot(
+          assignment.id,
+          assignment.borrowerId,
+        );
+      });
 
       agent.assignedCount++;
     }
