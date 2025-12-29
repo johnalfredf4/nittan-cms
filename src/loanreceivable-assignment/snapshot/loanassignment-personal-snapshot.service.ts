@@ -2,11 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 
-import { LoanAssignmentPersonalSnapshot } from '../entities/loanassignment-personal-snapshot.entity';
-import { LoanAssignmentIdentification } from '../entities/loanassignment-identification.entity';
-import { LoanAssignmentMonthlyIncome } from '../entities/loanassignment-monthly-income.entity';
-import { LoanAssignmentMonthlyExpense } from '../entities/loanassignment-monthly-expense.entity';
-import { LoanAssignmentContactReference } from '../entities/loanassignment-contact-reference.entity';
+import { LoanAssignmentPersonalSnapshot } from './entities/loanassignment-personal-snapshot.entity';
+import { LoanAssignmentIdentification } from './entities/loanassignment-identification.entity';
+import { LoanAssignmentMonthlyIncome } from './entities/loanassignment-monthly-income.entity';
+import { LoanAssignmentMonthlyExpense } from './entities/loanassignment-monthly-expense.entity';
+import { LoanAssignmentContactReference } from './entities/loanassignment-contact-reference.entity';
 
 @Injectable()
 export class LoanAssignmentPersonalSnapshotService {
