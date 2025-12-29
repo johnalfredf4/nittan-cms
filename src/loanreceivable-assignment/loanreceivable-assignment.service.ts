@@ -194,15 +194,16 @@ export class LoanReceivableAssignmentService {
   /* ============================================================
      QUERY ASSIGNMENTS BY AGENT
   ============================================================ */
-  async findActiveAssignmentsByAgent(agentId: number) {
-    return this.assignmentRepo.find({
-      where: {
-        agentId,
-        status: AssignmentStatus.ACTIVE,
-      },
-      order: { dpd: 'DESC' },
-    );
-  }
+async findActiveAssignmentsByAgent(agentId: number) {
+  return this.assignmentRepo.find({
+    where: {
+      agentId,
+      status: AssignmentStatus.ACTIVE,
+    },
+    order: { dpd: 'DESC' },
+  });
+}
+
 
   /* ============================================================
      AGENT LOAD
@@ -288,3 +289,4 @@ export class LoanReceivableAssignmentService {
     return { ok: true };
   }
 }
+
