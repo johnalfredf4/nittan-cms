@@ -3,7 +3,9 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 
 import { LoanAssignmentIdentification } from './loanassignment-identification.entity';
@@ -12,78 +14,99 @@ import { LoanAssignmentMonthlyExpense } from './loanassignment-monthly-expense.e
 import { LoanAssignmentContactReference } from './loanassignment-contact-reference.entity';
 import { LoanAssignmentAttachment } from './loanassignment-attachment.entity';
 
-@Entity('LoanAssignment_PersonalSnapshot')
+@Entity('LoanAssignment_PersonalSnapshots') // ✅ PLURAL
 export class LoanAssignmentPersonalSnapshot {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column()
   loanAssignmentId: number;
 
+  @Index()
   @Column()
   borrowerId: number;
 
   @Column()
   personalInfoId: number;
 
-  // ===== PERSONAL DATA =====
-  @Column({ nullable: true }) lastName?: string;
-  @Column({ nullable: true }) firstName?: string;
-  @Column({ nullable: true }) middleName?: string;
-  @Column({ nullable: true }) suffix?: string;
-  @Column({ nullable: true }) title?: string;
-  @Column({ nullable: true }) alias?: string;
+  /* =======================
+     PERSONAL DATA
+  ======================= */
+  @Column({ type: 'varchar', length: 100, nullable: true }) lastName?: string;
+  @Column({ type: 'varchar', length: 100, nullable: true }) firstName?: string;
+  @Column({ type: 'varchar', length: 100, nullable: true }) middleName?: string;
+  @Column({ type: 'varchar', length: 50, nullable: true }) suffix?: string;
+  @Column({ type: 'varchar', length: 50, nullable: true }) title?: string;
+  @Column({ type: 'varchar', length: 100, nullable: true }) alias?: string;
+
   @Column({ type: 'date', nullable: true }) dateOfBirth?: Date;
-  @Column({ nullable: true }) placeOfBirth?: string;
-  @Column({ nullable: true }) gender?: string;
-  @Column({ nullable: true }) numDependents?: number;
-  @Column({ nullable: true }) civilStatus?: string;
-  @Column({ nullable: true }) nationality?: string;
-  @Column({ nullable: true }) motherMaidenName?: string;
-  @Column({ nullable: true }) fatherName?: string;
+  @Column({ type: 'varchar', length: 150, nullable: true }) placeOfBirth?: string;
+  @Column({ type: 'varchar', length: 20, nullable: true }) gender?: string;
 
-  // ===== CONTACT DATA =====
-  @Column({ nullable: true }) mobileNumber?: string;
-  @Column({ nullable: true }) officeContactNumber?: string;
-  @Column({ nullable: true }) homePhoneNumber?: string;
-  @Column({ nullable: true }) emailAddress?: string;
-  @Column({ nullable: true }) facebookAccount?: string;
+  @Column({ type: 'int', nullable: true }) numDependents?: number;
+  @Column({ type: 'varchar', length: 50, nullable: true }) civilStatus?: string;
+  @Column({ type: 'varchar', length: 50, nullable: true }) nationality?: string;
+  @Column({ type: 'varchar', length: 150, nullable: true }) motherMaidenName?: string;
+  @Column({ type: 'varchar', length: 150, nullable: true }) fatherName?: string;
 
-  // ===== PRESENT ADDRESS =====
-  @Column({ nullable: true }) presentAddress?: string;
-  @Column({ nullable: true }) presentYearsOfStay?: number;
-  @Column({ nullable: true }) presentOwnershipType?: string;
+  /* =======================
+     CONTACT DATA
+  ======================= */
+  @Column({ type: 'varchar', length: 50, nullable: true }) mobileNumber?: string;
+  @Column({ type: 'varchar', length: 50, nullable: true }) officeContactNumber?: string;
+  @Column({ type: 'varchar', length: 50, nullable: true }) homePhoneNumber?: string;
+  @Column({ type: 'varchar', length: 150, nullable: true }) emailAddress?: string;
+  @Column({ type: 'varchar', length: 150, nullable: true }) facebookAccount?: string;
 
-  // ===== PERMANENT ADDRESS =====
-  @Column({ nullable: true }) permanentAddress?: string;
-  @Column({ nullable: true }) permanentYearsOfStay?: number;
-  @Column({ nullable: true }) permanentOwnershipType?: string;
+  /* =======================
+     ADDRESSES
+  ======================= */
+  @Column({ type: 'varchar', length: 255, nullable: true }) presentAddress?: string;
+  @Column({ type: 'int', nullable: true }) presentYearsOfStay?: number;
+  @Column({ type: 'varchar', length: 50, nullable: true }) presentOwnershipType?: string;
 
-  // ===== EMPLOYMENT =====
-  @Column({ nullable: true }) employerName?: string;
-  @Column({ nullable: true }) businessNature?: string;
-  @Column({ nullable: true }) employmentAddress?: string;
-  @Column({ nullable: true }) yearsOfService?: number;
-  @Column({ nullable: true }) employerContactNumber?: string;
-  @Column({ nullable: true }) employerEmail?: string;
-  @Column({ nullable: true }) jobTitle?: string;
+  @Column({ type: 'varchar', length: 255, nullable: true }) permanentAddress?: string;
+  @Column({ type: 'int', nullable: true }) permanentYearsOfStay?: number;
+  @Column({ type: 'varchar', length: 50, nullable: true }) permanentOwnershipType?: string;
 
-  // ===== SPOUSE =====
-  @Column({ nullable: true }) spouseLastName?: string;
-  @Column({ nullable: true }) spouseFirstName?: string;
-  @Column({ nullable: true }) spouseMiddleName?: string;
-  @Column({ nullable: true }) spouseNickName?: string;
+  /* =======================
+     EMPLOYMENT
+  ======================= */
+  @Column({ type: 'varchar', length: 150, nullable: true }) employerName?: string;
+  @Column({ type: 'varchar', length: 150, nullable: true }) businessNature?: string;
+  @Column({ type: 'varchar', length: 255, nullable: true }) employmentAddress?: string;
+  @Column({ type: 'int', nullable: true }) yearsOfService?: number;
+  @Column({ type: 'varchar', length: 50, nullable: true }) employerContactNumber?: string;
+  @Column({ type: 'varchar', length: 150, nullable: true }) employerEmail?: string;
+  @Column({ type: 'varchar', length: 100, nullable: true }) jobTitle?: string;
+
+  /* =======================
+     SPOUSE
+  ======================= */
+  @Column({ type: 'varchar', length: 100, nullable: true }) spouseLastName?: string;
+  @Column({ type: 'varchar', length: 100, nullable: true }) spouseFirstName?: string;
+  @Column({ type: 'varchar', length: 100, nullable: true }) spouseMiddleName?: string;
+  @Column({ type: 'varchar', length: 100, nullable: true }) spouseNickName?: string;
   @Column({ type: 'date', nullable: true }) spouseDateOfBirth?: Date;
-  @Column({ nullable: true }) spousePlaceOfBirth?: string;
-  @Column({ nullable: true }) spouseMobileNumber?: string;
-  @Column({ nullable: true }) spouseEmployerName?: string;
-  @Column({ nullable: true }) spouseEmployerContact?: string;
-  @Column({ nullable: true }) spouseJobTitle?: string;
+  @Column({ type: 'varchar', length: 150, nullable: true }) spousePlaceOfBirth?: string;
+  @Column({ type: 'varchar', length: 50, nullable: true }) spouseMobileNumber?: string;
+  @Column({ type: 'varchar', length: 150, nullable: true }) spouseEmployerName?: string;
+  @Column({ type: 'varchar', length: 50, nullable: true }) spouseEmployerContact?: string;
+  @Column({ type: 'varchar', length: 100, nullable: true }) spouseJobTitle?: string;
 
+  /* =======================
+     TIMESTAMPS
+  ======================= */
   @CreateDateColumn()
   createdAt: Date;
 
-  // ===== RELATIONS =====
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  /* =======================
+     RELATIONS
+  ======================= */
   @OneToMany(() => LoanAssignmentIdentification, i => i.snapshot, { cascade: true })
   identifications: LoanAssignmentIdentification[];
 
