@@ -20,7 +20,7 @@ import {
 
 import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
 import { OverrideSingleDto } from './dto/override-single.dto';
-import { LoanAssignmentSnapshotService } from '../snapshot/loanassignment-snapshot.service';
+import { LoanAssignmentSnapshotService } from './snapshot/loanassignment-snapshot.service';
 
 @Injectable()
 export class LoanReceivableAssignmentService {
@@ -289,4 +289,5 @@ export class LoanReceivableAssignmentService {
     return { ok: true };
   }
 }
+
 
