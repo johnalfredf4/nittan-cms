@@ -91,7 +91,7 @@ export class LoanReceivableAssignmentService {
         AND r.name LIKE 'Collection Agent%';
     `;
 
-    const agents = await this.dataSource.query(sql);
+    const agents = await this.appDataSource.query(sql);
     this.logger.log(`📌 Agents fetched: ${agents.length}`);
 
     return agents.map(a => ({
@@ -289,5 +289,6 @@ async findActiveAssignmentsByAgent(agentId: number) {
     return { ok: true };
   }
 }
+
 
 
