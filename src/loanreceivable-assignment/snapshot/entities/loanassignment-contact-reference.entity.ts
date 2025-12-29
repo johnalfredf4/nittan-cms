@@ -12,8 +12,8 @@ export class LoanAssignmentContactReference {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => LoanAssignmentPersonalSnapshot, snapshot => snapshot.references)
-  snapshot: LoanAssignmentPersonalSnapshot;
+  @ManyToOne(() => PersonalSnapshotId, snapshot => snapshot.references)
+  snapshot: PersonalSnapshotId;
 
   @Column()
   referenceName: string;
