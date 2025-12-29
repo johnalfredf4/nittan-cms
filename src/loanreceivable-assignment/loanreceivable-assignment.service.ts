@@ -40,11 +40,12 @@ export class LoanReceivableAssignmentService {
     /* ===============================
        CORE / LEGACY DB (nittan)
     =============================== */
-    // 🔹 Legacy core DB (loan receivables, borrowers)
     @InjectDataSource('nittan')
     private readonly nittanDataSource: DataSource,
-  
-    // 🔹 App DB (users, agents)
+
+    /* ===============================
+       APP DB (users / agents)
+    =============================== */
     @InjectDataSource('nittan_app')
     private readonly appDataSource: DataSource,
   ) {}
@@ -125,9 +126,9 @@ export class LoanReceivableAssignmentService {
   }
 
   /* ============================================================
-     CRON JOB — EVERY 1 MINUTE
+     CRON — EVERY MINUTE
   ============================================================ */
-  @Cron('0 */1 * * * *')
+  @Cron('0 * * * * *')
   async assignLoans(): Promise<void> {
     this.logger.log('🔄 Starting receivable assignment process');
 
@@ -155,23 +156,24 @@ export class LoanReceivableAssignmentService {
       const retentionDays = this.getRetentionDays(loan.DPD);
 
       try {
-        const assignment = await this.assignmentRepo.save({
+        const result = await this.assignmentRepo.insert({
           loanReceivableId: loan.LoanReceivableId,
           loanApplicationId: loan.LoanApplicationID,
-          borrowerId: loan.BorrowerID,
-          dpd: loan.DPD,
-          dpdCategory: this.getDpdCategory(loan.DPD),
           agentId: agent.agentId,
           branchId: agent.branchId,
+          dpd: loan.DPD,
+          dpdCategory: this.getDpdCategory(loan.DPD),
           locationType: agent.branchId ? 'BRANCH' : 'HQ',
           retentionDays,
           retentionUntil: new Date(Date.now() + retentionDays * 86400000),
           status: AssignmentStatus.ACTIVE,
         });
 
+        const assignmentId = result.identifiers[0].id;
+
         await this.snapshotService.createSnapshot(
-          assignment.id,
-          assignment.borrowerId,
+          assignmentId,
+          loan.BorrowerID,
         );
 
         agent.assignedCount++;
@@ -184,7 +186,7 @@ export class LoanReceivableAssignmentService {
   }
 
   /* ============================================================
-     AUTO EXPIRE ASSIGNMENTS
+     AUTO EXPIRE
   ============================================================ */
   private async autoExpireAssignments(): Promise<void> {
     await this.assignmentRepo.update(
@@ -192,23 +194,25 @@ export class LoanReceivableAssignmentService {
         status: AssignmentStatus.ACTIVE,
         retentionUntil: LessThan(new Date()),
       },
-      { status: AssignmentStatus.EXPIRED },
+      {
+        status: AssignmentStatus.EXPIRED,
+        updatedAt: new Date(),
+      },
     );
   }
 
   /* ============================================================
-     QUERY ASSIGNMENTS BY AGENT
+     QUERY BY AGENT
   ============================================================ */
-async findActiveAssignmentsByAgent(agentId: number) {
-  return this.assignmentRepo.find({
-    where: {
-      agentId,
-      status: AssignmentStatus.ACTIVE,
-    },
-    order: { dpd: 'DESC' },
-  });
-}
-
+  async findActiveAssignmentsByAgent(agentId: number) {
+    return this.assignmentRepo.find({
+      where: {
+        agentId,
+        status: AssignmentStatus.ACTIVE,
+      },
+      order: { dpd: 'DESC' },
+    });
+  }
 
   /* ============================================================
      AGENT LOAD
@@ -235,38 +239,32 @@ async findActiveAssignmentsByAgent(agentId: number) {
      MANUAL OVERRIDES
   ============================================================ */
   async overrideSingle(assignmentId: number, dto: OverrideSingleDto) {
-    const assignment = await this.assignmentRepo.findOne({
-      where: { id: assignmentId },
-    });
+    await this.assignmentRepo.update(
+      { id: assignmentId },
+      {
+        agentId: dto.toAgentId,
+        updatedAt: new Date(),
+      },
+    );
 
-    if (!assignment) {
-      throw new NotFoundException(`Assignment ${assignmentId} not found`);
-    }
-
-    assignment.agentId = dto.toAgentId;
-    assignment.updatedAt = new Date();
-
-    return this.assignmentRepo.save(assignment);
+    return { ok: true };
   }
 
   async bulkOverrideAssignments(dto: BulkOverrideAssignmentDto) {
-    const records = await this.assignmentRepo.find({
-      where: {
+    const result = await this.assignmentRepo.update(
+      {
         agentId: dto.fromAgentId,
         status: AssignmentStatus.ACTIVE,
       },
-    });
-
-    for (const r of records) {
-      r.agentId = dto.toAgentId;
-      r.updatedAt = new Date();
-    }
-
-    await this.assignmentRepo.save(records);
+      {
+        agentId: dto.toAgentId,
+        updatedAt: new Date(),
+      },
+    );
 
     return {
       ok: true,
-      reassigned: records.length,
+      reassigned: result.affected ?? 0,
     };
   }
 
@@ -274,29 +272,22 @@ async findActiveAssignmentsByAgent(agentId: number) {
      MARK PROCESSED
   ============================================================ */
   async markProcessed(assignmentId: number, agentId: number) {
-    const assignment = await this.assignmentRepo.findOne({
-      where: {
+    const result = await this.assignmentRepo.update(
+      {
         id: assignmentId,
         agentId,
         status: AssignmentStatus.ACTIVE,
       },
-    });
+      {
+        status: AssignmentStatus.PROCESSED,
+        updatedAt: new Date(),
+      },
+    );
 
-    if (!assignment) {
+    if (!result.affected) {
       throw new NotFoundException('Assignment not found');
     }
-
-    assignment.status = AssignmentStatus.PROCESSED;
-    assignment.updatedAt = new Date();
-
-    await this.assignmentRepo.save(assignment);
 
     return { ok: true };
   }
 }
-
-
-
-
-
-
