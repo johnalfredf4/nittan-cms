@@ -12,12 +12,17 @@ export class LoanAssignmentMonthlyIncome {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => LoanAssignmentPersonalSnapshot, snapshot => snapshot.incomes)
+  @ManyToOne(
+    () => LoanAssignmentPersonalSnapshot,
+    snapshot => snapshot.incomes,
+    { onDelete: 'CASCADE' },
+  )
   snapshot: LoanAssignmentPersonalSnapshot;
 
+  // ✅ MSSQL-safe: store enum as VARCHAR
   @Column({
-    type: 'enum',
-    enum: ['Applicant', 'Spouse'],
+    type: 'varchar',
+    length: 20,
   })
   incomeType: 'Applicant' | 'Spouse';
 
