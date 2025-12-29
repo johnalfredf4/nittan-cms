@@ -30,57 +30,51 @@ export enum AssignmentStatus {
 }
 
 
-@Entity('LoanReceivable_Assignments')
+@Entity({
+  name: 'LoanReceivable_Assignments',
+  schema: 'dbo',
+})
 export class LoanReceivableAssignment {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'int' })
-loanApplicationId: number;
-
-@Column({ type: 'int' })
-loanReceivableId: number;
-
-@Column({ type: 'int' })
-agentId: number;
+  loanApplicationId: number;
 
   @Column({ type: 'int' })
-branchId: number;
+  loanReceivableId: number;
 
-@Column({ type: 'int' })
-dpd: number;
+  @Column({ type: 'int' })
+  agentId: number;
 
-@Column({ type: 'int' })
-retentionDays: number;
+  @Column({ type: 'int' })
+  branchId: number;
+
+  @Column({ type: 'int' })
+  dpd: number;
+
+  @Column({ type: 'int' })
+  retentionDays: number;
 
   @Column()
   locationType: string;
 
-  @Column({
-    type: 'varchar',
-    length: 20,
-  })
+  @Column({ type: 'varchar', length: 20 })
   dpdCategory: DpdCategory;
 
   @Column()
   retentionUntil: Date;
 
-  //@CreateDateColumn()
-  //createdAt: Date;
-
- //@UpdateDateColumn()
-  //updatedAt: Date;
-
   @Column({
-  type: 'varchar',
-  length: 20,
-  default: AssignmentStatus.ACTIVE,
+    type: 'varchar',
+    length: 20,
+    default: AssignmentStatus.ACTIVE,
   })
   status: AssignmentStatus;
 
   @Column({ type: 'datetime', default: () => 'GETDATE()' })
-createdAt: Date;
+  createdAt: Date;
 
-  @Column({ type: 'datetime', default: () => 'GETDATE()', onUpdate: 'GETDATE()' })
-  updatedAt: Date;  
+  @Column({ type: 'datetime', nullable: true })
+  updatedAt: Date;
 }
