@@ -2,68 +2,95 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   Query,
   Param,
-  ParseIntPipe
+  ParseIntPipe,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
+
 import { LoanReceivableAssignmentService } from './loanreceivable-assignment.service';
 import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
 import { OverrideSingleDto } from './dto/override-single.dto';
 import { AgentFilterDto } from './dto/agent-filter.dto';
-import { HttpException, HttpStatus } from '@nestjs/common';
-
 
 @Controller('loanreceivable-assignment')
 export class LoanReceivableAssignmentController {
   constructor(
-    private readonly service: LoanReceivableAssignmentService
+    private readonly service: LoanReceivableAssignmentService,
   ) {}
 
-  /** 🔹 Trigger assignment job manually */
+  /* =====================================================
+     🔹 MANUAL TRIGGER (OPTIONAL / ADMIN)
+  ===================================================== */
   @Post('run')
   async runAssignment() {
     await this.service.assignLoans();
-    return { status: 'Assignment process executed' };
+    return { ok: true, message: 'Assignment process executed' };
   }
 
-  /** 🔹 Get agent load */
+  /* =====================================================
+     🔹 AGENT LOAD
+  ===================================================== */
   @Get('agent-load')
   async getAgentLoad(@Query() query: AgentFilterDto) {
     return this.service.getAgentLoad(query);
   }
 
+  /* =====================================================
+     🔹 FETCH ASSIGNMENTS PER AGENT
+  ===================================================== */
   @Get('assignments')
-  async getAssignments(@Query('agentId') agentId: number) {
+  async getAssignments(@Query('agentId') agentId?: number) {
     if (!agentId) {
-      throw new HttpException('agentId is required', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'agentId is required',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-  
-    return await this.service.findActiveAssignmentsByAgent(agentId);
+
+    return this.service.findActiveAssignmentsByAgent(Number(agentId));
   }
 
-  /** 🔹 Override multiple assignments */
+  /* =====================================================
+     🔹 BULK OVERRIDE
+  ===================================================== */
   @Post('bulk-override')
   async bulkOverride(@Body() dto: BulkOverrideAssignmentDto) {
     return this.service.bulkOverrideAssignments(dto);
   }
 
-  /** 🔹 Override a single assignment */
-  @Post('override/:assignmentId')
+  /* =====================================================
+     🔹 SINGLE OVERRIDE (MATCHES FRONTEND)
+  ===================================================== */
+  @Patch('override-single/:assignmentId')
   async overrideSingle(
     @Param('assignmentId', ParseIntPipe) assignmentId: number,
-    @Body() dto: OverrideSingleDto
+    @Body() dto: OverrideSingleDto,
   ) {
     return this.service.overrideSingle(assignmentId, dto);
   }
 
-
-  /** 🔹 Mark as processed  */
-  @Post('mark-processed/:assignmentId/:agentId')
+  /* =====================================================
+     🔹 MARK AS PROCESSED
+  ===================================================== */
+  @Patch('mark-processed/:assignmentId')
   async markProcessed(
     @Param('assignmentId', ParseIntPipe) assignmentId: number,
-    @Param('agentId', ParseIntPipe) agentId: number,
+    @Query('agentId') agentId?: number,
   ) {
-    return this.service.markProcessed(assignmentId, agentId);
+    if (!agentId) {
+      throw new HttpException(
+        'agentId is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return this.service.markProcessed(
+      assignmentId,
+      Number(agentId),
+    );
   }
 }
