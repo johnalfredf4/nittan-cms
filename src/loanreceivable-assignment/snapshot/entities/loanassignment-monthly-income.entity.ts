@@ -28,8 +28,12 @@ export class LoanAssignmentMonthlyIncome {
   })
   incomeType: 'Applicant' | 'Spouse';
 
-  @Column('decimal', { precision: 18, scale: 2 })
-  amount: number;
+  // 🔴 CHANGED FROM DECIMAL → VARCHAR
+  @Column({
+    type: 'varchar',
+    length: 100,
+  })
+  amount: string;
 
   @Column({ length: 150, nullable: true })
   bankName?: string;
