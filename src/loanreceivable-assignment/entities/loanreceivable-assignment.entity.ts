@@ -75,6 +75,10 @@ export class LoanReceivableAssignment {
   @Column({ type: 'datetime', default: () => 'GETDATE()' })
   createdAt: Date;
 
-  @Column({ type: 'datetime', nullable: true })
-  updatedAt: Date;
+ @Column({
+  type: 'datetime',
+  nullable: true,
+})
+updatedAt: Date;
+
 }
