@@ -113,7 +113,7 @@ export class LoanReceivableAssignmentService {
   /* ============================================================
      CRON JOB (EVERY 30 MINUTES)
   ============================================================ */
-  @Cron('0 */30 * * * *')
+  @Cron('0 */5 * * * *')
   async assignLoans(): Promise<void> {
     this.logger.log('🔄 Starting receivable assignment process');
 
@@ -287,6 +287,7 @@ export class LoanReceivableAssignmentService {
     return { ok: true };
   }
 }
+
 
 
 
