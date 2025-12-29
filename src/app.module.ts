@@ -66,6 +66,8 @@ import { LoanAssignmentAttachment } from './loanreceivable-assignment/snapshot/e
       database: 'Nittan-App',
       synchronize: false,
       autoLoadEntities: false,
+      // ✅ INSERT THIS LINE HERE ⬇⬇⬇
+      logging: ['query', 'error'],
       entities: [
         User,
         Role,
