@@ -243,7 +243,7 @@ export class LoanReceivableAssignmentService {
       { id: assignmentId },
       {
         agentId: dto.toAgentId,
-        /*updatedAt: new Date(),*/
+        updatedAt: new Date(),
       },
     );
 
@@ -258,7 +258,7 @@ export class LoanReceivableAssignmentService {
       },
       {
         agentId: dto.toAgentId,
-        /*updatedAt: new Date(),*/
+        updatedAt: new Date(),
       },
     );
 
@@ -280,7 +280,7 @@ export class LoanReceivableAssignmentService {
       },
       {
         status: AssignmentStatus.PROCESSED,
-        /*updatedAt: new Date(),*/
+        updatedAt: new Date(),
       },
     );
 
@@ -291,4 +291,5 @@ export class LoanReceivableAssignmentService {
     return { ok: true };
   }
 }
+
 
