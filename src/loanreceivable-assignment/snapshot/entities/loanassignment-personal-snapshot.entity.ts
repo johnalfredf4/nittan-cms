@@ -14,7 +14,7 @@ import { LoanAssignmentMonthlyExpense } from './loanassignment-monthly-expense.e
 import { LoanAssignmentContactReference } from './loanassignment-contact-reference.entity';
 import { LoanAssignmentAttachment } from './loanassignment-attachment.entity';
 
-@Entity('LoanAssignment_PersonalSnapshots') // ✅ PLURAL
+@Entity('LoanAssignment_PersonalSnapshot') // ✅ PLURAL
 export class LoanAssignmentPersonalSnapshot {
   @PrimaryGeneratedColumn()
   id: number;
