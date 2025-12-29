@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 
 import { LoanAssignmentPersonalSnapshot } from './loanassignment-personal-snapshot.entity';
@@ -13,13 +14,14 @@ export class LoanAssignmentMonthlyIncome {
   id: number;
 
   @ManyToOne(
-    () => PersonalSnapshotId,
+    () => LoanAssignmentPersonalSnapshot,
     snapshot => snapshot.incomes,
     { onDelete: 'CASCADE' },
   )
-  snapshot: PersonalSnapshotId;
+  @JoinColumn({ name: 'personalSnapshotId' }) // 👈 MUST match DB column
+  snapshot: LoanAssignmentPersonalSnapshot;
 
-  // ✅ MSSQL-safe: store enum as VARCHAR
+  // MSSQL-safe enum
   @Column({
     type: 'varchar',
     length: 20,
@@ -29,12 +31,12 @@ export class LoanAssignmentMonthlyIncome {
   @Column('decimal', { precision: 18, scale: 2 })
   amount: number;
 
-  @Column({ nullable: true })
+  @Column({ length: 150, nullable: true })
   bankName?: string;
 
-  @Column({ nullable: true })
+  @Column({ length: 150, nullable: true })
   bankBranch?: string;
 
-  @Column({ nullable: true })
+  @Column({ length: 50, nullable: true })
   accountNumber?: string;
 }
