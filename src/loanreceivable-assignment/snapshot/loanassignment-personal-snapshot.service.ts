@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 
 import { LoanAssignmentPersonalSnapshot } from './entities/loanassignment-personal-snapshot.entity';
@@ -13,35 +13,43 @@ export class LoanAssignmentPersonalSnapshotService {
   private readonly logger = new Logger(LoanAssignmentPersonalSnapshotService.name);
 
   constructor(
-    @InjectRepository(LoanAssignmentPersonalSnapshot)
-    private snapshotRepo: Repository<LoanAssignmentPersonalSnapshot>,
+    /* ===============================
+       SNAPSHOT REPOSITORIES (nittan_app)
+    =============================== */
+    @InjectRepository(LoanAssignmentPersonalSnapshot, 'nittan_app')
+    private readonly snapshotRepo: Repository<LoanAssignmentPersonalSnapshot>,
 
-    @InjectRepository(LoanAssignmentIdentification)
-    private idRepo: Repository<LoanAssignmentIdentification>,
+    @InjectRepository(LoanAssignmentIdentification, 'nittan_app')
+    private readonly idRepo: Repository<LoanAssignmentIdentification>,
 
-    @InjectRepository(LoanAssignmentMonthlyIncome)
-    private incomeRepo: Repository<LoanAssignmentMonthlyIncome>,
+    @InjectRepository(LoanAssignmentMonthlyIncome, 'nittan_app')
+    private readonly incomeRepo: Repository<LoanAssignmentMonthlyIncome>,
 
-    @InjectRepository(LoanAssignmentMonthlyExpense)
-    private expenseRepo: Repository<LoanAssignmentMonthlyExpense>,
+    @InjectRepository(LoanAssignmentMonthlyExpense, 'nittan_app')
+    private readonly expenseRepo: Repository<LoanAssignmentMonthlyExpense>,
 
-    @InjectRepository(LoanAssignmentContactReference)
-    private refRepo: Repository<LoanAssignmentContactReference>,
+    @InjectRepository(LoanAssignmentContactReference, 'nittan_app')
+    private readonly refRepo: Repository<LoanAssignmentContactReference>,
 
-    // LEGACY DB
+    /* ===============================
+       LEGACY CORE DB (Nittan)
+    =============================== */
+    @InjectDataSource('nittan')
     private readonly nittanDataSource: DataSource,
   ) {}
 
-  // 🔹 MAIN ENTRY POINT
+  /* ============================================================
+     MAIN ENTRY POINT
+  ============================================================ */
   async createSnapshot(
     loanAssignmentId: number,
     borrowerId: number,
   ): Promise<void> {
-    this.logger.log(`Creating snapshot for assignment ${loanAssignmentId}`);
+    this.logger.log(`📸 Creating snapshot for assignment ${loanAssignmentId}`);
 
     const personal = await this.fetchPersonalInfo(borrowerId);
     if (!personal) {
-      this.logger.warn(`No personal info found for borrower ${borrowerId}`);
+      this.logger.warn(`⚠ No personal info found for borrower ${borrowerId}`);
       return;
     }
 
@@ -84,10 +92,12 @@ export class LoanAssignmentPersonalSnapshotService {
     await this.saveExpenses(snapshot, personal);
     await this.saveReferences(snapshot, personal);
 
-    this.logger.log(`Snapshot saved for assignment ${loanAssignmentId}`);
+    this.logger.log(`✅ Snapshot saved for assignment ${loanAssignmentId}`);
   }
 
-  // 🔹 FETCH PERSONAL INFO
+  /* ============================================================
+     LEGACY DATA FETCH
+  ============================================================ */
   private async fetchPersonalInfo(borrowerId: number): Promise<any> {
     const sql = `
       SELECT TOP 1 *
@@ -99,7 +109,9 @@ export class LoanAssignmentPersonalSnapshotService {
     return rows[0];
   }
 
-  // 🔹 IDENTIFICATIONS
+  /* ============================================================
+     IDENTIFICATIONS
+  ============================================================ */
   private async saveIdentifications(snapshot, p) {
     const ids = [];
 
@@ -109,13 +121,13 @@ export class LoanAssignmentPersonalSnapshotService {
     if (p.VisaIDNum) ids.push({ idType: 'Visa', idNumber: p.VisaIDNum });
 
     if (ids.length) {
-      await this.idRepo.save(
-        ids.map(i => ({ ...i, snapshot }))
-      );
+      await this.idRepo.save(ids.map(i => ({ ...i, snapshot })));
     }
   }
 
-  // 🔹 MONTHLY INCOME
+  /* ============================================================
+     MONTHLY INCOME
+  ============================================================ */
   private async saveIncome(snapshot, p) {
     if (p.MonthlySalary) {
       await this.incomeRepo.save({
@@ -134,7 +146,9 @@ export class LoanAssignmentPersonalSnapshotService {
     }
   }
 
-  // 🔹 MONTHLY EXPENSES
+  /* ============================================================
+     MONTHLY EXPENSES
+  ============================================================ */
   private async saveExpenses(snapshot, p) {
     if (!p.MonthlyAmort) return;
 
@@ -148,7 +162,9 @@ export class LoanAssignmentPersonalSnapshotService {
     });
   }
 
-  // 🔹 REFERENCES
+  /* ============================================================
+     CONTACT REFERENCES
+  ============================================================ */
   private async saveReferences(snapshot, p) {
     const refs = [];
 
