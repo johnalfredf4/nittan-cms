@@ -13,8 +13,8 @@ export class LoanAssignmentAttachment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => LoanAssignmentPersonalSnapshot, snapshot => snapshot.attachments)
-  snapshot: LoanAssignmentPersonalSnapshot;
+  @ManyToOne(() => PersonalSnapshotId, snapshot => snapshot.attachments)
+  snapshot: PersonalSnapshotId;
 
   @Column()
   attachmentType: string;
