@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 
 import { LoanAssignmentPersonalSnapshot } from './loanassignment-personal-snapshot.entity';
@@ -12,16 +13,21 @@ export class LoanAssignmentMonthlyExpense {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => PersonalSnapshotId, snapshot => snapshot.expenses)
-  snapshot: PersonalSnapshotId;
+  @ManyToOne(
+    () => LoanAssignmentPersonalSnapshot,
+    snapshot => snapshot.expenses,
+    { onDelete: 'CASCADE' },
+  )
+  @JoinColumn({ name: 'personalSnapshotId' }) // 👈 MUST MATCH DB COLUMN
+  snapshot: LoanAssignmentPersonalSnapshot;
 
-  @Column()
+  @Column({ length: 100 })
   expenseType: string;
 
   @Column('decimal', { precision: 18, scale: 2 })
   amount: number;
 
-  @Column({ nullable: true })
+  @Column({ length: 150, nullable: true })
   creditor?: string;
 
   @Column('decimal', { precision: 18, scale: 2, nullable: true })
