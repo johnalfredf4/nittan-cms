@@ -24,13 +24,13 @@ import { LoanAssignmentSnapshotModule } from './snapshot/loanassignment-snapshot
     ),
 
     /* ============================================
-       Read-only / Core DB
-       (tblLoanReceivables, tblPersonalInfos, Users)
+       Read-only / Core DB (Legacy)
     ============================================ */
     TypeOrmModule.forFeature([], 'nittan'),
 
     /* ============================================
-       Snapshot module (exports snapshot service)
+       Snapshot module
+       (Registers snapshot ENTITIES + exports service)
     ============================================ */
     LoanAssignmentSnapshotModule,
   ],
