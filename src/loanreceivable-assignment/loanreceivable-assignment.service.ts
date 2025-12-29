@@ -1,19 +1,27 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Repository,
-  LessThan,
   DataSource,
+  LessThan,
 } from 'typeorm';
+import { Cron } from '@nestjs/schedule';
+
 import {
   LoanReceivableAssignment,
+  AssignmentStatus,
   DpdCategory,
   AccountClass,
-  AssignmentStatus
 } from './entities/loanreceivable-assignment.entity';
+
 import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { OverrideSingleDto } from './dto/override-single.dto';
+import { LoanAssignmentSnapshotService } from '../snapshot/loan-assignment-snapshot.service';
+
 @Injectable()
 export class LoanReceivableAssignmentService {
   private readonly logger = new Logger(LoanReceivableAssignmentService.name);
@@ -22,63 +30,50 @@ export class LoanReceivableAssignmentService {
     @InjectRepository(LoanReceivableAssignment, 'nittan_app')
     private readonly assignmentRepo: Repository<LoanReceivableAssignment>,
 
-    private readonly dataSource: DataSource, // direct SQL DB connection
+    private readonly dataSource: DataSource,
+    private readonly snapshotService: LoanAssignmentSnapshotService,
   ) {}
 
-  /**
-   * Fetch receivables to assign.
-   */
+  /* ============================================================
+     FETCH RECEIVABLES
+  ============================================================ */
   private async loadReceivablesForAssignment(): Promise<any[]> {
     const sql = `
       WITH NextReceivables AS (
         SELECT TOP 200
-            Id AS LoanReceivableId,
-            LoanApplicationID,
-            DueDate,
-            DATEDIFF(DAY, DueDate, GETDATE()) AS DPD,
-            ROW_NUMBER() OVER (
-                PARTITION BY LoanApplicationID
-                ORDER BY DueDate ASC
-            ) AS rn
-        FROM [Nittan].[dbo].[tblLoanReceivables]
-        WHERE Cleared = 0
-          AND DueDate <= DATEADD(DAY, 7, CAST(GETDATE() AS DATE))
-          AND DueDate > '2024-01-01'
+          r.Id                AS LoanReceivableId,
+          r.LoanApplicationID AS LoanApplicationID,
+          la.BorrowerID       AS BorrowerID,
+          r.DueDate,
+          DATEDIFF(DAY, r.DueDate, GETDATE()) AS DPD,
+          ROW_NUMBER() OVER (
+            PARTITION BY r.LoanApplicationID
+            ORDER BY r.DueDate ASC
+          ) AS rn
+        FROM [Nittan].[dbo].[tblLoanReceivables] r
+        INNER JOIN [Nittan].[dbo].[tblLoanApplications] la
+          ON la.Id = r.LoanApplicationID
+        WHERE r.Cleared = 0
+          AND r.DueDate <= DATEADD(DAY, 7, CAST(GETDATE() AS DATE))
       )
       SELECT *
       FROM NextReceivables
-      WHERE rn = 1;
+      WHERE rn = 1
     `;
 
-    const result = await this.dataSource.query(sql);
-    console.log('📌 RECEIVABLES FETCHED:', result.length, 'records');
-    return result;
+    const rows = await this.dataSource.query(sql);
+    this.logger.log(`📌 Receivables fetched: ${rows.length}`);
+    return rows;
   }
 
-  /**
-   * Query valid, active agents from system DB
-   */
-  async overrideSingle(assignmentId: number, dto: OverrideSingleDto) {
-  const assignment = await this.assignmentRepo.findOne({
-    where: { id: assignmentId },
-  });
-
-  if (!assignment) {
-    throw new Error(`Assignment not found with id ${assignmentId}`);
-  }
-
-  assignment.agentId = dto.toAgentId;
-  assignment.updatedAt = new Date();
-
-  return this.assignmentRepo.save(assignment);
-}
-
-  
+  /* ============================================================
+     FETCH AGENTS
+  ============================================================ */
   private async loadAgents(): Promise<any[]> {
     const sql = `
-      SELECT ua.EmployeeId AS agentId,
-             ua.BranchId AS branchId,
-             r.name AS roleName
+      SELECT
+        ua.EmployeeId AS agentId,
+        ua.BranchId   AS branchId
       FROM dbo.User_Accounts ua
       INNER JOIN dbo.User_Roles ur ON ur.user_id = ua.id
       INNER JOIN dbo.Roles r ON r.id = ur.role_id
@@ -86,54 +81,21 @@ export class LoanReceivableAssignmentService {
         AND r.name LIKE 'Collection Agent%'
     `;
 
-    const result = await this.dataSource.query(sql);
+    const agents = await this.dataSource.query(sql);
+    this.logger.log(`📌 Agents fetched: ${agents.length}`);
 
-    console.log('📌 RAW AGENTS FETCHED:', result.length);
-    console.log(result);
-
-    return result.map(a => ({
-      agentId: a.agentId,
-      branchId: a.branchId,
+    return agents.map(a => ({
+      agentId: Number(a.agentId),
+      branchId: a.branchId ?? null,
       assignedCount: 0,
     }));
   }
 
-  async findActiveAssignmentsByAgent(agentId: number) {
-  const results = await this.assignmentRepo.find({
-    where: {
-      agentId,
-      status: AssignmentStatus.ACTIVE
-    },
-    order: { dpd: 'DESC' }
-  });
-
-  return results.map(r => {
-    let daysLeft = 0;
-    if (r.retentionUntil) {
-      daysLeft = Math.ceil(
-        (new Date(r.retentionUntil).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-      );
-    }
-
-    return {
-      id: r.id,
-      loanReceivableId: r.loanReceivableId,
-      loanApplicationId: r.loanApplicationId,
-      dpd: r.dpd,
-      dpdCategory: r.dpdCategory,
-      retentionUntil: r.retentionUntil,
-      retentionDaysLeft: daysLeft,
-      status: r.status,
-      agentId: r.agentId,
-      branchId: r.branchId
-    };
-  });
-}
-
-
+  /* ============================================================
+     HELPERS
+  ============================================================ */
   private getRetentionDays(dpd: number): number {
-    if (dpd >= 181) return 120;
-    return 7;
+    return dpd >= 181 ? 120 : 7;
   }
 
   private getDpdCategory(dpd: number): DpdCategory {
@@ -147,196 +109,171 @@ export class LoanReceivableAssignmentService {
     return DpdCategory.DPD_181_PLUS;
   }
 
-  /**
-   * Main assignment process
-   */
-  @Cron('0 */30 * * * *') // every 30 minutes for testing
+  /* ============================================================
+     CRON JOB (EVERY 30 MINUTES)
+  ============================================================ */
+  @Cron('0 */30 * * * *')
   async assignLoans(): Promise<void> {
-    this.logger.log('Starting receivable assignment process...');
+    this.logger.log('🔄 Starting receivable assignment process');
 
     await this.autoExpireAssignments();
 
     const loans = await this.loadReceivablesForAssignment();
-    if (!loans.length) {
-      this.logger.warn('No receivables found.');
-      return;
-    }
+    if (!loans.length) return;
 
     let agents = await this.loadAgents();
-    if (!agents.length) {
-      this.logger.error('❌ No valid agents found in system!');
-      return;
-    }
+    if (!agents.length) return;
 
-    // attach count from current assignments
-    const activeLoads = await this.getAgentLoad({});
+    const loads = await this.getAgentLoad({});
     agents = agents.map(a => ({
       ...a,
-      assignedCount: activeLoads.find(x => x.agentId === a.agentId)?.assignedCount ?? 0
+      assignedCount:
+        loads.find(l => l.agentId === a.agentId)?.assignedCount ?? 0,
     }));
 
-    console.log('📌 INITIAL AGENT LOAD:', agents);
-
     for (const loan of loans) {
-      agents = agents.sort((a, b) => a.assignedCount - b.assignedCount);
-      const selectedAgent = agents[0];
+      agents.sort((a, b) => a.assignedCount - b.assignedCount);
+      const agent = agents[0];
 
-      if (!selectedAgent) continue;
-      if (selectedAgent.assignedCount >= 10) continue;
+      if (!agent || agent.assignedCount >= 10) continue;
 
-      const dpd = loan.DPD;
-      const retentionDays = this.getRetentionDays(dpd);
+      const retentionDays = this.getRetentionDays(loan.DPD);
 
-      console.log('🟢 Final before save:', JSON.stringify({
-    loanReceivableId: loan.LoanReceivableId,
-  loanApplicationId: loan.LoanApplicationID,
-  dpd: loan.DPD,
-  dpdCategory: this.getDpdCategory(loan.DPD), // FIXED
-  agentId: selectedAgent.agentId,
-  branchId: selectedAgent.branchId,
-  locationType: selectedAgent.branchId === null ? 'HQ' : 'BRANCH',
-  retentionDays,
-  retentionUntil: new Date(Date.now() + retentionDays * 86400000),
-  status: AssignmentStatus.ACTIVE,
-}, null, 2));
+      const assignment = await this.assignmentRepo.save({
+        loanReceivableId: loan.LoanReceivableId,
+        loanApplicationId: loan.LoanApplicationID,
+        borrowerId: loan.BorrowerID,
+        dpd: loan.DPD,
+        dpdCategory: this.getDpdCategory(loan.DPD),
+        agentId: agent.agentId,
+        branchId: agent.branchId,
+        locationType: agent.branchId ? 'BRANCH' : 'HQ',
+        retentionDays,
+        retentionUntil: new Date(Date.now() + retentionDays * 86400000),
+        status: AssignmentStatus.ACTIVE,
+        accountClass: AccountClass.REGULAR,
+      });
 
+      // 📸 SNAPSHOT (CRITICAL)
+      await this.snapshotService.createSnapshot(
+        assignment.id,
+        assignment.borrowerId,
+      );
 
-      try {
-  await this.assignmentRepo.save({
-    loanReceivableId: loan.LoanReceivableId,
-    loanApplicationId: loan.LoanApplicationID,
-    dpd: loan.DPD,
-    dpdCategory: this.getDpdCategory(loan.DPD),
-    agentId: selectedAgent.agentId,
-    branchId: selectedAgent.branchId,
-    locationType: selectedAgent.branchId === null ? 'HQ' : 'BRANCH',
-    retentionDays,
-    retentionUntil: new Date(Date.now() + retentionDays * 86400000),
-    status: AssignmentStatus.ACTIVE,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-} catch (error) {
-  console.error("🔥❌ ERROR ASSIGNING RECORD ❌🔥");
-  console.error("🎯 DATA THAT FAILED:");
-  console.log({
-    loanReceivableId: loan.LoanReceivableId,
-    loanApplicationId: loan.LoanApplicationID,
-    dpd: loan.DPD,
-    dpdCategory: this.getDpdCategory(loan.DPD),
-    agentId: selectedAgent.agentId,
-    branchId: selectedAgent.branchId,
-    retentionDays,
-  });
-  console.error("📌 FULL ERROR OBJECT:");
-  console.error(error);
-}
-
-
-
-
-      selectedAgent.assignedCount++;
+      agent.assignedCount++;
     }
 
-    this.logger.log('✔ Loan receivable assignment completed.');
+    this.logger.log('✅ Loan receivable assignment completed');
   }
 
+  /* ============================================================
+     AUTO EXPIRE
+  ============================================================ */
   private async autoExpireAssignments(): Promise<void> {
     await this.assignmentRepo.update(
       {
-        retentionUntil: LessThan(new Date()),
         status: AssignmentStatus.ACTIVE,
+        retentionUntil: LessThan(new Date()),
       },
-      {
-        status: AssignmentStatus.EXPIRED,
-      },
+      { status: AssignmentStatus.EXPIRED },
     );
   }
 
-  async getAgentLoad(query: { agentId?: number }) {
-    const qb = this.assignmentRepo.createQueryBuilder('a');
+  /* ============================================================
+     QUERY ASSIGNMENTS
+  ============================================================ */
+  async findActiveAssignmentsByAgent(agentId: number) {
+    return this.assignmentRepo.find({
+      where: {
+        agentId,
+        status: AssignmentStatus.ACTIVE,
+      },
+      order: { dpd: 'DESC' },
+    });
+  }
 
-    qb.select('a.agentId', 'agentId')
+  async getAgentLoad(query: { agentId?: number }) {
+    const qb = this.assignmentRepo
+      .createQueryBuilder('a')
+      .select('a.agentId', 'agentId')
       .addSelect('COUNT(*)', 'assignedCount')
       .where('a.status = :status', { status: AssignmentStatus.ACTIVE })
       .groupBy('a.agentId');
 
-    if (query.agentId) qb.having('a.agentId = :agentId', { agentId: query.agentId });
+    if (query.agentId) {
+      qb.having('a.agentId = :agentId', { agentId: query.agentId });
+    }
 
-    const result = await qb.getRawMany();
-
-    return result.map(r => ({
+    return (await qb.getRawMany()).map(r => ({
       agentId: Number(r.agentId),
       assignedCount: Number(r.assignedCount),
     }));
   }
 
-  async bulkOverrideAssignments(dto: BulkOverrideAssignmentDto) {
-  const { fromAgentId, toAgentId, accountClass } = dto;
+  /* ============================================================
+     MANUAL OVERRIDES
+  ============================================================ */
+  async overrideSingle(assignmentId: number, dto: OverrideSingleDto) {
+    const assignment = await this.assignmentRepo.findOne({
+      where: { id: assignmentId },
+    });
 
-  const whereCondition: any = {
-    agentId: fromAgentId,
-    status: AssignmentStatus.ACTIVE,
-  };
+    if (!assignment) {
+      throw new NotFoundException(`Assignment ${assignmentId} not found`);
+    }
 
-  if (accountClass) {
-    whereCondition.accountClass = accountClass;
+    assignment.agentId = dto.toAgentId;
+    assignment.updatedAt = new Date();
+
+    return this.assignmentRepo.save(assignment);
   }
 
-  const assignments = await this.assignmentRepo.find({
-    where: whereCondition,
-  });
+  async bulkOverrideAssignments(dto: BulkOverrideAssignmentDto) {
+    const where: any = {
+      agentId: dto.fromAgentId,
+      status: AssignmentStatus.ACTIVE,
+    };
 
-  if (!assignments.length) {
+    if (dto.accountClass) {
+      where.accountClass = dto.accountClass;
+    }
+
+    const records = await this.assignmentRepo.find({ where });
+
+    for (const r of records) {
+      r.agentId = dto.toAgentId;
+      r.updatedAt = new Date();
+    }
+
+    await this.assignmentRepo.save(records);
+
     return {
       ok: true,
-      message: 'No active assignments found for override',
+      reassigned: records.length,
     };
   }
 
-  for (const record of assignments) {
-    record.agentId = toAgentId;
-    record.updatedAt = new Date();
+  /* ============================================================
+     MARK PROCESSED
+  ============================================================ */
+  async markProcessed(assignmentId: number, agentId: number) {
+    const assignment = await this.assignmentRepo.findOne({
+      where: {
+        id: assignmentId,
+        agentId,
+        status: AssignmentStatus.ACTIVE,
+      },
+    });
+
+    if (!assignment) {
+      throw new NotFoundException('Assignment not found');
+    }
+
+    assignment.status = AssignmentStatus.PROCESSED;
+    assignment.updatedAt = new Date();
+
+    await this.assignmentRepo.save(assignment);
+
+    return { ok: true };
   }
-
-  await this.assignmentRepo.save(assignments);
-
-  return {
-    ok: true,
-    message: `${assignments.length} records reassigned`,
-  };
 }
-
-async markProcessed(assignmentId: number, agentId: number) {
-  const assignment = await this.assignmentRepo.findOne({
-    where: { id: assignmentId, agentId },
-  });
-
-  if (!assignment) {
-    throw new Error('Assignment not found');
-  }
-
-  assignment.status = AssignmentStatus.PROCESSED;
-  assignment.updatedAt = new Date();
-
-  await this.assignmentRepo.save(assignment);
-
-  return {
-    ok: true,
-    message: 'Assignment marked as processed',
-  };
-}
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
