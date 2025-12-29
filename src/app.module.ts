@@ -40,6 +40,13 @@ import { PaymentHistoryModule } from './paymenthistory/paymenthistory.module';
 import { EmailSendLog } from './email-sender/entities/email-send-log.entity';
 import { SmsSendLog } from './sms-sender/entities/sms-send-log.entity';
 
+// SNAPSHOT ENTITIES (ADD THESE)
+import { LoanAssignmentPersonalSnapshot } from './loanreceivable-assignment/snapshot/entities/loanassignment-personal-snapshot.entity';
+import { LoanAssignmentIdentification } from './loanreceivable-assignment/snapshot/entities/loanassignment-identification.entity';
+import { LoanAssignmentMonthlyIncome } from './loanreceivable-assignment/snapshot/entities/loanassignment-monthly-income.entity';
+import { LoanAssignmentMonthlyExpense } from './loanreceivable-assignment/snapshot/entities/loanassignment-monthly-expense.entity';
+import { LoanAssignmentContactReference } from './loanreceivable-assignment/snapshot/entities/loanassignment-contact-reference.entity';
+
 
 @Module({
   imports: [
@@ -72,6 +79,12 @@ import { SmsSendLog } from './sms-sender/entities/sms-send-log.entity';
         LoanAssignment,
         RotationState,
         LoanReceivableAssignment,
+        // 🔥 SNAPSHOT ENTITIES (THIS FIXES THE ERROR)
+        LoanAssignmentPersonalSnapshot,
+        LoanAssignmentIdentification,
+        LoanAssignmentMonthlyIncome,
+        LoanAssignmentMonthlyExpense,
+        LoanAssignmentContactReference,
         EmailSendLog,
         SmsSendLog,
       ],
