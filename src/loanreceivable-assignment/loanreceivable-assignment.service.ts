@@ -129,16 +129,10 @@ async assignLoans(): Promise<void> {
   await this.autoExpireAssignments();
 
   const loans = await this.loadReceivablesForAssignment();
-  if (!loans.length) {
-    this.logger.log('ℹ️ No receivables to assign');
-    return;
-  }
+  if (!loans.length) return;
 
   let agents = await this.loadAgents();
-  if (!agents.length) {
-    this.logger.warn('⚠ No active agents found');
-    return;
-  }
+  if (!agents.length) return;
 
   const loads = await this.getAgentLoad({});
   agents = agents.map(a => ({
@@ -151,9 +145,7 @@ async assignLoans(): Promise<void> {
     agents.sort((a, b) => a.assignedCount - b.assignedCount);
     const agent = agents[0];
 
-    if (!agent || agent.assignedCount >= 10) {
-      continue;
-    }
+    if (!agent || agent.assignedCount >= 10) continue;
 
     const retentionDays = this.getRetentionDays(loan.DPD);
 
@@ -185,6 +177,7 @@ async assignLoans(): Promise<void> {
 
   this.logger.log('✅ Loan receivable assignment completed');
 }
+
 
 
   /* ============================================================
@@ -297,4 +290,5 @@ async assignLoans(): Promise<void> {
     return { ok: true };
   }
 }
+
 
