@@ -13,11 +13,11 @@ export class LoanAssignmentMonthlyIncome {
   id: number;
 
   @ManyToOne(
-    () => LoanAssignmentPersonalSnapshot,
+    () => PersonalSnapshotId,
     snapshot => snapshot.incomes,
     { onDelete: 'CASCADE' },
   )
-  snapshot: LoanAssignmentPersonalSnapshot;
+  snapshot: PersonalSnapshotId;
 
   // ✅ MSSQL-safe: store enum as VARCHAR
   @Column({
