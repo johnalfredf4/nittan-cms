@@ -40,7 +40,7 @@ export class LoanReceivableAssignmentService {
     /* ===============================
        CORE / LEGACY DB (nittan)
     =============================== */
-    @InjectDataSource('nittan')
+   
     private readonly dataSource: DataSource,
   ) {}
 
@@ -289,4 +289,5 @@ async findActiveAssignmentsByAgent(agentId: number) {
     return { ok: true };
   }
 }
+
 
