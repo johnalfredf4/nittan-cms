@@ -156,7 +156,7 @@ export class LoanReceivableAssignmentService {
           retentionDays,
           retentionUntil: new Date(Date.now() + retentionDays * 86400000),
           status: AssignmentStatus.ACTIVE,
-          accountClass: AccountClass.REGULAR,
+          /*accountClass: AccountClass.REGULAR,*/
         });
 
         /* ================================
@@ -287,3 +287,4 @@ export class LoanReceivableAssignmentService {
     return { ok: true };
   }
 }
+
