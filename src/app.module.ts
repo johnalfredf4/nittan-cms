@@ -67,7 +67,7 @@ import { LoanAssignmentAttachment } from './loanreceivable-assignment/snapshot/e
       synchronize: false,
       autoLoadEntities: false,
       // ✅ INSERT THIS LINE HERE ⬇⬇⬇
-      //logging: ['query', 'error'],
+      logging: ['query', 'error'],
       entities: [
         User,
         Role,
