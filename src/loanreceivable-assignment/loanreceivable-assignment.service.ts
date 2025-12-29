@@ -45,7 +45,7 @@ export class LoanReceivableAssignmentService {
   ) {}
 
   /* ============================================================
-     FETCH RECEIVABLES FOR ASSIGNMENT
+     FETCH RECEIVABLES
   ============================================================ */
   private async loadReceivablesForAssignment(): Promise<any[]> {
     const sql = `
@@ -123,62 +123,60 @@ export class LoanReceivableAssignmentService {
      CRON JOB — EVERY 1 MINUTE
   ============================================================ */
   @Cron('0 */1 * * * *')
-async assignLoans(): Promise<void> {
-  this.logger.log('🔄 Starting receivable assignment process');
+  async assignLoans(): Promise<void> {
+    this.logger.log('🔄 Starting receivable assignment process');
 
-  await this.autoExpireAssignments();
+    await this.autoExpireAssignments();
 
-  const loans = await this.loadReceivablesForAssignment();
-  if (!loans.length) return;
+    const loans = await this.loadReceivablesForAssignment();
+    if (!loans.length) return;
 
-  let agents = await this.loadAgents();
-  if (!agents.length) return;
+    let agents = await this.loadAgents();
+    if (!agents.length) return;
 
-  const loads = await this.getAgentLoad({});
-  agents = agents.map(a => ({
-    ...a,
-    assignedCount:
-      loads.find(l => l.agentId === a.agentId)?.assignedCount ?? 0,
-  }));
+    const loads = await this.getAgentLoad({});
+    agents = agents.map(a => ({
+      ...a,
+      assignedCount:
+        loads.find(l => l.agentId === a.agentId)?.assignedCount ?? 0,
+    }));
 
-  for (const loan of loans) {
-    agents.sort((a, b) => a.assignedCount - b.assignedCount);
-    const agent = agents[0];
+    for (const loan of loans) {
+      agents.sort((a, b) => a.assignedCount - b.assignedCount);
+      const agent = agents[0];
 
-    if (!agent || agent.assignedCount >= 10) continue;
+      if (!agent || agent.assignedCount >= 10) continue;
 
-    const retentionDays = this.getRetentionDays(loan.DPD);
+      const retentionDays = this.getRetentionDays(loan.DPD);
 
-    try {
-      const assignment = await this.assignmentRepo.save({
-        loanReceivableId: loan.LoanReceivableId,
-        loanApplicationId: loan.LoanApplicationID,
-        borrowerId: loan.BorrowerID,
-        dpd: loan.DPD,
-        dpdCategory: this.getDpdCategory(loan.DPD),
-        agentId: agent.agentId,
-        branchId: agent.branchId,
-        locationType: agent.branchId ? 'BRANCH' : 'HQ',
-        retentionDays,
-        retentionUntil: new Date(Date.now() + retentionDays * 86400000),
-        status: AssignmentStatus.ACTIVE,
-      });
+      try {
+        const assignment = await this.assignmentRepo.save({
+          loanReceivableId: loan.LoanReceivableId,
+          loanApplicationId: loan.LoanApplicationID,
+          borrowerId: loan.BorrowerID,
+          dpd: loan.DPD,
+          dpdCategory: this.getDpdCategory(loan.DPD),
+          agentId: agent.agentId,
+          branchId: agent.branchId,
+          locationType: agent.branchId ? 'BRANCH' : 'HQ',
+          retentionDays,
+          retentionUntil: new Date(Date.now() + retentionDays * 86400000),
+          status: AssignmentStatus.ACTIVE,
+        });
 
-      await this.snapshotService.createSnapshot(
-        assignment.id,
-        assignment.borrowerId,
-      );
+        await this.snapshotService.createSnapshot(
+          assignment.id,
+          assignment.borrowerId,
+        );
 
-      agent.assignedCount++;
-    } catch (err) {
-      this.logger.error('❌ Failed to assign receivable', err);
+        agent.assignedCount++;
+      } catch (err) {
+        this.logger.error('❌ Failed to assign receivable', err);
+      }
     }
+
+    this.logger.log('✅ Loan receivable assignment completed');
   }
-
-  this.logger.log('✅ Loan receivable assignment completed');
-}
-
-
 
   /* ============================================================
      AUTO EXPIRE ASSIGNMENTS
@@ -194,7 +192,7 @@ async assignLoans(): Promise<void> {
   }
 
   /* ============================================================
-     QUERY ASSIGNMENTS BY AGENT  ✅ FIX
+     QUERY ASSIGNMENTS BY AGENT
   ============================================================ */
   async findActiveAssignmentsByAgent(agentId: number) {
     return this.assignmentRepo.find({
@@ -206,7 +204,7 @@ async assignLoans(): Promise<void> {
     );
   }
 
-   /* ============================================================
+  /* ============================================================
      AGENT LOAD
   ============================================================ */
   async getAgentLoad(query: { agentId?: number }) {
@@ -246,12 +244,12 @@ async assignLoans(): Promise<void> {
   }
 
   async bulkOverrideAssignments(dto: BulkOverrideAssignmentDto) {
-    const where: any = {
-      agentId: dto.fromAgentId,
-      status: AssignmentStatus.ACTIVE,
-    };
-
-    const records = await this.assignmentRepo.find({ where });
+    const records = await this.assignmentRepo.find({
+      where: {
+        agentId: dto.fromAgentId,
+        status: AssignmentStatus.ACTIVE,
+      },
+    });
 
     for (const r of records) {
       r.agentId = dto.toAgentId;
@@ -290,7 +288,3 @@ async assignLoans(): Promise<void> {
     return { ok: true };
   }
 }
-
-
-
-
