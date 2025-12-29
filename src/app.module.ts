@@ -46,7 +46,7 @@ import { LoanAssignmentIdentification } from './loanreceivable-assignment/snapsh
 import { LoanAssignmentMonthlyIncome } from './loanreceivable-assignment/snapshot/entities/loanassignment-monthly-income.entity';
 import { LoanAssignmentMonthlyExpense } from './loanreceivable-assignment/snapshot/entities/loanassignment-monthly-expense.entity';
 import { LoanAssignmentContactReference } from './loanreceivable-assignment/snapshot/entities/loanassignment-contact-reference.entity';
-
+import { LoanAssignmentAttachment } from './loanreceivable-assignment/snapshot/entities/loanassignment-attachment.entity';
 
 @Module({
   imports: [
@@ -85,6 +85,7 @@ import { LoanAssignmentContactReference } from './loanreceivable-assignment/snap
         LoanAssignmentMonthlyIncome,
         LoanAssignmentMonthlyExpense,
         LoanAssignmentContactReference,
+        LoanAssignmentAttachment,
         EmailSendLog,
         SmsSendLog,
       ],
