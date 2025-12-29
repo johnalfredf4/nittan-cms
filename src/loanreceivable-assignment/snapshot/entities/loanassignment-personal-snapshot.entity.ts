@@ -3,8 +3,9 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  OneToMany
+  OneToMany,
 } from 'typeorm';
+
 import { LoanAssignmentIdentification } from './loanassignment-identification.entity';
 import { LoanAssignmentMonthlyIncome } from './loanassignment-monthly-income.entity';
 import { LoanAssignmentMonthlyExpense } from './loanassignment-monthly-expense.entity';
@@ -83,18 +84,18 @@ export class LoanAssignmentPersonalSnapshot {
   createdAt: Date;
 
   // ===== RELATIONS =====
-  @OneToMany(() => LoanAssignmentIdentification, i => i.snapshot)
+  @OneToMany(() => LoanAssignmentIdentification, i => i.snapshot, { cascade: true })
   identifications: LoanAssignmentIdentification[];
 
-  @OneToMany(() => LoanAssignmentMonthlyIncome, i => i.snapshot)
+  @OneToMany(() => LoanAssignmentMonthlyIncome, i => i.snapshot, { cascade: true })
   incomes: LoanAssignmentMonthlyIncome[];
 
-  @OneToMany(() => LoanAssignmentMonthlyExpense, e => e.snapshot)
+  @OneToMany(() => LoanAssignmentMonthlyExpense, e => e.snapshot, { cascade: true })
   expenses: LoanAssignmentMonthlyExpense[];
 
-  @OneToMany(() => LoanAssignmentContactReference, r => r.snapshot)
+  @OneToMany(() => LoanAssignmentContactReference, r => r.snapshot, { cascade: true })
   references: LoanAssignmentContactReference[];
 
-  @OneToMany(() => LoanAssignmentAttachment, a => a.snapshot)
+  @OneToMany(() => LoanAssignmentAttachment, a => a.snapshot, { cascade: true })
   attachments: LoanAssignmentAttachment[];
 }
