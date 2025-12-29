@@ -11,16 +11,16 @@ import { LoanReceivableAssignmentController } from './loanreceivable-assignment.
 /* =======================
    Snapshot Entities
 ======================= */
-import { LoanAssignmentPersonalSnapshot } from './snapshot/entities/loan-assignment-personal-snapshot.entity';
-import { LoanAssignmentIdentification } from './snapshot/entities/loan-assignment-identification.entity';
-import { LoanAssignmentMonthlyIncome } from './snapshot/entities/loan-assignment-monthly-income.entity';
-import { LoanAssignmentMonthlyExpense } from './snapshot/entities/loan-assignment-monthly-expense.entity';
-import { LoanAssignmentContactReference } from './snapshot/entities/loan-assignment-contact-reference.entity';
+import { LoanAssignmentPersonalSnapshot } from './snapshot/entities/loanassignment-personal-snapshot.entity';
+import { LoanAssignmentIdentification } from './snapshot/entities/loanassignment-identification.entity';
+import { LoanAssignmentMonthlyIncome } from './snapshot/entities/loanassignment-monthly-income.entity';
+import { LoanAssignmentMonthlyExpense } from './snapshot/entities/loanassignment-monthly-expense.entity';
+import { LoanAssignmentContactReference } from './snapshot/entities/loanassignment-contact-reference.entity';
 
 /* =======================
    Snapshot Service
 ======================= */
-import { LoanAssignmentPersonalSnapshotService } from './snapshot/loan-assignment-personal-snapshot.service';
+import { LoanAssignmentPersonalSnapshotService } from './snapshot/loanassignment-personal-snapshot.service';
 
 @Module({
   imports: [
