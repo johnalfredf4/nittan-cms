@@ -76,12 +76,13 @@ export class LoanReceivableAssignment {
   createdAt: Date;
 
  @Column({
-  name: 'updatedAt', // 👈 MUST MATCH DB EXACTLY
   type: 'datetime',
-  nullable: false,
-  default: () => 'GETDATE()',
+  insert: false,  // ⛔ TypeORM will NOT insert
+  update: false,  // ⛔ TypeORM will NOT update
+  select: false,  // optional but recommended
   })
   updatedAt: Date;
+
 
 
 }
