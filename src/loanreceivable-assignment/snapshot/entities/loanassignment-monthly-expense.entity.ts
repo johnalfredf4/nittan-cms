@@ -12,8 +12,8 @@ export class LoanAssignmentMonthlyExpense {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => LoanAssignmentPersonalSnapshot, snapshot => snapshot.expenses)
-  snapshot: LoanAssignmentPersonalSnapshot;
+  @ManyToOne(() => PersonalSnapshotId, snapshot => snapshot.expenses)
+  snapshot: PersonalSnapshotId;
 
   @Column()
   expenseType: string;
