@@ -3,7 +3,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import {
+  InjectRepository,
+  InjectDataSource,
+} from '@nestjs/typeorm';
 import {
   Repository,
   LessThan,
@@ -14,7 +17,6 @@ import { Cron } from '@nestjs/schedule';
 import {
   LoanReceivableAssignment,
   DpdCategory,
-  AccountClass,
   AssignmentStatus,
 } from './entities/loanreceivable-assignment.entity';
 
@@ -27,11 +29,21 @@ export class LoanReceivableAssignmentService {
   private readonly logger = new Logger(LoanReceivableAssignmentService.name);
 
   constructor(
+    /* ===============================
+       ASSIGNMENT REPOSITORY (nittan_app)
+    =============================== */
     @InjectRepository(LoanReceivableAssignment, 'nittan_app')
     private readonly assignmentRepo: Repository<LoanReceivableAssignment>,
 
+    /* ===============================
+       SNAPSHOT SERVICE
+    =============================== */
     private readonly snapshotService: LoanAssignmentPersonalSnapshotService,
 
+    /* ===============================
+       LEGACY CORE DB (nittan)
+    =============================== */
+    @InjectDataSource('nittan')
     private readonly dataSource: DataSource,
   ) {}
 
@@ -111,7 +123,7 @@ export class LoanReceivableAssignmentService {
   }
 
   /* ============================================================
-     CRON JOB (EVERY 30 MINUTES)
+     CRON JOB (EVERY 1 MINUTE)
   ============================================================ */
   @Cron('0 */1 * * * *')
   async assignLoans(): Promise<void> {
@@ -156,7 +168,6 @@ export class LoanReceivableAssignmentService {
           retentionDays,
           retentionUntil: new Date(Date.now() + retentionDays * 86400000),
           status: AssignmentStatus.ACTIVE,
-          /*accountClass: AccountClass.REGULAR,*/
         });
 
         /* ================================
@@ -192,16 +203,6 @@ export class LoanReceivableAssignmentService {
   /* ============================================================
      QUERY ASSIGNMENTS
   ============================================================ */
-  async findActiveAssignmentsByAgent(agentId: number) {
-    return this.assignmentRepo.find({
-      where: {
-        agentId,
-        status: AssignmentStatus.ACTIVE,
-      },
-      order: { dpd: 'DESC' },
-    });
-  }
-
   async getAgentLoad(query: { agentId?: number }) {
     const qb = this.assignmentRepo
       .createQueryBuilder('a')
@@ -287,8 +288,3 @@ export class LoanReceivableAssignmentService {
     return { ok: true };
   }
 }
-
-
-
-
-
