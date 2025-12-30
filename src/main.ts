@@ -1,25 +1,26 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as express from 'express';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import * as express from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // 🔑 IMPORTANT: type the app as NestExpressApplication
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Allow frontend origin (Vite: http://localhost:5173)
+  // Allow frontend origin
   app.enableCors({
-    origin: ['http://localhost:5173','http://10.254.0.3',],  // 🔥 allow your frontend
-    
+    origin: ['http://localhost:5173', 'http://10.254.0.3'],
     methods: 'GET,POST,PUT,PATCH,DELETE',
     credentials: true,
   });
 
+  // Serve static files (Tailwind CSS)
   app.useStaticAssets(join(__dirname, '..', 'public'), {
-    cacheControl: false,
+    cacheControl: false, // dev-friendly
   });
 
-  // Enable body parsing
+  // Body parsing
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
