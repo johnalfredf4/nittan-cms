@@ -13,6 +13,10 @@ async function bootstrap() {
     credentials: true,
   });
 
+  app.useStaticAssets(join(__dirname, '..', 'public'), {
+    cacheControl: false,
+  });
+
   // Enable body parsing
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
