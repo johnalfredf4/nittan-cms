@@ -95,6 +95,18 @@ export class LoanAssignmentPersonalSnapshot {
   @Column({ type: 'varchar', length: 50, nullable: true }) spouseEmployerContact?: string;
   @Column({ type: 'varchar', length: 100, nullable: true }) spouseJobTitle?: string;
 
+  /* ===============================
+     BORROWER ROLE METADATA (NEW)
+  =============================== */
+  @Column({ length: 20 })
+  BorrowerRole: 'MAIN' | 'CO_BORROWER';
+
+  @Column({ type: 'tinyint', nullable: true })
+  CoBorrowerOrder?: 1 | 2 | 3;
+
+  @Column({ nullable: true })
+  CoBorrowerRelationshipId?: number;
+  
   /* =======================
      TIMESTAMPS
   ======================= */
