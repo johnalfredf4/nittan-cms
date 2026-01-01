@@ -150,7 +150,7 @@ export class LoanAssignmentPersonalSnapshotService {
     CoBorrowerOrder: role === 'CO_BORROWER' ? order : null,
     CoBorrowerRelationshipId: role === 'CO_BORROWER' ? relationshipId : null,
 
-    PersonalInfoId: p.ID,
+    personalInfoId: p.ID,
 
     LastName: p.LastName,
     FirstName: p.FirstName,
