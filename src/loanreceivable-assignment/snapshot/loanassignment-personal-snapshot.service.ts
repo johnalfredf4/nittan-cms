@@ -144,42 +144,43 @@ export class LoanAssignmentPersonalSnapshotService {
     relationshipId?: number,
   ): Partial<LoanAssignmentPersonalSnapshot> {
     return {
-      LoanAssignmentId: loanAssignmentId,
-      PersonId: personId,
-      BorrowerRole: role,
-      CoBorrowerOrder: role === 'CO_BORROWER' ? order : null,
-      CoBorrowerRelationshipId: role === 'CO_BORROWER' ? relationshipId : null,
-
-      PersonalInfoId: p.ID,
-
-      LastName: p.LastName,
-      FirstName: p.FirstName,
-      MiddleName: p.MiddleName,
-      Alias: p.NickName,
-      DateOfBirth: p.DateOfBirth,
-      PlaceOfBirth: p.BirthPlace,
-      Gender: p.Sex,
-      CivilStatus: p.MaritalStatus,
-      NumDependents: p.NumDependents,
-      Nationality: p.Dept,
-
-      MobileNumber: p.CellNum,
-      HomePhoneNumber: p.TelNum1,
-      EmailAddress: p.EmployerEmail,
-
-      PresentAddress: `${p.StreetName ?? ''} ${p.BarangaySubdivision ?? ''} ${p.CityProvince ?? ''}`.trim(),
-
-      EmployerName: p.EmployerName,
-      EmploymentAddress: p.EmployerAddress,
-      YearsOfService: p.YearsInService,
-      JobTitle: p.Occupation,
-
-      SpouseFirstName: p.SpouseFirstName,
-      SpouseMiddleName: p.SpouseMiddleName,
-      SpouseLastName: p.SpouseLastName,
-      SpouseEmployerName: p.SpouseEmployer,
-      SpouseMobileNumber: p.SpouseTelNum,
+      loanAssignmentId: loanAssignmentId,
+      personId: personId,
+      borrowerRole: role,
+      coBorrowerOrder: role === 'CO_BORROWER' ? order : null,
+      coBorrowerRelationshipId: role === 'CO_BORROWER' ? relationshipId : null,
+    
+      personalInfoId: p.ID,
+    
+      lastName: p.LastName,
+      firstName: p.FirstName,
+      middleName: p.MiddleName,
+      alias: p.NickName,
+      dateOfBirth: p.DateOfBirth,
+      placeOfBirth: p.BirthPlace,
+      gender: p.Sex,
+      civilStatus: p.MaritalStatus,
+      numDependents: p.NumDependents,
+      nationality: p.Dept,
+    
+      mobileNumber: p.CellNum,
+      homePhoneNumber: p.TelNum1,
+      emailAddress: p.EmployerEmail,
+    
+      presentAddress: `${p.StreetName ?? ''} ${p.BarangaySubdivision ?? ''} ${p.CityProvince ?? ''}`.trim(),
+    
+      employerName: p.EmployerName,
+      employmentAddress: p.EmployerAddress,
+      yearsOfService: p.YearsInService,
+      jobTitle: p.Occupation,
+    
+      spouseFirstName: p.SpouseFirstName,
+      spouseMiddleName: p.SpouseMiddleName,
+      spouseLastName: p.SpouseLastName,
+      spouseEmployerName: p.SpouseEmployer,
+      spouseMobileNumber: p.SpouseTelNum,
     };
+
   }
 
   /* ============================================================
