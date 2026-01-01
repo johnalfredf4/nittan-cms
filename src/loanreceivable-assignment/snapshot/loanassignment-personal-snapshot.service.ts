@@ -137,7 +137,7 @@ export class LoanAssignmentPersonalSnapshotService {
   ============================================================ */
   private buildSnapshotEntity(
   loanAssignmentId: number,
-  personId: number,
+  PersonId: number,
   p: any,
   role: 'MAIN' | 'CO_BORROWER',
   order?: 1 | 2 | 3,
