@@ -239,4 +239,43 @@ export class LoanReceivableAssignmentService {
 
     return { ok: true };
   }
+
+  private async loadAgents(): Promise<any[]> {
+    const sql = `
+      SELECT
+        ua.EmployeeId AS agentId,
+        ua.BranchId   AS branchId
+      FROM dbo.User_Accounts ua
+      INNER JOIN dbo.User_Roles ur ON ur.user_id = ua.id
+      INNER JOIN dbo.Roles r ON r.id = ur.role_id
+      WHERE ua.status = 1
+        AND r.name LIKE 'Collection Agent%';
+    `;
+  
+    const agents = await this.appDataSource.query(sql);
+  
+    return agents.map(a => ({
+      agentId: Number(a.agentId),
+      branchId: a.branchId ?? null,
+      assignedCount: 0,
+    }));
+  }
+
+  private getRetentionDays(dpd: number): number {
+    return dpd >= 181 ? 120 : 7;
+  }
+
+  private getDpdCategory(dpd: number): DpdCategory {
+    if (dpd <= 0) return DpdCategory.DPD_0;
+    if (dpd <= 30) return DpdCategory.DPD_1_30;
+    if (dpd <= 60) return DpdCategory.DPD_31_60;
+    if (dpd <= 90) return DpdCategory.DPD_61_90;
+    if (dpd <= 120) return DpdCategory.DPD_91_120;
+    if (dpd <= 150) return DpdCategory.DPD_121_150;
+    if (dpd <= 180) return DpdCategory.DPD_151_180;
+    return DpdCategory.DPD_181_PLUS;
+  }
+
+
 }
+
