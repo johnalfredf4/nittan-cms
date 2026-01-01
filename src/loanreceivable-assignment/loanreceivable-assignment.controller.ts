@@ -84,4 +84,12 @@ export class LoanReceivableAssignmentController {
       agentId,
     );
   }
+
+  @Get(':assignmentId/profile')
+  async getLoanProfile(
+    @Param('assignmentId', ParseIntPipe) assignmentId: number,
+  ) {
+    return this.service.getLoanProfile(assignmentId);
+  }
+  
 }
