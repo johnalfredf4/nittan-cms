@@ -144,7 +144,7 @@ export class LoanAssignmentPersonalSnapshotService {
   relationshipId?: number,
 ): Partial<LoanAssignmentPersonalSnapshot> {
   return {
-    LoanAssignmentId: loanAssignmentId,
+    loanAssignmentId: loanAssignmentId,
     PersonId: personId,
     BorrowerRole: role,
     CoBorrowerOrder: role === 'CO_BORROWER' ? order : null,
