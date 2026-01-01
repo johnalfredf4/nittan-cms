@@ -145,10 +145,10 @@ export class LoanAssignmentPersonalSnapshotService {
   ): Partial<LoanAssignmentPersonalSnapshot> {
     return {
       loanAssignmentId,
-      personId,
-      borrowerRole: role,
-      coBorrowerOrder: role === 'CO_BORROWER' ? order : null,
-      coBorrowerRelationshipId: role === 'CO_BORROWER' ? relationshipId : null,
+      PersonId,
+      BorrowerRole: role,
+      CoBorrowerOrder: role === 'CO_BORROWER' ? order : null,
+      CoBorrowerRelationshipId: role === 'CO_BORROWER' ? relationshipId : null,
   
       personalInfoId: p.ID,
   
