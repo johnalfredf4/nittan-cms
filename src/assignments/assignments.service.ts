@@ -13,6 +13,7 @@ export class AssignmentsService {
     const result = await this.reportingConnection.query(
       `
         SELECT p.*
+              ,la.[id] AS AssignmentID
               ,la.[loanApplicationId]
               ,la.[loanReceivableId]
               ,la.[agentId]
@@ -36,6 +37,7 @@ export class AssignmentsService {
   const result = await this.reportingConnection.query(
     `
       SELECT p.*
+            ,la.[id] AS AssignmentID
             ,la.[loanApplicationId]
             ,la.[loanReceivableId]
             ,la.[agentId]
