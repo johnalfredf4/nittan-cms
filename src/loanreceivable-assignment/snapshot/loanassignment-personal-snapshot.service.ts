@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 
 import { LoanAssignmentPersonalSnapshot } from './entities/loanassignment-personal-snapshot.entity';
 import { LoanAssignmentIdentification } from './entities/loanassignment-identification.entity';
@@ -39,11 +39,9 @@ export class LoanAssignmentPersonalSnapshotService {
   ) {}
 
   /* ============================================================
-     MAIN ENTRY POINT
-     - Saves MAIN borrower
-     - Saves up to 3 co-borrowers
+     PUBLIC ENTRY POINT (TRANSACTIONAL)
   ============================================================ */
-  async createSnapshot(
+  async createSnapshotTransactional(
     loanAssignmentId: number,
     borrowerId: number,
     coBorrowers?: {
@@ -52,7 +50,36 @@ export class LoanAssignmentPersonalSnapshotService {
       order: 1 | 2 | 3;
     }[],
   ): Promise<void> {
-    this.logger.log(`📸 Creating snapshot for assignment ${loanAssignmentId}`);
+    await this.nittanDataSource.transaction(async manager => {
+      await this.createSnapshotWithManager(
+        manager,
+        loanAssignmentId,
+        borrowerId,
+        coBorrowers,
+      );
+    });
+  }
+
+  /* ============================================================
+     INTERNAL TRANSACTION WORKER
+  ============================================================ */
+  private async createSnapshotWithManager(
+    manager: EntityManager,
+    loanAssignmentId: number,
+    borrowerId: number,
+    coBorrowers?: {
+      personId: number;
+      relationshipId?: number;
+      order: 1 | 2 | 3;
+    }[],
+  ): Promise<void> {
+    const snapshotRepo = manager.getRepository(LoanAssignmentPersonalSnapshot);
+    const idRepo = manager.getRepository(LoanAssignmentIdentification);
+    const incomeRepo = manager.getRepository(LoanAssignmentMonthlyIncome);
+    const expenseRepo = manager.getRepository(LoanAssignmentMonthlyExpense);
+    const refRepo = manager.getRepository(LoanAssignmentContactReference);
+
+    this.logger.log(`📸 Creating snapshots (TX) for assignment ${loanAssignmentId}`);
 
     /* ===============================
        MAIN BORROWER
@@ -63,77 +90,59 @@ export class LoanAssignmentPersonalSnapshotService {
       return;
     }
 
-    const mainSnapshot = await this.saveSnapshot(
-      loanAssignmentId,
-      borrowerId,
-      mainPersonal,
-      'MAIN',
+    const mainSnapshot = await snapshotRepo.save(
+      this.buildSnapshotEntity(
+        loanAssignmentId,
+        borrowerId,
+        mainPersonal,
+        'MAIN',
+      ),
     );
 
-    await this.saveIdentifications(mainSnapshot, mainPersonal);
-    await this.saveIncome(mainSnapshot, mainPersonal);
-    await this.saveExpenses(mainSnapshot, mainPersonal);
-    await this.saveReferences(mainSnapshot, mainPersonal);
+    await this.saveIdentificationsTx(idRepo, mainSnapshot, mainPersonal);
+    await this.saveIncomeTx(incomeRepo, mainSnapshot, mainPersonal);
+    await this.saveExpensesTx(expenseRepo, mainSnapshot, mainPersonal);
+    await this.saveReferencesTx(refRepo, mainSnapshot, mainPersonal);
 
     /* ===============================
        CO-BORROWERS (1–3)
     =============================== */
-    if (coBorrowers?.length) {
-      for (const cb of coBorrowers) {
-        await this.createCoBorrowerSnapshot(
+    for (const cb of coBorrowers ?? []) {
+      const personal = await this.fetchPersonalInfo(cb.personId);
+      if (!personal) continue;
+
+      const snapshot = await snapshotRepo.save(
+        this.buildSnapshotEntity(
           loanAssignmentId,
           cb.personId,
+          personal,
+          'CO_BORROWER',
           cb.order,
           cb.relationshipId,
-        );
-      }
+        ),
+      );
+
+      await this.saveIdentificationsTx(idRepo, snapshot, personal);
+      await this.saveIncomeTx(incomeRepo, snapshot, personal);
+      await this.saveExpensesTx(expenseRepo, snapshot, personal);
+      await this.saveReferencesTx(refRepo, snapshot, personal);
     }
 
-    this.logger.log(`✅ Snapshot process completed for assignment ${loanAssignmentId}`);
+    this.logger.log(`✅ Snapshot transaction completed for assignment ${loanAssignmentId}`);
   }
 
   /* ============================================================
-     CO-BORROWER SNAPSHOT
+     SNAPSHOT ENTITY BUILDER
   ============================================================ */
-  private async createCoBorrowerSnapshot(
-    loanAssignmentId: number,
-    personId: number,
-    order: 1 | 2 | 3,
-    relationshipId?: number,
-  ) {
-    const personal = await this.fetchPersonalInfo(personId);
-    if (!personal) {
-      this.logger.warn(`⚠ No personal info found for co-borrower ${personId}`);
-      return;
-    }
-
-    const snapshot = await this.saveSnapshot(
-      loanAssignmentId,
-      personId,
-      personal,
-      'CO_BORROWER',
-      order,
-      relationshipId,
-    );
-
-    await this.saveIdentifications(snapshot, personal);
-    await this.saveIncome(snapshot, personal);
-    await this.saveExpenses(snapshot, personal);
-    await this.saveReferences(snapshot, personal);
-  }
-
-  /* ============================================================
-     SNAPSHOT SAVE (SHARED)
-  ============================================================ */
-  private async saveSnapshot(
+  private buildSnapshotEntity(
     loanAssignmentId: number,
     personId: number,
     p: any,
     role: 'MAIN' | 'CO_BORROWER',
     order?: 1 | 2 | 3,
     relationshipId?: number,
-  ): Promise<LoanAssignmentPersonalSnapshot> {
-    return this.snapshotRepo.save({
+  ): Partial<LoanAssignmentPersonalSnapshot> {
+    return {
       loanAssignmentId,
       personId,
       borrowerRole: role,
@@ -169,7 +178,7 @@ export class LoanAssignmentPersonalSnapshotService {
       spouseLastName: p.SpouseLastName,
       spouseEmployerName: p.SpouseEmployer,
       spouseMobileNumber: p.SpouseTelNum,
-    });
+    };
   }
 
   /* ============================================================
@@ -187,9 +196,9 @@ export class LoanAssignmentPersonalSnapshotService {
   }
 
   /* ============================================================
-     IDENTIFICATIONS
+     TRANSACTION-SAFE CHILD SAVES
   ============================================================ */
-  private async saveIdentifications(snapshot, p) {
+  private async saveIdentificationsTx(repo, snapshot, p) {
     const ids = [];
 
     if (p.TINNo) ids.push({ idType: 'TIN', idNumber: p.TINNo });
@@ -198,16 +207,13 @@ export class LoanAssignmentPersonalSnapshotService {
     if (p.VisaIDNum) ids.push({ idType: 'Visa', idNumber: p.VisaIDNum });
 
     if (ids.length) {
-      await this.idRepo.save(ids.map(i => ({ ...i, snapshot })));
+      await repo.save(ids.map(i => ({ ...i, snapshot })));
     }
   }
 
-  /* ============================================================
-     MONTHLY INCOME
-  ============================================================ */
-  private async saveIncome(snapshot, p) {
+  private async saveIncomeTx(repo, snapshot, p) {
     if (p.MonthlySalary) {
-      await this.incomeRepo.save({
+      await repo.save({
         snapshot,
         incomeType: 'Applicant',
         amount: p.MonthlySalary,
@@ -215,7 +221,7 @@ export class LoanAssignmentPersonalSnapshotService {
     }
 
     if (p.SpouseDept) {
-      await this.incomeRepo.save({
+      await repo.save({
         snapshot,
         incomeType: 'Spouse',
         amount: p.SpouseDept,
@@ -223,13 +229,10 @@ export class LoanAssignmentPersonalSnapshotService {
     }
   }
 
-  /* ============================================================
-     MONTHLY EXPENSES
-  ============================================================ */
-  private async saveExpenses(snapshot, p) {
+  private async saveExpensesTx(repo, snapshot, p) {
     if (!p.MonthlyAmort) return;
 
-    await this.expenseRepo.save({
+    await repo.save({
       snapshot,
       expenseType: 'Loan Deduction',
       amount: p.MonthlyAmort,
@@ -239,10 +242,7 @@ export class LoanAssignmentPersonalSnapshotService {
     });
   }
 
-  /* ============================================================
-     CONTACT REFERENCES
-  ============================================================ */
-  private async saveReferences(snapshot, p) {
+  private async saveReferencesTx(repo, snapshot, p) {
     const refs = [];
 
     if (p.ReferencePerson1) {
@@ -264,7 +264,7 @@ export class LoanAssignmentPersonalSnapshotService {
     }
 
     if (refs.length) {
-      await this.refRepo.save(refs.map(r => ({ ...r, snapshot })));
+      await repo.save(refs.map(r => ({ ...r, snapshot })));
     }
   }
 }
