@@ -25,7 +25,7 @@ export class LoanAssignmentPersonalSnapshot {
 
   @Index()
   @Column()
-  borrowerId: number;
+  PersonId: number;
 
   @Column()
   personalInfoId: number;
