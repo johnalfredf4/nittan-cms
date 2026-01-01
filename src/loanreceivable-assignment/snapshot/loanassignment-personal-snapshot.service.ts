@@ -30,11 +30,15 @@ export class LoanAssignmentPersonalSnapshotService {
 
     @InjectRepository(LoanAssignmentContactReference, 'nittan_app')
     private readonly refRepo: Repository<LoanAssignmentContactReference>,
-    
+
+    /* ===============================
+       APP DB (WRITE / TRANSACTION)
+    =============================== */
     @InjectDataSource('nittan_app')
     private readonly appDataSource: DataSource,
+
     /* ===============================
-       LEGACY CORE DB (Nittan)
+       LEGACY CORE DB (READ ONLY)
     =============================== */
     @InjectDataSource('nittan')
     private readonly nittanDataSource: DataSource,
@@ -52,7 +56,7 @@ export class LoanAssignmentPersonalSnapshotService {
       order: 1 | 2 | 3;
     }[],
   ): Promise<void> {
-    await this.nittanDataSource.transaction(async manager => {
+    await this.appDataSource.transaction(async manager => {
       await this.createSnapshotWithManager(
         manager,
         loanAssignmentId,
@@ -107,7 +111,7 @@ export class LoanAssignmentPersonalSnapshotService {
     await this.saveReferencesTx(refRepo, mainSnapshot, mainPersonal);
 
     /* ===============================
-       CO-BORROWERS (1–3)
+       CO-BORROWERS (MAX 3)
     =============================== */
     for (const cb of coBorrowers ?? []) {
       const personal = await this.fetchPersonalInfo(cb.personId);
@@ -134,26 +138,25 @@ export class LoanAssignmentPersonalSnapshotService {
   }
 
   /* ============================================================
-     SNAPSHOT ENTITY BUILDER
-     ⚠ MUST MATCH ENTITY PROPERTY NAMES EXACTLY
+     SNAPSHOT ENTITY BUILDER (CAMELCASE ONLY)
   ============================================================ */
   private buildSnapshotEntity(
-  loanAssignmentId: number,
-  PersonId: number,
-  p: any,
-  role: 'MAIN' | 'CO_BORROWER',
-  order?: 1 | 2 | 3,
-  relationshipId?: number,
+    loanAssignmentId: number,
+    personId: number,
+    p: any,
+    role: 'MAIN' | 'CO_BORROWER',
+    order?: 1 | 2 | 3,
+    relationshipId?: number,
   ): Partial<LoanAssignmentPersonalSnapshot> {
     return {
       loanAssignmentId,
-      PersonId,
-      BorrowerRole: role,
-      CoBorrowerOrder: role === 'CO_BORROWER' ? order : null,
-      CoBorrowerRelationshipId: role === 'CO_BORROWER' ? relationshipId : null,
-  
+      personId,
+      borrowerRole: role,
+      coBorrowerOrder: role === 'CO_BORROWER' ? order : null,
+      coBorrowerRelationshipId: role === 'CO_BORROWER' ? relationshipId : null,
+
       personalInfoId: p.ID,
-  
+
       lastName: p.LastName,
       firstName: p.FirstName,
       middleName: p.MiddleName,
@@ -164,18 +167,18 @@ export class LoanAssignmentPersonalSnapshotService {
       civilStatus: p.MaritalStatus,
       numDependents: p.NumDependents,
       nationality: p.Dept,
-  
+
       mobileNumber: p.CellNum,
       homePhoneNumber: p.TelNum1,
       emailAddress: p.EmployerEmail,
-  
+
       presentAddress: `${p.StreetName ?? ''} ${p.BarangaySubdivision ?? ''} ${p.CityProvince ?? ''}`.trim(),
-  
+
       employerName: p.EmployerName,
       employmentAddress: p.EmployerAddress,
       yearsOfService: p.YearsInService,
       jobTitle: p.Occupation,
-  
+
       spouseFirstName: p.SpouseFirstName,
       spouseMiddleName: p.SpouseMiddleName,
       spouseLastName: p.SpouseLastName,
@@ -184,10 +187,8 @@ export class LoanAssignmentPersonalSnapshotService {
     };
   }
 
-
-
   /* ============================================================
-     LEGACY DATA FETCH
+     LEGACY DATA FETCH (nittan)
   ============================================================ */
   private async fetchPersonalInfo(personId: number): Promise<any> {
     const sql = `
