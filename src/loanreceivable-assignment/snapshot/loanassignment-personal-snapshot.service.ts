@@ -142,7 +142,7 @@ export class LoanAssignmentPersonalSnapshotService {
   ============================================================ */
   private buildSnapshotEntity(
     loanAssignmentId: number,
-    personId: number,
+    PersonId: number,
     p: any,
     role: 'MAIN' | 'CO_BORROWER',
     order?: 1 | 2 | 3,
@@ -150,7 +150,7 @@ export class LoanAssignmentPersonalSnapshotService {
   ): Partial<LoanAssignmentPersonalSnapshot> {
     return {
       loanAssignmentId,
-      personId,
+      PersonId,
       borrowerRole: role,
       coBorrowerOrder: role === 'CO_BORROWER' ? order : null,
       coBorrowerRelationshipId: role === 'CO_BORROWER' ? relationshipId : null,
