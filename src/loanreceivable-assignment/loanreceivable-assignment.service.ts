@@ -276,6 +276,184 @@ export class LoanReceivableAssignmentService {
     return DpdCategory.DPD_181_PLUS;
   }
 
+  async getLoanProfile(assignmentId: number) {
+  /* ===============================
+     PERSONAL SNAPSHOTS
+  =============================== */
+    const snapshots = await this.appDataSource.query(
+      `
+      SELECT
+        Id,
+        LoanAssignmentId,
+        PersonId,
+        PersonalInfoId,
+        LastName,
+        FirstName,
+        MiddleName,
+        Suffix,
+        Title,
+        Alias,
+        DateOfBirth,
+        PlaceOfBirth,
+        Gender,
+        NumDependents,
+        CivilStatus,
+        Nationality,
+        MotherMaidenName,
+        FatherName,
+        MobileNumber,
+        OfficeContactNumber,
+        HomePhoneNumber,
+        EmailAddress,
+        FacebookAccount,
+        PresentAddress,
+        PresentYearsOfStay,
+        PresentOwnershipType,
+        PermanentAddress,
+        PermanentYearsOfStay,
+        PermanentOwnershipType,
+        EmployerName,
+        BusinessNature,
+        EmploymentAddress,
+        YearsOfService,
+        EmployerContactNumber,
+        EmployerEmail,
+        JobTitle,
+        SpouseLastName,
+        SpouseFirstName,
+        SpouseMiddleName,
+        SpouseNickName,
+        SpouseDateOfBirth,
+        SpousePlaceOfBirth,
+        SpouseMobileNumber,
+        SpouseEmployerName,
+        SpouseEmployerContact,
+        SpouseJobTitle,
+        CreatedAt,
+        UpdatedAt,
+        BorrowerRole,
+        CoBorrowerOrder,
+        CoBorrowerRelationshipId
+      FROM dbo.LoanAssignment_PersonalSnapshot
+      WHERE LoanAssignmentId = @0
+      ORDER BY
+        CASE WHEN BorrowerRole = 'MAIN' THEN 0 ELSE 1 END,
+        CoBorrowerOrder
+      `,
+      [assignmentId],
+    );
+  
+    if (!snapshots.length) {
+      return { assignmentId, borrowers: [] };
+    }
+  
+    const snapshotIds = snapshots.map(s => s.Id);
+  
+    /* ===============================
+       CHILD TABLES
+    =============================== */
+    const [
+      incomes,
+      expenses,
+      identifications,
+      references,
+      attachments,
+    ] = await Promise.all([
+      this.appDataSource.query(
+        `
+        SELECT
+          Id,
+          PersonalSnapshotId,
+          IncomeType,
+          Amount,
+          BankName,
+          BankBranch,
+          AccountNumber
+        FROM dbo.LoanAssignment_MonthlyIncome
+        WHERE PersonalSnapshotId IN (${snapshotIds.join(',')})
+        `,
+      ),
+  
+      this.appDataSource.query(
+        `
+        SELECT
+          Id,
+          PersonalSnapshotId,
+          ExpenseType,
+          Amount,
+          Creditor,
+          CreditAmount,
+          OutstandingBalance
+        FROM dbo.LoanAssignment_MonthlyExpenses
+        WHERE PersonalSnapshotId IN (${snapshotIds.join(',')})
+        `,
+      ),
+  
+      this.appDataSource.query(
+        `
+        SELECT
+          Id,
+          PersonalSnapshotId,
+          IdType,
+          IdNumber,
+          DateIssued,
+          CountryIssued
+        FROM dbo.LoanAssignment_Identifications
+        WHERE PersonalSnapshotId IN (${snapshotIds.join(',')})
+        `,
+      ),
+  
+      this.appDataSource.query(
+        `
+        SELECT
+          Id,
+          PersonalSnapshotId,
+          ReferenceName,
+          Address,
+          ContactNumber,
+          Employer
+        FROM dbo.LoanAssignment_ContactReferences
+        WHERE PersonalSnapshotId IN (${snapshotIds.join(',')})
+        `,
+      ),
+  
+      this.appDataSource.query(
+        `
+        SELECT
+          Id,
+          PersonalSnapshotId,
+          AttachmentType,
+          FilePath,
+          UploadedAt
+        FROM dbo.LoanAssignment_Attachments
+        WHERE PersonalSnapshotId IN (${snapshotIds.join(',')})
+        `,
+      ),
+    ]);
+  
+    /* ===============================
+       GROUP RESPONSE
+    =============================== */
+    return {
+      assignmentId,
+      borrowers: snapshots.map(snapshot => ({
+        snapshot,
+        incomes: incomes.filter(i => i.PersonalSnapshotId === snapshot.Id),
+        expenses: expenses.filter(e => e.PersonalSnapshotId === snapshot.Id),
+        identifications: identifications.filter(
+          i => i.PersonalSnapshotId === snapshot.Id,
+        ),
+        references: references.filter(
+          r => r.PersonalSnapshotId === snapshot.Id,
+        ),
+        attachments: attachments.filter(
+          a => a.PersonalSnapshotId === snapshot.Id,
+        ),
+      })),
+    };
+  }
+
 
 }
+
 
