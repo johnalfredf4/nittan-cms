@@ -40,72 +40,149 @@ export class LoanAssignmentPersonalSnapshotService {
 
   /* ============================================================
      MAIN ENTRY POINT
+     - Saves MAIN borrower
+     - Saves up to 3 co-borrowers
   ============================================================ */
   async createSnapshot(
     loanAssignmentId: number,
     borrowerId: number,
+    coBorrowers?: {
+      personId: number;
+      relationshipId?: number;
+      order: 1 | 2 | 3;
+    }[],
   ): Promise<void> {
     this.logger.log(`📸 Creating snapshot for assignment ${loanAssignmentId}`);
 
-    const personal = await this.fetchPersonalInfo(borrowerId);
-    if (!personal) {
+    /* ===============================
+       MAIN BORROWER
+    =============================== */
+    const mainPersonal = await this.fetchPersonalInfo(borrowerId);
+    if (!mainPersonal) {
       this.logger.warn(`⚠ No personal info found for borrower ${borrowerId}`);
       return;
     }
 
-    const snapshot = await this.snapshotRepo.save({
+    const mainSnapshot = await this.saveSnapshot(
       loanAssignmentId,
       borrowerId,
-      personalInfoId: personal.ID,
+      mainPersonal,
+      'MAIN',
+    );
 
-      lastName: personal.LastName,
-      firstName: personal.FirstName,
-      middleName: personal.MiddleName,
-      alias: personal.NickName,
-      dateOfBirth: personal.DateOfBirth,
-      placeOfBirth: personal.BirthPlace,
-      gender: personal.Sex,
-      civilStatus: personal.MaritalStatus,
-      numDependents: personal.NumDependents,
-      nationality: personal.Dept,
+    await this.saveIdentifications(mainSnapshot, mainPersonal);
+    await this.saveIncome(mainSnapshot, mainPersonal);
+    await this.saveExpenses(mainSnapshot, mainPersonal);
+    await this.saveReferences(mainSnapshot, mainPersonal);
 
-      mobileNumber: personal.CellNum,
-      homePhoneNumber: personal.TelNum1,
-      emailAddress: personal.EmployerEmail,
+    /* ===============================
+       CO-BORROWERS (1–3)
+    =============================== */
+    if (coBorrowers?.length) {
+      for (const cb of coBorrowers) {
+        await this.createCoBorrowerSnapshot(
+          loanAssignmentId,
+          cb.personId,
+          cb.order,
+          cb.relationshipId,
+        );
+      }
+    }
 
-      presentAddress: `${personal.StreetName ?? ''} ${personal.BarangaySubdivision ?? ''} ${personal.CityProvince ?? ''}`.trim(),
+    this.logger.log(`✅ Snapshot process completed for assignment ${loanAssignmentId}`);
+  }
 
-      employerName: personal.EmployerName,
-      employmentAddress: personal.EmployerAddress,
-      yearsOfService: personal.YearsInService,
-      jobTitle: personal.Occupation,
+  /* ============================================================
+     CO-BORROWER SNAPSHOT
+  ============================================================ */
+  private async createCoBorrowerSnapshot(
+    loanAssignmentId: number,
+    personId: number,
+    order: 1 | 2 | 3,
+    relationshipId?: number,
+  ) {
+    const personal = await this.fetchPersonalInfo(personId);
+    if (!personal) {
+      this.logger.warn(`⚠ No personal info found for co-borrower ${personId}`);
+      return;
+    }
 
-      spouseFirstName: personal.SpouseFirstName,
-      spouseMiddleName: personal.SpouseMiddleName,
-      spouseLastName: personal.SpouseLastName,
-      spouseEmployerName: personal.SpouseEmployer,
-      spouseMobileNumber: personal.SpouseTelNum,
-    });
+    const snapshot = await this.saveSnapshot(
+      loanAssignmentId,
+      personId,
+      personal,
+      'CO_BORROWER',
+      order,
+      relationshipId,
+    );
 
     await this.saveIdentifications(snapshot, personal);
     await this.saveIncome(snapshot, personal);
     await this.saveExpenses(snapshot, personal);
     await this.saveReferences(snapshot, personal);
+  }
 
-    this.logger.log(`✅ Snapshot saved for assignment ${loanAssignmentId}`);
+  /* ============================================================
+     SNAPSHOT SAVE (SHARED)
+  ============================================================ */
+  private async saveSnapshot(
+    loanAssignmentId: number,
+    personId: number,
+    p: any,
+    role: 'MAIN' | 'CO_BORROWER',
+    order?: 1 | 2 | 3,
+    relationshipId?: number,
+  ): Promise<LoanAssignmentPersonalSnapshot> {
+    return this.snapshotRepo.save({
+      loanAssignmentId,
+      personId,
+      borrowerRole: role,
+      coBorrowerOrder: role === 'CO_BORROWER' ? order : null,
+      coBorrowerRelationshipId: role === 'CO_BORROWER' ? relationshipId : null,
+
+      personalInfoId: p.ID,
+
+      lastName: p.LastName,
+      firstName: p.FirstName,
+      middleName: p.MiddleName,
+      alias: p.NickName,
+      dateOfBirth: p.DateOfBirth,
+      placeOfBirth: p.BirthPlace,
+      gender: p.Sex,
+      civilStatus: p.MaritalStatus,
+      numDependents: p.NumDependents,
+      nationality: p.Dept,
+
+      mobileNumber: p.CellNum,
+      homePhoneNumber: p.TelNum1,
+      emailAddress: p.EmployerEmail,
+
+      presentAddress: `${p.StreetName ?? ''} ${p.BarangaySubdivision ?? ''} ${p.CityProvince ?? ''}`.trim(),
+
+      employerName: p.EmployerName,
+      employmentAddress: p.EmployerAddress,
+      yearsOfService: p.YearsInService,
+      jobTitle: p.Occupation,
+
+      spouseFirstName: p.SpouseFirstName,
+      spouseMiddleName: p.SpouseMiddleName,
+      spouseLastName: p.SpouseLastName,
+      spouseEmployerName: p.SpouseEmployer,
+      spouseMobileNumber: p.SpouseTelNum,
+    });
   }
 
   /* ============================================================
      LEGACY DATA FETCH
   ============================================================ */
-  private async fetchPersonalInfo(borrowerId: number): Promise<any> {
+  private async fetchPersonalInfo(personId: number): Promise<any> {
     const sql = `
       SELECT TOP 1 *
       FROM [Nittan].[dbo].[tblPersonalInfos]
       WHERE BorrowerNo = @0
       ORDER BY [Date] DESC
     `;
-    const rows = await this.nittanDataSource.query(sql, [borrowerId]);
+    const rows = await this.nittanDataSource.query(sql, [personId]);
     return rows[0];
   }
 
