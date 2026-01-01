@@ -28,7 +28,10 @@ export class LoanReceivableAssignmentController {
   @Post('run')
   async runAssignment() {
     await this.service.assignLoans();
-    return { ok: true, message: 'Assignment process executed' };
+    return {
+      ok: true,
+      message: 'Assignment process executed successfully',
+    };
   }
 
   /* =====================================================
@@ -43,15 +46,10 @@ export class LoanReceivableAssignmentController {
      🔹 FETCH ASSIGNMENTS PER AGENT
   ===================================================== */
   @Get('assignments')
-  async getAssignments(@Query('agentId') agentId?: number) {
-    if (!agentId) {
-      throw new HttpException(
-        'agentId is required',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    return this.service.findActiveAssignmentsByAgent(Number(agentId));
+  async getAssignments(
+    @Query('agentId', ParseIntPipe) agentId: number,
+  ) {
+    return this.service.findActiveAssignmentsByAgent(agentId);
   }
 
   /* =====================================================
@@ -63,7 +61,7 @@ export class LoanReceivableAssignmentController {
   }
 
   /* =====================================================
-     🔹 SINGLE OVERRIDE (MATCHES FRONTEND)
+     🔹 SINGLE OVERRIDE
   ===================================================== */
   @Patch('override-single/:assignmentId')
   async overrideSingle(
@@ -79,18 +77,11 @@ export class LoanReceivableAssignmentController {
   @Patch('mark-processed/:assignmentId')
   async markProcessed(
     @Param('assignmentId', ParseIntPipe) assignmentId: number,
-    @Query('agentId') agentId?: number,
+    @Query('agentId', ParseIntPipe) agentId: number,
   ) {
-    if (!agentId) {
-      throw new HttpException(
-        'agentId is required',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
     return this.service.markProcessed(
       assignmentId,
-      Number(agentId),
+      agentId,
     );
   }
 }
