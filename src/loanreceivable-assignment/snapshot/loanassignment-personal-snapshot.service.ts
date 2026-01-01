@@ -151,9 +151,9 @@ export class LoanAssignmentPersonalSnapshotService {
     return {
       loanAssignmentId,
       PersonId,
-      borrowerRole: role,
-      coBorrowerOrder: role === 'CO_BORROWER' ? order : null,
-      coBorrowerRelationshipId: role === 'CO_BORROWER' ? relationshipId : null,
+      BorrowerRole: role,
+      CoBorrowerOrder: role === 'CO_BORROWER' ? order : null,
+      CoBorrowerRelationshipId: role === 'CO_BORROWER' ? relationshipId : null,
 
       personalInfoId: p.ID,
 
