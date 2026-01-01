@@ -30,7 +30,9 @@ export class LoanAssignmentPersonalSnapshotService {
 
     @InjectRepository(LoanAssignmentContactReference, 'nittan_app')
     private readonly refRepo: Repository<LoanAssignmentContactReference>,
-
+    
+    @InjectDataSource('nittan_app')
+    private readonly appDataSource: DataSource,
     /* ===============================
        LEGACY CORE DB (Nittan)
     =============================== */
