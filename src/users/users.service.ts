@@ -84,6 +84,6 @@ export class UsersService {
   }
 
   async updatePassword(id: number, hash: string): Promise<void> {
-  await this.usersRepo.update({ id }, { passwordHash: hash });
+  await this.usersRepo.update({ id }, { passwordHash: hash, isPasswordChanged: true, });
   }
 }
