@@ -7,9 +7,9 @@ import { SmsSendLog } from './entities/sms-send-log.entity';
 @Injectable()
 export class SmsSenderService {
   private readonly API_URL = 'http://gateway.onewaysms.com.au:10001/api.aspx';
-  private readonly API_USERNAME = 'API5QNDTEXOKT';
-  private readonly API_PASSWORD = 'API5QNDTEXOKT5QNDT';
-  private readonly SENDER_ID = 'ONEWAY';
+  private readonly API_USERNAME = 'APIKCHQ2NOSPC';
+  private readonly API_PASSWORD = 'APIKCHQ2NOSPCKCHQ2';
+  private readonly SENDER_ID = 'Nittan';
 
   constructor(
     @InjectRepository(SmsSendLog, 'nittan_app')
