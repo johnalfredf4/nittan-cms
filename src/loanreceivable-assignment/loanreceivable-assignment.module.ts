@@ -23,6 +23,7 @@ import { LoanAssignmentSnapshotModule } from './snapshot/loanassignment-snapshot
    Monthly Income CRUD
 ======================= */
 import { LoanAssignmentMonthlyIncomeModule } from './monthly-income/loanassignment-monthly-income.module';
+import { LoanAssignmentMonthlyExpenseModule } from './monthly-expenses/loanassignment-monthly-expense.module';
 
 @Module({
     imports: [
@@ -49,6 +50,7 @@ import { LoanAssignmentMonthlyIncomeModule } from './monthly-income/loanassignme
            Monthly Income CRUD
         ============================================ */
         LoanAssignmentMonthlyIncomeModule,
+       LoanAssignmentMonthlyExpenseModule,
     ],
 
     controllers: [
