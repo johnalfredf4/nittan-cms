@@ -32,4 +32,23 @@ export class LoanAssignmentContactReference {
 
   @Column({ length: 150, nullable: true })
   employer?: string;
+
+  /* ============================
+     NEW COLUMNS
+  ============================ */
+
+  @Column({
+    type: 'nvarchar',
+    length: 50,
+    default: 'Relatives',
+  })
+  section: string;
+
+  @Column({
+    type: 'nvarchar',
+    length: 100,
+    nullable: true,
+  })
+  relationship?: string;
+  
 }
