@@ -25,6 +25,7 @@ export class AuthController {
       roles,
       branchId: user.branchId,
       employeeId: user.employeeId,
+      isPasswordChanged: user.isPasswordChanged,
     };
 
     return {
@@ -36,6 +37,7 @@ export class AuthController {
         full_name: `${user.firstName} ${user.lastName}`.trim(),
         branchId: user.branchId,
         employeeId: user.employeeId,
+        isPasswordChanged: user.isPasswordChanged,
         roles,
       },
     };
