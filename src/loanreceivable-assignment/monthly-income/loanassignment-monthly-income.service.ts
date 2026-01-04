@@ -16,19 +16,26 @@ export class LoanAssignmentMonthlyIncomeService {
     /* =========================
        CREATE
     ========================= */
-    async create(dto: CreateMonthlyIncomeDto) {
-        return this.incomeRepo.save(dto);
+   async create(dto: CreateMonthlyIncomeDto) {
+      return this.incomeRepo.save({
+        incomeType: dto.incomeType as any,
+        amount: dto.amount,
+        bankName: dto.bankName,
+        bankBranch: dto.bankBranch,
+        accountNumber: dto.accountNumber,
+        snapshot: { id: dto.personalSnapshotId },
+      });
+    }
+    
+    async findBySnapshot(personalSnapshotId: number) {
+      return this.incomeRepo.find({
+        where: {
+          snapshot: { id: personalSnapshotId },
+        },
+        order: { id: 'ASC' },
+      });
     }
 
-    /* =========================
-       READ (BY SNAPSHOT)
-    ========================= */
-    async findBySnapshot(personalSnapshotId: number) {
-        return this.incomeRepo.find({
-            where: { personalSnapshotId },
-            order: { id: 'ASC' },
-        });
-    }
 
     /* =========================
        UPDATE
@@ -55,3 +62,4 @@ export class LoanAssignmentMonthlyIncomeService {
         return { ok: true };
     }
 }
+
