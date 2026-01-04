@@ -1,6 +1,10 @@
-import { PartialType } from '@nestjs/swagger';
 import { CreateMonthlyIncomeDto } from './create-monthly-income.dto';
 
-export class UpdateMonthlyIncomeDto extends PartialType(
-    CreateMonthlyIncomeDto,
-) { }
+export class UpdateMonthlyIncomeDto {
+  incomeType?: string;
+  amount?: number;
+  bankName?: string;
+  bankBranch?: string;
+  accountNumber?: string;
+}
+
