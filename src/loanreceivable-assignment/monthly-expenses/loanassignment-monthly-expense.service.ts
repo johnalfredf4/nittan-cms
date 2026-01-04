@@ -17,16 +17,18 @@ export class LoanAssignmentMonthlyExpenseService {
      CREATE
   ========================= */
   async create(dto: CreateMonthlyExpenseDto) {
-    return this.expenseRepo.save({
+    const expense = this.expenseRepo.create({
       expenseType: dto.expenseType,
-      amount: dto.amount.toString(),
+      amount: dto.amount, // number ✔
 
       creditor: dto.creditor,
-      creditAmount: dto.creditAmount?.toString(),
-      outstandingBalance: dto.outstandingBalance?.toString(),
+      creditAmount: dto.creditAmount, // number ✔
+      outstandingBalance: dto.outstandingBalance, // number ✔
 
       snapshot: { id: dto.personalSnapshotId },
     });
+
+    return this.expenseRepo.save(expense);
   }
 
   /* =========================
@@ -55,7 +57,7 @@ export class LoanAssignmentMonthlyExpenseService {
     }
 
     if (dto.amount !== undefined) {
-      expense.amount = dto.amount.toString();
+      expense.amount = dto.amount;
     }
 
     if (dto.creditor !== undefined) {
@@ -63,11 +65,11 @@ export class LoanAssignmentMonthlyExpenseService {
     }
 
     if (dto.creditAmount !== undefined) {
-      expense.creditAmount = dto.creditAmount.toString();
+      expense.creditAmount = dto.creditAmount;
     }
 
     if (dto.outstandingBalance !== undefined) {
-      expense.outstandingBalance = dto.outstandingBalance.toString();
+      expense.outstandingBalance = dto.outstandingBalance;
     }
 
     return this.expenseRepo.save(expense);
