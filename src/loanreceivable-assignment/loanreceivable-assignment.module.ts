@@ -19,44 +19,54 @@ import { PersonalSnapshotEditService } from './service/personal-snapshot-edit.se
 ======================= */
 import { LoanAssignmentSnapshotModule } from './snapshot/loanassignment-snapshot.module';
 
+/* =======================
+   Monthly Income CRUD
+======================= */
+import { LoanAssignmentMonthlyIncomeModule } from './monthly-income/loanassignment-monthly-income.module';
+
 @Module({
-  imports: [
-    /* ============================================
-       Writable DB (Assignments ONLY)
-    ============================================ */
-    TypeOrmModule.forFeature(
-      [LoanReceivableAssignment],
-      'nittan_app',
-    ),
+    imports: [
+        /* ============================================
+           Writable DB (Assignments ONLY)
+        ============================================ */
+        TypeOrmModule.forFeature(
+            [LoanReceivableAssignment],
+            'nittan_app',
+        ),
 
-    /* ============================================
-       Read-only / Core DB (Legacy)
-    ============================================ */
-    TypeOrmModule.forFeature([], 'nittan'),
+        /* ============================================
+           Read-only / Core DB (Legacy)
+        ============================================ */
+        TypeOrmModule.forFeature([], 'nittan'),
 
-    /* ============================================
-       Snapshot module
-       (Registers snapshot ENTITIES + exports service)
-    ============================================ */
-    LoanAssignmentSnapshotModule,
-  ],
+        /* ============================================
+           Snapshot module
+           (Registers snapshot ENTITIES + exports service)
+        ============================================ */
+        LoanAssignmentSnapshotModule,
 
-  controllers: [
-    LoanReceivableAssignmentController,
+        /* ============================================
+           Monthly Income CRUD
+        ============================================ */
+        LoanAssignmentMonthlyIncomeModule,
+    ],
 
-    // ✅ ADD THIS
-    PersonalSnapshotController,
-  ],
+    controllers: [
+        LoanReceivableAssignmentController,
 
-  providers: [
-    LoanReceivableAssignmentService,
+        // Personal Snapshot Edit API
+        PersonalSnapshotController,
+    ],
 
-    // ✅ ADD THIS
-    PersonalSnapshotEditService,
-  ],
+    providers: [
+        LoanReceivableAssignmentService,
 
-  exports: [
-    LoanReceivableAssignmentService,
-  ],
+        // Personal Snapshot Edit Service
+        PersonalSnapshotEditService,
+    ],
+
+    exports: [
+        LoanReceivableAssignmentService,
+    ],
 })
-export class LoanReceivableAssignmentModule {}
+export class LoanReceivableAssignmentModule { }
