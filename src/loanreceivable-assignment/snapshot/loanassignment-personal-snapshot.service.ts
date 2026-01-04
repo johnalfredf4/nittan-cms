@@ -257,6 +257,9 @@ export class LoanAssignmentPersonalSnapshotService {
         address: p.ReferencePerson1Address,
         employer: p.ReferencePerson1Employer,
         contactNumber: p.ReferencePerson1TelNum,
+         // ✅ NEW COLUMNS
+        section: 'Relatives',
+        relationship: p.ReferencePerson1Relationship ?? null,
       });
     }
 
@@ -266,6 +269,9 @@ export class LoanAssignmentPersonalSnapshotService {
         address: p.ReferencePerson2Address,
         employer: p.ReferencePerson2Employer,
         contactNumber: p.ReferencePerson2TelNum,
+        // ✅ NEW COLUMNS
+        section: 'Relatives',
+        relationship: p.ReferencePerson2Relationship ?? null,
       });
     }
 
