@@ -411,7 +411,9 @@ export class LoanReceivableAssignmentService {
           ReferenceName,
           Address,
           ContactNumber,
-          Employer
+          Employer,
+          Section,
+          Relationship
         FROM dbo.LoanAssignment_ContactReferences
         WHERE PersonalSnapshotId IN (${snapshotIds.join(',')})
         `,
@@ -455,5 +457,6 @@ export class LoanReceivableAssignmentService {
 
 
 }
+
 
 
