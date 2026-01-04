@@ -76,7 +76,7 @@ export class LoanAssignmentPersonalSnapshot {
   @Column({ type: 'varchar', length: 150, nullable: true }) employerName?: string;
   @Column({ type: 'varchar', length: 150, nullable: true }) businessNature?: string;
   @Column({ type: 'varchar', length: 255, nullable: true }) employmentAddress?: string;
-  @Column({ type: 'int', nullable: true }) yearsOfService?: number;
+  @Column({ type: 'varchar', length: 100, nullable: true }) yearsOfService?: number;
   @Column({ type: 'varchar', length: 50, nullable: true }) employerContactNumber?: string;
   @Column({ type: 'varchar', length: 150, nullable: true }) employerEmail?: string;
   @Column({ type: 'varchar', length: 100, nullable: true }) jobTitle?: string;
