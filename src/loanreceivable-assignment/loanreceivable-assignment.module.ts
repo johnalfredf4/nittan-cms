@@ -25,6 +25,8 @@ import { LoanAssignmentSnapshotModule } from './snapshot/loanassignment-snapshot
 import { LoanAssignmentMonthlyIncomeModule } from './monthly-income/loanassignment-monthly-income.module';
 import { LoanAssignmentMonthlyExpenseModule } from './monthly-expenses/loanassignment-monthly-expense.module';
 import { LoanAssignmentIdentificationModule } from './identifications/loanassignment-identification.module';
+import { LoanAssignmentContactReferenceModule } from './contact-references/loanassignment-contact-reference.module';
+
 
 @Module({
     imports: [
@@ -53,6 +55,7 @@ import { LoanAssignmentIdentificationModule } from './identifications/loanassign
         LoanAssignmentMonthlyIncomeModule,
        LoanAssignmentMonthlyExpenseModule,
        LoanAssignmentIdentificationModule,
+       LoanAssignmentContactReferenceModule,
     ],
 
     controllers: [
