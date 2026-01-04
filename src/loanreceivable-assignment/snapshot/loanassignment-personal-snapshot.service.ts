@@ -194,7 +194,7 @@ export class LoanAssignmentPersonalSnapshotService {
     const sql = `
       SELECT TOP 1 *
       FROM [Nittan].[dbo].[tblPersonalInfos]
-      WHERE BorrowerNo = @0
+      WHERE [ID] = @0
       ORDER BY [Date] DESC
     `;
     const rows = await this.nittanDataSource.query(sql, [personId]);
