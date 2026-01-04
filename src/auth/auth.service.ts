@@ -35,6 +35,7 @@ export class AuthService {
       roles: user.roles,
       branchId: user.branchId,
       employeeId: user.employeeId,
+      isPasswordChanged: user.isPasswordChanged,
     });
 
     return {
@@ -47,6 +48,7 @@ export class AuthService {
         branchId: user.branchId,
         employeeId: user.employeeId,
         roles: user.roles,
+        isPasswordChanged: user.isPasswordChanged,
       },
     };
   }
