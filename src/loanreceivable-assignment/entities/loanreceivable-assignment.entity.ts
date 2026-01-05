@@ -83,6 +83,12 @@ export class LoanReceivableAssignment {
   })
   updatedAt: Date;
 
+  @OneToMany(
+    () => LoanAssignmentDocument,
+    document => document.assignment,
+  )
+  documents: LoanAssignmentDocument[];
+
 
 
 }
