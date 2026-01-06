@@ -28,6 +28,10 @@ import { LoanAssignmentIdentificationModule } from './identifications/loanassign
 import { LoanAssignmentContactReferenceModule } from './contact-references/loanassignment-contact-reference.module';
 import { LoanAssignmentAttachmentModule } from './attachments/loanassignment-attachment.module';
 
+import { DocumentsModule } from './documents/documents.module';
+import { LoanAssignmentDocument } from './documents/entities/loan-assignment-document.entity';
+import { DocumentRequirement } from './documents/entities/document-requirement.entity';
+
 @Module({
     imports: [
         /* ============================================
@@ -57,6 +61,8 @@ import { LoanAssignmentAttachmentModule } from './attachments/loanassignment-att
        LoanAssignmentIdentificationModule,
        LoanAssignmentContactReferenceModule,
        LoanAssignmentAttachmentModule,
+       LoanAssignmentDocument, 
+       DocumentRequirement,
     ],
 
     controllers: [
