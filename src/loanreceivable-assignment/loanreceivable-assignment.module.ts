@@ -20,7 +20,7 @@ import { PersonalSnapshotEditService } from './service/personal-snapshot-edit.se
 import { LoanAssignmentSnapshotModule } from './snapshot/loanassignment-snapshot.module';
 
 /* =======================
-   Monthly Income CRUD
+   Monthly / Supporting CRUD
 ======================= */
 import { LoanAssignmentMonthlyIncomeModule } from './monthly-income/loanassignment-monthly-income.module';
 import { LoanAssignmentMonthlyExpenseModule } from './monthly-expenses/loanassignment-monthly-expense.module';
@@ -28,59 +28,68 @@ import { LoanAssignmentIdentificationModule } from './identifications/loanassign
 import { LoanAssignmentContactReferenceModule } from './contact-references/loanassignment-contact-reference.module';
 import { LoanAssignmentAttachmentModule } from './attachments/loanassignment-attachment.module';
 
+/* =======================
+   Documents Module
+======================= */
 import { DocumentsModule } from './documents/documents.module';
 import { LoanAssignmentDocument } from './documents/entities/loan-assignment-document.entity';
 import { DocumentRequirement } from './documents/entities/document-requirement.entity';
 
 @Module({
-    imports: [
-        /* ============================================
-           Writable DB (Assignments ONLY)
-        ============================================ */
-        TypeOrmModule.forFeature(
-            [LoanReceivableAssignment],
-            'nittan_app',
-        ),
+  imports: [
+    /* ============================================
+       Writable DB (Assignments ONLY)
+    ============================================ */
+    TypeOrmModule.forFeature(
+      [
+        LoanReceivableAssignment,
+        LoanAssignmentDocument,
+        DocumentRequirement,
+      ],
+      'nittan_app',
+    ),
 
-        /* ============================================
-           Read-only / Core DB (Legacy)
-        ============================================ */
-        TypeOrmModule.forFeature([], 'nittan'),
+    /* ============================================
+       Read-only / Core DB (Legacy)
+    ============================================ */
+    TypeOrmModule.forFeature([], 'nittan'),
 
-        /* ============================================
-           Snapshot module
-           (Registers snapshot ENTITIES + exports service)
-        ============================================ */
-        LoanAssignmentSnapshotModule,
+    /* ============================================
+       Snapshot module
+    ============================================ */
+    LoanAssignmentSnapshotModule,
 
-        /* ============================================
-           Monthly Income CRUD
-        ============================================ */
-        LoanAssignmentMonthlyIncomeModule,
-       LoanAssignmentMonthlyExpenseModule,
-       LoanAssignmentIdentificationModule,
-       LoanAssignmentContactReferenceModule,
-       LoanAssignmentAttachmentModule,
-       LoanAssignmentDocument, 
-       DocumentRequirement,
-    ],
+    /* ============================================
+       Supporting CRUD modules
+    ============================================ */
+    LoanAssignmentMonthlyIncomeModule,
+    LoanAssignmentMonthlyExpenseModule,
+    LoanAssignmentIdentificationModule,
+    LoanAssignmentContactReferenceModule,
+    LoanAssignmentAttachmentModule,
 
-    controllers: [
-        LoanReceivableAssignmentController,
+    /* ============================================
+       Documents sub-domain
+    ============================================ */
+    DocumentsModule,
+  ],
 
-        // Personal Snapshot Edit API
-        PersonalSnapshotController,
-    ],
+  controllers: [
+    LoanReceivableAssignmentController,
 
-    providers: [
-        LoanReceivableAssignmentService,
+    // Personal Snapshot Edit API
+    PersonalSnapshotController,
+  ],
 
-        // Personal Snapshot Edit Service
-        PersonalSnapshotEditService,
-    ],
+  providers: [
+    LoanReceivableAssignmentService,
 
-    exports: [
-        LoanReceivableAssignmentService,
-    ],
+    // Personal Snapshot Edit Service
+    PersonalSnapshotEditService,
+  ],
+
+  exports: [
+    LoanReceivableAssignmentService,
+  ],
 })
-export class LoanReceivableAssignmentModule { }
+export class LoanReceivableAssignmentModule {}
