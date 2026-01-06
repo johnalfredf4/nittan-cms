@@ -8,7 +8,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
 export class S3Service {
-  private readonly bucket = 'nittan-nova-storage';
+  private readonly bucket = process.env.AWS_S3_BUCKET,
 
   // DEV: inline credentials — remove for production
   private readonly s3 = new S3Client({
@@ -49,4 +49,5 @@ export class S3Service {
     }
   }
 }
+
 
