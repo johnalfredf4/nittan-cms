@@ -30,10 +30,13 @@ export class S3Service {
           ACL: 'private',
         }),
       );
-    } catch (err) {
-      console.error('S3 upload error:', err);
-      throw new InternalServerErrorException('Failed to upload file to S3');
+    } catch (error) {
+      console.error('🔥 S3 UPLOAD ERROR:', error);
+      throw new InternalServerErrorException(
+        error?.message || 'Failed to upload file to S3',
+      );
     }
+
   }
 
   async getSignedDownloadUrl(key: string, expiresInSeconds = 300): Promise<string> {
@@ -49,6 +52,7 @@ export class S3Service {
     }
   }
 }
+
 
 
 
