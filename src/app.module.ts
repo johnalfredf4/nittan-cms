@@ -50,6 +50,13 @@ import { LoanAssignmentAttachment } from './loanreceivable-assignment/snapshot/e
 
 @Module({
   imports: [
+
+    // 🔐 Load ENV FIRST (before TypeORM, S3, etc.)
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '/var/www/keys/.env',
+    }),
+    
     ScheduleModule.forRoot(),
 
     // DEFAULT DB connection (CMS DB)
