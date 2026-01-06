@@ -31,10 +31,11 @@ export class S3Service {
         }),
       );
     } catch (error) {
-      console.error('🔥 S3 UPLOAD ERROR:', error);
-      throw new InternalServerErrorException(
-        error?.message || 'Failed to upload file to S3',
-      );
+      console.error('🔥 S3 ERROR FULL OBJECT:', error);
+      console.error('🔥 S3 ERROR MESSAGE:', error?.message);
+      console.error('🔥 S3 ERROR STACK:', error?.stack);
+    
+      throw error; // <-- IMPORTANT: rethrow original error
     }
 
   }
@@ -52,6 +53,7 @@ export class S3Service {
     }
   }
 }
+
 
 
 
