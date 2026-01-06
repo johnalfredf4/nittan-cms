@@ -12,10 +12,10 @@ export class S3Service {
 
   // DEV: inline credentials — remove for production
   private readonly s3 = new S3Client({
-    region: 'ap-southeast-1',
+    region: process.env.AWS_REGION,
     credentials: {
-      accessKeyId: 'AKIA2W6HW6PIFDZGHYMA',
-      secretAccessKey: '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',
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
     },
   });
 
@@ -49,3 +49,4 @@ export class S3Service {
     }
   }
 }
+
