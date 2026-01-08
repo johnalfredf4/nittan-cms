@@ -98,6 +98,7 @@ import { LoanAssignmentAttachment } from './loanreceivable-assignment/snapshot/e
         LoanAssignmentAttachment,
         EmailSendLog,
         SmsSendLog,
+        LoanAssignmentDocument,
       ],
       options: {
         encrypt: false,
