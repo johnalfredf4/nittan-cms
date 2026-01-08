@@ -68,7 +68,7 @@ export class DocumentsService {
     doc.status = 'SUBMITTED';
     doc.dateSubmitted = new Date();
     doc.originalFilename = file.originalname;
-    doc.s3Bucket = this.s3Service['bucket'];
+    doc.s3Bucket = process.env.AWS_S3_BUCKET!;
     doc.s3Key = key;
     doc.mimeType = file.mimetype;
     doc.fileSize = file.size;
@@ -119,6 +119,7 @@ export class DocumentsService {
     return this.reqRepo.find({ order: { id: 'ASC' } });
   }
 }
+
 
 
 
