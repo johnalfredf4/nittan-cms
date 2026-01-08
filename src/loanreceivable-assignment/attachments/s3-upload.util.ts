@@ -15,7 +15,7 @@ const s3 = new S3Client({
 });
 
 export async function uploadToS3(
-  file: Multer.File, // ✅ FIXED TYPE
+  file: Express.Multer.File, // ✅ FIXED TYPE
 ): Promise<string> {
   if (!file) {
     throw new Error('File is required');
@@ -35,3 +35,4 @@ export async function uploadToS3(
 
   return key; // stored in DB as FilePath
 }
+
