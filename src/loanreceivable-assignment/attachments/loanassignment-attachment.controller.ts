@@ -13,6 +13,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 import { LoanAssignmentAttachmentService } from './loanassignment-attachment.service';
 import { CreateAttachmentDto } from './dto/create-attachment.dto';
+import type { Express } from 'express';
+
 
 @Controller('loanassignment-attachments')
 export class LoanAssignmentAttachmentController {
@@ -42,3 +44,5 @@ export class LoanAssignmentAttachmentController {
     return this.service.delete(id);
   }
 }
+
+
