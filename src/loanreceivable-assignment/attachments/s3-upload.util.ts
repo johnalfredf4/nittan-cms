@@ -16,7 +16,7 @@ export async function uploadToS3(
 
   await s3.send(
     new PutObjectCommand({
-      Bucket: 'nittan-nova-storage',
+      Bucket: 'nittan-nova-storage-public',
       Key: key,
       Body: file.buffer,
       ContentType: file.mimetype,
@@ -26,4 +26,5 @@ export async function uploadToS3(
 
   return key; // ✅ this is FilePath
 }
+
 
