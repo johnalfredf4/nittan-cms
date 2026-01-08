@@ -72,7 +72,11 @@ export class DocumentsService {
     doc.mimeType = file.mimetype;
     doc.fileSize = file.size;
 
-    return this.docRepo.save(doc);
+     // 🔴 6. THIS IS THE CRITICAL LINE
+    const saved = await this.docRepo.save(document);
+  
+    // 🔴 7. MUST RETURN
+    return saved;
   }
 
   async download(documentId: number) {
@@ -114,3 +118,4 @@ export class DocumentsService {
     return this.reqRepo.find({ order: { id: 'ASC' } });
   }
 }
+
