@@ -8,9 +8,10 @@ import { DocumentRequirement } from './entities/document-requirement.entity';
 @Injectable()
 export class DocumentsService {
   constructor(
-    @InjectRepository(LoanAssignmentDocument)
+    @InjectRepository(LoanAssignmentDocument, 'nittan_app')
     private readonly docRepo: Repository<LoanAssignmentDocument>,
-    @InjectRepository(DocumentRequirement)
+
+    @InjectRepository(DocumentRequirement, 'nittan_app')
     private readonly reqRepo: Repository<DocumentRequirement>,
     private readonly dataSource: DataSource,
     private readonly s3Service: S3Service,
@@ -118,4 +119,5 @@ export class DocumentsService {
     return this.reqRepo.find({ order: { id: 'ASC' } });
   }
 }
+
 
