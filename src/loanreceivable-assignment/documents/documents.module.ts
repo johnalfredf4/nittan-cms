@@ -7,9 +7,16 @@ import { LoanAssignmentDocument } from './entities/loan-assignment-document.enti
 import { DocumentRequirement } from './entities/document-requirement.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([LoanAssignmentDocument, DocumentRequirement])],
+  imports: [
+    TypeOrmModule.forFeature(
+      [LoanAssignmentDocument, DocumentRequirement],
+      'nittan_app',
+    ),
+  ],
   controllers: [DocumentsController],
   providers: [DocumentsService, S3Service],
   exports: [DocumentsService],
 })
 export class DocumentsModule {}
+
+
