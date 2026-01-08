@@ -35,8 +35,10 @@ export class LoanAssignmentAttachmentController {
   findBySnapshot(
     @Param('personalSnapshotId', ParseIntPipe)
     personalSnapshotId: number,
+    @Query('attachmentType')
+    attachmentType?: string,
   ) {
-    return this.service.findBySnapshot(personalSnapshotId);
+    return this.service.findBySnapshot(personalSnapshotId,attachmentType,);
   }
 
   @Delete(':id')
@@ -44,5 +46,6 @@ export class LoanAssignmentAttachmentController {
     return this.service.delete(id);
   }
 }
+
 
 
