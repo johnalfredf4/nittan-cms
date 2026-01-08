@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuid } from 'uuid';
+import type { Express } from 'express';
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -26,5 +27,3 @@ export async function uploadToS3(
 
   return key; // ✅ this is FilePath
 }
-
-
