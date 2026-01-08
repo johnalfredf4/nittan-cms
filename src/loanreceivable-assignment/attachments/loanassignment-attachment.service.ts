@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   NotFoundException,
@@ -9,6 +10,7 @@ import { LoanAssignmentAttachment } from '../snapshot/entities/loanassignment-at
 import { LoanAssignmentPersonalSnapshot } from '../snapshot/entities/loanassignment-personal-snapshot.entity';
 import { CreateAttachmentDto } from './dto/create-attachment.dto';
 import { uploadToS3 } from './s3-upload.util';
+import type { Express } from 'express';
 
 @Injectable()
 export class LoanAssignmentAttachmentService {
@@ -60,3 +62,7 @@ export class LoanAssignmentAttachmentService {
     return { ok: true };
   }
 }
+
+
+
+
