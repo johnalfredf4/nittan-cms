@@ -2,10 +2,10 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuid } from 'uuid';
 
 const s3 = new S3Client({
-  region: 'ap-southeast-1',
-  credentials: {
-    accessKeyId: 'AKIA2W6HW6PIFDZGHYMA',
-    secretAccessKey: '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',
+  region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
   },
 });
 
@@ -26,3 +26,4 @@ export async function uploadToS3(
 
   return key; // ✅ this is FilePath
 }
+
