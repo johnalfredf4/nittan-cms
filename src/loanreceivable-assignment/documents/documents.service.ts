@@ -74,7 +74,7 @@ export class DocumentsService {
     doc.fileSize = file.size;
 
      // 🔴 6. THIS IS THE CRITICAL LINE
-    const saved = await this.docRepo.save(document);
+    const saved = await this.docRepo.save(doc);
   
     // 🔴 7. MUST RETURN
     return saved;
@@ -119,5 +119,6 @@ export class DocumentsService {
     return this.reqRepo.find({ order: { id: 'ASC' } });
   }
 }
+
 
 
