@@ -55,7 +55,7 @@ import { LoanAssignmentAttachment } from './loanreceivable-assignment/snapshot/e
     // 🔐 Load ENV FIRST (before TypeORM, S3, etc.)
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '/var/www/keys/.env',
+      envFilePath: '/mnt/c/inetpub/wwwroot/keys/.env', //CHANGE WHEN IN PRODUCTION
     }),
     
     ScheduleModule.forRoot(),
