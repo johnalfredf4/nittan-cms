@@ -8,6 +8,7 @@ import {
   UploadedFile,
   UseInterceptors,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -46,6 +47,7 @@ export class LoanAssignmentAttachmentController {
     return this.service.delete(id);
   }
 }
+
 
 
 
