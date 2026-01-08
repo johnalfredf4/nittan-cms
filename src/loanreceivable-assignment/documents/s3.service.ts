@@ -19,27 +19,24 @@ export class S3Service {
     },
   });
 
-  async uploadFile(file: Express.Multer.File, key: string): Promise<void> {
-    try {
-      await this.s3.send(
-        new PutObjectCommand({
-          Bucket: this.bucket,
-          Key: key,
-          Body: file.buffer,
-          ContentType: file.mimetype,
-          ACL: 'private',
-        }),
-      );
-    } catch (error) {
-      console.error('🔥 S3 ERROR FULL OBJECT:', error);
-      console.error('🔥 S3 ERROR MESSAGE:', error?.message);
-      console.error('🔥 S3 ERROR STACK:', error?.stack);
-    
-      throw error; // <-- IMPORTANT: rethrow original error
-    }
-
+   // 🔹 UPLOAD
+  async uploadFile(file: Express.Multer.File, key: string) {
+    console.log({
+      AWS_REGION: process.env.AWS_REGION,
+      AWS_BUCKET: process.env.AWS_S3_BUCKET,
+      AWS_KEY_LOADED: !!process.env.AWS_ACCESS_KEY_ID,
+    });
+    return this.s3.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+        ACL: 'private',
+      }),
+    );
   }
-
+  
   async getSignedDownloadUrl(key: string, expiresInSeconds = 300): Promise<string> {
     try {
       const cmd = new GetObjectCommand({
@@ -53,6 +50,7 @@ export class S3Service {
     }
   }
 }
+
 
 
 
