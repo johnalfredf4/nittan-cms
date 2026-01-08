@@ -95,7 +95,7 @@ import { LoanAssignmentAttachment } from './loanreceivable-assignment/snapshot/e
       database: 'Nittan',
       synchronize: false,
       autoLoadEntities: false,
-      entities: [],
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
       options: {
         encrypt: false,
         trustServerCertificate: true,
