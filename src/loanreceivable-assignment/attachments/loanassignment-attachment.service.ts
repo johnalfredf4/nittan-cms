@@ -45,9 +45,20 @@ export class LoanAssignmentAttachmentService {
     return this.attachmentRepo.save(attachment);
   }
 
-  async findBySnapshot(personalSnapshotId: number) {
+  async findBySnapshot(
+    personalSnapshotId: number,
+    attachmentType?: string,
+  ) {
+    const where: any = {
+      snapshot: { id: personalSnapshotId },
+    };
+  
+    if (attachmentType) {
+      where.attachmentType = attachmentType;
+    }
+  
     return this.attachmentRepo.find({
-      where: { snapshot: { id: personalSnapshotId } },
+      where,
       order: { uploadedAt: 'DESC' },
     });
   }
@@ -62,6 +73,7 @@ export class LoanAssignmentAttachmentService {
     return { ok: true };
   }
 }
+
 
 
 
