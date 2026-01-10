@@ -35,6 +35,8 @@ import { DocumentsModule } from './documents/documents.module';
 import { LoanAssignmentDocument } from './documents/entities/loan-assignment-document.entity';
 import { DocumentRequirement } from './documents/entities/document-requirement.entity';
 
+import { CallRecordingsModule } from './call-recordings/call-recordings.module';
+
 @Module({
   imports: [
     /* ============================================
@@ -72,6 +74,8 @@ import { DocumentRequirement } from './documents/entities/document-requirement.e
        Documents sub-domain
     ============================================ */
     DocumentsModule,
+    CallRecordingsModule,
+     
   ],
 
   controllers: [
