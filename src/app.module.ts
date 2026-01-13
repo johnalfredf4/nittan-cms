@@ -119,7 +119,7 @@ import { LoanAssignmentAttachment } from './loanreceivable-assignment/snapshot/e
     PaymentHistoryModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'src', 'public'),
-      serveRoot: '/', // 👈 serve at root
+      serveRoot: '/',
     }),
 
   ],
