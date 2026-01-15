@@ -23,13 +23,13 @@ export class UsersService {
     const roles = await this.rolesRepo.find({
       where: { name: In(dto.roleNames) },
     });
-
+  
     const passwordHash = await bcrypt.hash(dto.password, 10);
-
+  
     const user = this.usersRepo.create({
       username: dto.username,
       emailAddress: dto.emailAddress,
-
+  
       passwordHash,
   
       // ⚠️ must match ENTITY field names
@@ -41,11 +41,13 @@ export class UsersService {
   
       // ✅ REQUIRED by your business rule
       IsPasswordChanged: 0,
+  
       roles,
     });
-
-    return this.usersRepo.save(user);
+  
+    return await this.usersRepo.save(user);
   }
+
 
   async update(id: number, dto: UpdateUserDto): Promise<User> {
     const user = await this.usersRepo.findOne({ where: { id } });
