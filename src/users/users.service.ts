@@ -100,19 +100,28 @@ export class UsersService {
   async findByUsername(username: string): Promise<User | null> {
     return await this.usersRepo.findOne({
       where: { username },
-      relations: ['roles'],
+      relations: ['roles', 'branch'],
     });
   }
 
+
   async findAll(): Promise<User[]> {
-    return this.usersRepo.find();
+    return this.usersRepo.find({
+      relations: ['roles', 'branch'],
+    });
   }
 
+
   async findOne(id: number): Promise<User> {
-    const user = await this.usersRepo.findOne({ where: { id } });
+    const user = await this.usersRepo.findOne({
+      where: { id },
+      relations: ['roles', 'branch'],
+    });
+  
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
+
 
   /* =========================
      SOFT DELETE
