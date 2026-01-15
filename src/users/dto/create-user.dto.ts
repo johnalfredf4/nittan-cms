@@ -35,4 +35,8 @@ export class CreateUserDto {
   @IsArray()
   @IsString({ each: true })
   roleNames: string[]; // e.g. ["Collection Agent - Head Office"]
+
+  @IsOptional()
+  @IsInt()
+  branchId?: number;
 }
