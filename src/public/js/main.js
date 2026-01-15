@@ -77,7 +77,8 @@ async function initUserForm() {
     // Populate fields
     document.querySelector("input[name=username]").value = u.username || "";
     document.querySelector("input[name=emailAddress]").value = u.emailAddress || "";
-    document.querySelector("input[name=employeeId]").value = u.employeeId ?? "";
+    document.querySelector("input[name=employeeId]").value = u.employeeId || "";
+
     if (branchSelect && u.branchId) {
       branchSelect.value = String(u.branchId);
     }
@@ -119,6 +120,7 @@ async function initUserForm() {
 
     const payload = {
       emailAddress: form.get("emailAddress")?.trim(),
+      employeeId: form.get("employeeId")?.trim(),
       firstName: form.get("firstName")?.trim(),
       middleName: form.get("middleName")?.trim(),
       lastName: form.get("lastName")?.trim(),
