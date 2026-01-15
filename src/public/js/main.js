@@ -74,6 +74,7 @@ async function initUserForm() {
     // Populate fields
     document.querySelector("input[name=username]").value = u.username || "";
     document.querySelector("input[name=emailAddress]").value = u.emailAddress || "";
+    document.querySelector("input[name=employeeId]").value = u.employeeId ?? "";
     document.querySelector("input[name=firstName]").value = u.firstName || "";
     document.querySelector("input[name=middleName]").value = u.middleName || "";
     document.querySelector("input[name=lastName]").value = u.lastName || "";
@@ -111,13 +112,17 @@ async function initUserForm() {
     const form = new FormData(e.target);
 
     const payload = {
-      username: form.get("username")?.trim(),
       emailAddress: form.get("emailAddress")?.trim(),
       firstName: form.get("firstName")?.trim(),
       middleName: form.get("middleName")?.trim(),
       lastName: form.get("lastName")?.trim(),
       roleNames: [...rolesSelect.selectedOptions].map((o) => o.value),
     };
+
+    // Username only on CREATE
+    if (!editId) {
+      payload.username = form.get("username")?.trim();
+    }
 
     // Admin-only status
     if (isAdmin && statusSelect) {
