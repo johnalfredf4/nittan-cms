@@ -38,4 +38,8 @@ export class UpdateUserDto {
   @IsArray()
   @IsString({ each: true })
   roleNames?: string[];
+
+  @IsOptional()
+  @IsInt()
+  branchId?: number;
 }
