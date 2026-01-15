@@ -2,6 +2,10 @@ const roles = JSON.parse(localStorage.getItem("roles") || "[]");
 const isAdmin =
   roles.includes("IT - CMS Admin") || roles.includes("Execom - CEO");
 
+const PAGE_SIZE = 10;
+let currentPage = 1;
+let allUsers = [];
+
 async function loadUsers() {
   const token = localStorage.getItem("token");
   const username = localStorage.getItem("username");
@@ -34,52 +38,66 @@ async function loadUsers() {
     return;
   }
 
-  const users = await res.json();
+  allUsers = await res.json();
+  currentPage = 1;
+  renderPage();
+}
+
+function renderPage() {
   const tbody = document.getElementById("usersTable");
+  const pageInfo = document.getElementById("pageInfo");
+  const prevBtn = document.getElementById("prevPageBtn");
+  const nextBtn = document.getElementById("nextPageBtn");
+
   tbody.innerHTML = "";
 
-  users.forEach((u) => {
+  const totalPages = Math.max(
+    1,
+    Math.ceil(allUsers.length / PAGE_SIZE),
+  );
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const end = start + PAGE_SIZE;
+  const pageUsers = allUsers.slice(start, end);
+
+  pageUsers.forEach((u) => {
     const actions = [];
 
     actions.push(
-      `<a href="user-form.html?id=${u.id}" class="text-green-700 hover:underline mr-2">Edit</a>`
+      `<a href="user-form.html?id=${u.id}" class="text-green-700 hover:underline mr-2">Edit</a>`,
     );
 
     if (isAdmin) {
       actions.push(
-        `<button onclick="deleteUser(${u.id})" class="text-red-600 hover:underline">Delete</button>`
+        `<button onclick="deleteUser(${u.id})" class="text-red-600 hover:underline">Delete</button>`,
       );
     }
 
+    const roleNames = (u.roles || [])
+      .map((r) => r.name)
+      .join(", ") || "-";
+
+    const branchName = u.branch?.name || "-";
+
     tbody.innerHTML += `
-      <tr class="border-b hover:bg-green-50">
+      <tr class="hover:bg-green-50">
         <td class="p-3">${u.username}</td>
         <td class="p-3">${u.firstName} ${u.lastName}</td>
-        <td class="p-3">${u.emailAddress ?? "-"}</td>
-        <td class="p-3">${renderRoles(u.roles)}</td>
+        <td class="p-3">${u.emailAddress || "-"}</td>
+        <td class="p-3">${branchName}</td>
+        <td class="p-3">${roleNames}</td>
         <td class="p-3">${renderStatus(u.status)}</td>
         <td class="p-3 text-right space-x-2">${actions.join(" ")}</td>
       </tr>
     `;
   });
+
+  pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+
+  prevBtn.disabled = currentPage === 1;
+  nextBtn.disabled = currentPage === totalPages;
 }
 
-async function deleteUser(id) {
-  if (!confirm("Are you sure you want to delete this user?")) return;
-
-  const token = localStorage.getItem("token");
-
-  await fetch(`/users/${id}`, {
-    method: "DELETE",
-    headers: { Authorization: "Bearer " + token },
-  });
-
-  loadUsers();
-}
-
-/* ---------------------------
-   Status Badge Renderer
----------------------------- */
 function renderStatus(status) {
   switch (Number(status)) {
     case 1:
@@ -93,18 +111,49 @@ function renderStatus(status) {
   }
 }
 
-/* ---------------------------
-   Roles Renderer
----------------------------- */
-function renderRoles(roles = []) {
-  if (!roles.length) return '<span class="text-gray-400">-</span>';
+async function deleteUser(id) {
+  if (!confirm("Are you sure you want to delete this user?")) return;
 
-  return roles
-    .map(
-      (r) =>
-        `<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded mr-1 mb-1">${r.name}</span>`
-    )
-    .join("");
+  const token = localStorage.getItem("token");
+
+  await fetch(`/users/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: "Bearer " + token },
+  });
+
+  // Remove locally and rerender page
+  allUsers = allUsers.filter((u) => u.id !== id);
+
+  const maxPage = Math.max(
+    1,
+    Math.ceil(allUsers.length / PAGE_SIZE),
+  );
+
+  if (currentPage > maxPage) currentPage = maxPage;
+
+  renderPage();
 }
 
-document.addEventListener("DOMContentLoaded", loadUsers);
+// Pagination buttons
+document.addEventListener("DOMContentLoaded", () => {
+  document
+    .getElementById("prevPageBtn")
+    .addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPage();
+      }
+    });
+
+  document
+    .getElementById("nextPageBtn")
+    .addEventListener("click", () => {
+      const totalPages = Math.ceil(allUsers.length / PAGE_SIZE);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderPage();
+      }
+    });
+
+  loadUsers();
+});
