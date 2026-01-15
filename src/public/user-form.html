@@ -1,11 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NOVA CMS | User</title>
+  <title>NOVA CMS</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="js/user-form.js" defer></script>
+  <script src="js/main.js" defer></script>
 </head>
 <body class="bg-gradient-to-b from-white to-green-50 text-gray-800">
 
@@ -21,13 +22,43 @@
       <span class="text-lg font-bold tracking-wide">NOVA CMS</span>
     </div>
 
-    <nav class="mt-4 text-sm">
+    <nav class="mt-4 text-sm" id="sidebarNav">
       <a href="dashboard.html" class="nav-link block px-6 py-3">Dashboard</a>
       <a href="users.html" class="block px-6 py-3 bg-green-800 text-white font-semibold">Users</a>
+      <a href="email-templates.html" class="nav-link block px-6 py-3">Email Templates</a>
+      <a href="sms-templates.html" class="nav-link block px-6 py-3">SMS Templates</a>
+      <a href="product-types.html" class="nav-link block px-6 py-3">Product Types</a>
+      <a href="account-retention.html" class="nav-link block px-6 py-3">Retention Settings</a>
+      <a href="disposition-categories.html" class="nav-link block px-6 py-3">Disposition Categories</a>
+      <a href="overrides.html" class="nav-link block px-6 py-3">Assignment Overrides</a>
     </nav>
   </aside>
 
   <!-- Main -->
+  <div class="flex flex-col flex-1 md:ml-64">
+
+    <!-- Navbar -->
+    <header class="flex items-center bg-white/90 backdrop-blur border-b border-green-100 px-4 h-14 shadow-sm">
+	  <button
+	    class="md:hidden text-2xl text-green-800"
+	    onclick="toggleSidebar()"
+	  >
+	    ☰
+	  </button>
+	
+	  <!-- Right-aligned user actions -->
+	  <div class="ml-auto flex items-center gap-4">
+	    <span id="userLabel" class="text-sm font-semibold text-green-800"></span>
+	    <button
+	      id="logoutBtn"
+	      class="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-lg text-sm font-semibold"
+	    >
+	      Logout
+	    </button>
+	  </div>
+	</header>
+
+    <!-- Main -->
   <div class="flex flex-col flex-1 md:ml-64">
 
     <!-- Navbar -->
@@ -52,10 +83,7 @@
 
           <input name="username" placeholder="Username"
             class="w-full border rounded px-3 py-2" required />
-
-          <input name="emailAddress" type="email" placeholder="Email Address"
-            class="w-full border rounded px-3 py-2" required />
-
+          
           <input id="passwordInput" name="password" type="password"
             placeholder="Password"
             class="w-full border rounded px-3 py-2" />
@@ -68,6 +96,10 @@
 
           <input name="lastName" placeholder="Last Name"
             class="w-full border rounded px-3 py-2" required />
+
+           <input name="emailAddress" type="email" placeholder="Email Address"
+            class="w-full border rounded px-3 py-2" required />
+
 
           <!-- Status (admin only, no DELETED) -->
           <select name="status" id="statusSelect"
