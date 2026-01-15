@@ -2,6 +2,9 @@ const roles = JSON.parse(localStorage.getItem("roles") || "[]");
 const isAdmin =
   roles.includes("IT - CMS Admin") || roles.includes("Execom - CEO");
 
+/* ---------------------------
+   Load Users
+---------------------------- */
 async function loadUsers() {
   const token = localStorage.getItem("token");
   const username = localStorage.getItem("username");
@@ -11,13 +14,14 @@ async function loadUsers() {
     return;
   }
 
-  document.getElementById("userLabel").innerText = username || '';
+  document.getElementById("userLabel").innerText = username || "";
 
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.clear();
     window.location = "login.html";
   });
 
+  // Hide "New User" if not admin
   if (!isAdmin) {
     const newUserBtn = document.getElementById("newUserBtn");
     if (newUserBtn) newUserBtn.style.display = "none";
@@ -34,7 +38,11 @@ async function loadUsers() {
     return;
   }
 
-  const users = await res.json();
+  let users = await res.json();
+
+  // ❌ Do not show deleted users
+  users = users.filter(u => Number(u.status) !== 3);
+
   const tbody = document.getElementById("usersTable");
   tbody.innerHTML = "";
 
@@ -42,26 +50,30 @@ async function loadUsers() {
     const actions = [];
 
     actions.push(
-      `<a href="user-form.html?id=${u.id}" class="text-blue-600 mr-2">Edit</a>`,
+      `<a href="user-form.html?id=${u.id}" class="text-green-700 hover:underline mr-2">Edit</a>`
     );
 
     if (isAdmin) {
       actions.push(
-        `<button onclick="deleteUser(${u.id})" class="text-red-600">Delete</button>`,
+        `<button onclick="deleteUser(${u.id})" class="text-red-600 hover:underline">Delete</button>`
       );
     }
 
     tbody.innerHTML += `
-      <tr class="border-b">
-        <td class="p-2">${u.username}</td>
-        <td class="p-2">${u.firstName} ${u.lastName}</td>
-        <td class="p-2">${u.status}</td>
-        <td class="p-2 text-right space-x-2">${actions.join(' ')}</td>
+      <tr class="border-b hover:bg-green-50">
+        <td class="p-3">${u.username}</td>
+        <td class="p-3">${u.emailAddress ?? "-"}</td>
+        <td class="p-3">${u.firstName} ${u.lastName}</td>
+        <td class="p-3">${renderStatus(u.status)}</td>
+        <td class="p-3 text-right space-x-2">${actions.join(" ")}</td>
       </tr>
     `;
   });
 }
 
+/* ---------------------------
+   Soft Delete User
+---------------------------- */
 async function deleteUser(id) {
   if (!confirm("Are you sure you want to delete this user?")) return;
 
@@ -75,6 +87,9 @@ async function deleteUser(id) {
   loadUsers();
 }
 
+/* ---------------------------
+   Status Badge Renderer
+---------------------------- */
 function renderStatus(status) {
   switch (Number(status)) {
     case 1:
