@@ -79,10 +79,16 @@ export class UsersService {
     return user;
   }
 
-  async remove(id: number): Promise<void> {
-    const user = await this.usersRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
-    await this.usersRepo.remove(user);
+  //async remove(id: number): Promise<void> {
+  //  const user = await this.usersRepo.findOne({ where: { id } });
+   // if (!user) throw new NotFoundException('User not found');
+  //  await this.usersRepo.remove(user);
+ // }
+
+  async remove(id: number) {
+    return this.userRepo.update(id, {
+      status: UserStatus.DELETED,
+    });
   }
 
   async updatePassword(id: number, hash: string): Promise<void> {
