@@ -37,24 +37,25 @@
   <div class="flex flex-col flex-1 md:ml-64">
 
     <!-- Navbar -->
-    <header class="flex items-center justify-between bg-white/90 backdrop-blur border-b border-green-100 px-4 h-14 shadow-sm">
-      <button
-        class="md:hidden text-2xl text-green-800"
-        onclick="toggleSidebar()"
-      >
-        ☰
-      </button>
-
-      <div class="flex items-center gap-4">
-        <span id="userLabel" class="text-sm font-semibold text-green-800"></span>
-        <button
-          id="logoutBtn"
-          class="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-lg text-sm font-semibold"
-        >
-          Logout
-        </button>
-      </div>
-    </header>
+    <header class="flex items-center bg-white/90 backdrop-blur border-b border-green-100 px-4 h-14 shadow-sm">
+	  <button
+	    class="md:hidden text-2xl text-green-800"
+	    onclick="toggleSidebar()"
+	  >
+	    ☰
+	  </button>
+	
+	  <!-- Right-aligned user actions -->
+	  <div class="ml-auto flex items-center gap-4">
+	    <span id="userLabel" class="text-sm font-semibold text-green-800"></span>
+	    <button
+	      id="logoutBtn"
+	      class="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-lg text-sm font-semibold"
+	    >
+	      Logout
+	    </button>
+	  </div>
+	</header>
 
     <!-- Page Content -->
     <main id="pageContent" class="p-6 overflow-y-auto">
