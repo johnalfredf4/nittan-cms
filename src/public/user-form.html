@@ -78,46 +78,60 @@
 
       <div class="bg-white rounded shadow p-6 max-w-xl">
         <form id="userForm" class="space-y-3">
-
-          <input
+		  <div>
+			<label class="block text-sm mb-1">Username</label>
+			<input
 			  name="username"
 			  placeholder="Username"
 			  class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed"
 			  readonly
 			/>
-
-		  <input
+		  </div>
+          <div>
+			<label class="block text-sm mb-1">Employee ID</label>
+			<input
 			  name="employeeId"
 			  placeholder="Employee ID"
 			  class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed"
 			  readonly
 			/>
-		   
-          
-          <input id="passwordInput" name="password" type="password"
+		  </div>
+		  <div>
+			<label class="block text-sm mb-1">Password</label>
+			<input id="passwordInput" name="password" type="password"
             placeholder="Password"
             class="w-full border rounded px-3 py-2" />
-
-          <input name="firstName" placeholder="First Name"
+		  </div>
+		  <div>
+			<label class="block text-sm mb-1">First Name</label>
+			<input name="firstName" placeholder="First Name"
             class="w-full border rounded px-3 py-2" required />
-
-          <input name="middleName" placeholder="Middle Name"
+		  </div>
+		  <div>
+			<label class="block text-sm mb-1">Middle Name</label>
+			<input name="middleName" placeholder="Middle Name"
             class="w-full border rounded px-3 py-2" />
-
-          <input name="lastName" placeholder="Last Name"
+		  </div>
+		  <div>
+			<label class="block text-sm mb-1">Last Name</label>
+			<input name="lastName" placeholder="Last Name"
             class="w-full border rounded px-3 py-2" required />
-
-           <input name="emailAddress" type="email" placeholder="Email Address"
+		  </div>
+		  <div>
+			<label class="block text-sm mb-1">Email Address</label>
+			<input name="emailAddress" type="email" placeholder="Email Address"
             class="w-full border rounded px-3 py-2" required />
-
-
-          <!-- Status (admin only, no DELETED) -->
-          <select name="status" id="statusSelect"
-            class="w-full border rounded px-3 py-2">
-            <option value="1">ACTIVE</option>
-            <option value="2">INACTIVE</option>
-          </select>
-
+		  </div>
+		  <div>
+			<!-- Status (admin only, no DELETED) -->
+			  <label class="block text-sm mb-1">Status</label>
+			  <select name="status" id="statusSelect"
+				class="w-full border rounded px-3 py-2">
+				<option value="1">ACTIVE</option>
+				<option value="2">INACTIVE</option>
+			  </select>
+		  </div>
+	
           <div>
             <label class="block text-sm font-medium mb-1">Roles</label>
             <select name="roles" multiple size="6"
