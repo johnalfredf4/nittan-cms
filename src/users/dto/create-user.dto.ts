@@ -1,5 +1,6 @@
 import {
   IsString,
+  IsEmail,
   IsOptional,
   IsEnum,
   IsArray,
@@ -9,6 +10,9 @@ import { UserStatus } from '../../common/enums/user-status.enum';
 export class CreateUserDto {
   @IsString()
   username: string;
+
+  @IsEmail()
+  emailAddress: string;
 
   @IsString()
   password: string;
@@ -24,8 +28,8 @@ export class CreateUserDto {
   lastName: string;
 
   @IsOptional()
-  @IsEnum(UserStatus)
-  status?: UserStatus;
+  @IsInt()
+  status?: UserStatus; // defaults to ACTIVE
 
   @IsArray()
   @IsString({ each: true })
