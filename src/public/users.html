@@ -1,52 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Users</title>
-  <link rel="stylesheet" href="css/tw.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NOVA CMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="js/users.js" defer></script>
 </head>
-<body class="bg-gray-100 min-h-screen">
-  <header class="bg-white shadow">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-xl font-semibold">Users</h1>
-      <div class="flex items-center space-x-3">
-        <span id="userLabel" class="text-sm text-gray-600"></span>
-        <button id="logoutBtn" class="text-sm text-red-600">Logout</button>
-      </div>
-    </div>
-  </header>
+<body class="bg-gradient-to-b from-white to-green-50 text-gray-800">
 
-  <main class="max-w-5xl mx-auto px-4 py-6">
-    <nav class="mb-4 flex space-x-4">
-      <a href="dashboard.html" class="text-gray-700 hover:text-blue-600">Dashboard</a>
-      <a href="users.html" class="text-blue-600 font-medium">Users</a>
-      <a href="email-templates.html" class="text-gray-700 hover:text-blue-600">Email Templates</a>
-      <a href="sms-templates.html" class="text-gray-700 hover:text-blue-600">SMS Templates</a>
-      <a href="product-types.html" class="text-gray-700 hover:text-blue-600">Product Types</a>
-      <a href="account-retention.html" class="text-gray-700 hover:text-blue-600">Retention Settings</a>
-      <a href="disposition-categories.html" class="text-gray-700 hover:text-blue-600">Disposition Categories</a>
+<div class="flex h-screen overflow-hidden">
+
+  <!-- Sidebar -->
+  <aside
+    id="sidebar"
+    class="fixed inset-y-0 left-0 w-64 bg-green-900 text-green-100 transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 shadow-xl"
+  >
+    <div class="flex items-center gap-3 px-6 py-4 border-b border-green-800">
+      <img src="/images/NovaLogo2-xANBbiNh.svg" class="h-8 w-8" alt="NOVA" />
+      <span class="text-lg font-bold tracking-wide">NOVA CMS</span>
+    </div>
+
+    <nav class="mt-4 text-sm" id="sidebarNav">
+      <a href="dashboard.html" class="nav-link block px-6 py-3">Dashboard</a>
+      <a href="users.html" class="block px-6 py-3 bg-green-800 text-white font-semibold">Users</a>
+      <a href="email-templates.html" class="nav-link block px-6 py-3">Email Templates</a>
+      <a href="sms-templates.html" class="nav-link block px-6 py-3">SMS Templates</a>
+      <a href="product-types.html" class="nav-link block px-6 py-3">Product Types</a>
+      <a href="account-retention.html" class="nav-link block px-6 py-3">Retention Settings</a>
+      <a href="disposition-categories.html" class="nav-link block px-6 py-3">Disposition Categories</a>
+      <a href="overrides.html" class="nav-link block px-6 py-3">Assignment Overrides</a>
     </nav>
+  </aside>
 
-    <div class="bg-white rounded shadow p-4">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-lg font-semibold">User Directory</h2>
-        <a id="newUserBtn" href="user-form.html" class="px-4 py-2 bg-blue-600 text-white rounded text-sm">+ New User</a>
+  <!-- Main -->
+  <div class="flex flex-col flex-1 md:ml-64">
+
+    <!-- Navbar -->
+    <header class="flex items-center justify-between bg-white/90 backdrop-blur border-b border-green-100 px-4 h-14 shadow-sm">
+      <button
+        class="md:hidden text-2xl text-green-800"
+        onclick="toggleSidebar()"
+      >
+        ☰
+      </button>
+
+      <div class="flex items-center gap-4">
+        <span id="userLabel" class="text-sm font-semibold text-green-800"></span>
+        <button
+          id="logoutBtn"
+          class="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-lg text-sm font-semibold"
+        >
+          Logout
+        </button>
       </div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead>
-            <tr class="bg-gray-100 text-left">
-              <th class="p-2">Username</th>
-              <th class="p-2">Name</th>
-              <th class="p-2">Status</th>
-              <th class="p-2 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="usersTable"></tbody>
-        </table>
-      </div>
-    </div>
-  </main>
+    </header>
+
+    <!-- Page Content -->
+    <main id="pageContent" class="p-6 overflow-y-auto">
+       <div class="bg-white rounded shadow p-4">
+		  <div class="flex justify-between items-center mb-3">
+			<h2 class="text-lg font-semibold">User Directory</h2>
+			<a id="newUserBtn" href="user-form.html" class="px-4 py-2 bg-blue-600 text-white rounded text-sm">+ New User</a>
+		  </div>
+		  <div class="overflow-x-auto">
+			<table class="min-w-full text-sm">
+			  <thead>
+				<tr class="bg-gray-100 text-left">
+				  <th class="p-2">Username</th>
+				  <th class="p-2">Name</th>
+				  <th class="p-2">Status</th>
+				  <th class="p-2 text-right">Actions</th>
+				</tr>
+			  </thead>
+			  <tbody id="usersTable"></tbody>
+			</table>
+		  </div>
+		</div>
+    </main>
+
+  </div>
+</div>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('-translate-x-full');
+  }
+
+  // Auth guard
+  const username = localStorage.getItem('username');
+  if (!username) {
+    window.location = 'login.html';
+  }
+  document.getElementById('userLabel').innerText = username;
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location = 'login.html';
+  });
+
+  // Active nav highlight
+  const currentPage = location.pathname.split('/').pop();
+  document.querySelectorAll('.nav-link').forEach(link => {
+    if (link.getAttribute('href') === currentPage) {
+      link.classList.add('bg-green-800', 'text-white', 'font-semibold');
+    } else {
+      link.classList.add('hover:bg-green-800');
+    }
+  });
+</script>
+
 </body>
 </html>
