@@ -52,25 +52,40 @@ export class UsersService {
 
   async update(id: number, dto: UpdateUserDto): Promise<User> {
     const user = await this.usersRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
-
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
+    // Password update (only if provided)
     if (dto.password) {
       user.passwordHash = await bcrypt.hash(dto.password, 10);
+      user.isPasswordChanged = true; // ✅ important
+    }
+  
+    // Basic fields
+    if (dto.emailAddress !== undefined) {
+      user.emailAddress = dto.emailAddress; // ✅ FIX
     }
     if (dto.firstName !== undefined) user.firstName = dto.firstName;
     if (dto.middleName !== undefined) user.middleName = dto.middleName;
     if (dto.lastName !== undefined) user.lastName = dto.lastName;
-    if (dto.status !== undefined) user.status = dto.status;
-
+  
+    // Status (admin-only enforced in controller)
+    if (dto.status !== undefined) {
+      user.status = dto.status;
+    }
+  
+    // Roles
     if (dto.roleNames) {
       const roles = await this.rolesRepo.find({
         where: { name: In(dto.roleNames) },
       });
       user.roles = roles;
     }
-
+  
     return this.usersRepo.save(user);
   }
+
 
   async findByUsername(username: string): Promise<User | null> {
     return await this.usersRepo.findOne({
