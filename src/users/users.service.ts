@@ -32,19 +32,21 @@ export class UsersService {
   
       passwordHash,
   
-      // ✅ camelCase — MUST match entity
       firstName: dto.firstName,
       middleName: dto.middleName,
       lastName: dto.lastName,
   
       status: dto.status ?? UserStatus.ACTIVE,
-      IsPasswordChanged: 0,
+  
+      // ✅ MUST match entity property name
+      isPasswordChanged: 0,
   
       roles,
     });
   
     return await this.usersRepo.save(user);
   }
+
 
 
 
