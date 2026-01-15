@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsArray,
   IsInt,
+  IsNotEmpty,
 } from 'class-validator';
 import { UserStatus } from '../../common/enums/user-status.enum';
 
@@ -14,6 +15,10 @@ export class CreateUserDto {
 
   @IsEmail()
   emailAddress: string;
+
+  @IsString()
+  @IsNotEmpty()
+  employeeId: string;
 
   @IsString()
   password: string;
