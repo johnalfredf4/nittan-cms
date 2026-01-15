@@ -131,7 +131,7 @@ async function initUserForm() {
     }
 
     const url = editId ? `/users/${editId}` : "/users";
-    const method = editId ? "PUT" : "POST";
+    const method = editId ? "PATCH" : "POST";
 
     const resSave = await fetch(url, {
       method,
