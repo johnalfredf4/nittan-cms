@@ -168,22 +168,28 @@ async function initUserForm() {
 }
 
 async function loadBranches() {
+  const token = localStorage.getItem("token");
+
   const res = await fetch("/branches", {
-    headers: { Authorization: "Bearer " + token },
+    headers: {
+      Authorization: "Bearer " + token, // ✅ REQUIRED
+    },
   });
 
   if (!res.ok) {
-    alert("Failed to load branches");
+    console.error("Failed to load branches");
     return;
   }
 
   const branches = await res.json();
+  const branchSelect = document.getElementById("branchSelect");
+
   branchSelect.innerHTML = `<option value="">Select Branch</option>`;
 
   branches.forEach((b) => {
     const opt = document.createElement("option");
-    opt.value = b.id;      // BranchId
-    opt.textContent = b.name; // Branch Name
+    opt.value = b.id;
+    opt.textContent = b.name;
     branchSelect.appendChild(opt);
   });
 }
