@@ -32,14 +32,12 @@ export class UsersService {
   
       passwordHash,
   
-      // ⚠️ must match ENTITY field names
-      first_name: dto.firstName,
-      middle_name: dto.middleName,
-      last_name: dto.lastName,
+      // ✅ camelCase — MUST match entity
+      firstName: dto.firstName,
+      middleName: dto.middleName,
+      lastName: dto.lastName,
   
       status: dto.status ?? UserStatus.ACTIVE,
-  
-      // ✅ REQUIRED by your business rule
       IsPasswordChanged: 0,
   
       roles,
@@ -47,6 +45,7 @@ export class UsersService {
   
     return await this.usersRepo.save(user);
   }
+
 
 
   async update(id: number, dto: UpdateUserDto): Promise<User> {
