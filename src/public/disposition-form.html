@@ -1,55 +1,135 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <title>Disposition Form</title>
-    <link rel="stylesheet" href="css/tw.css">
-    <script src="js/disposition-form.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NOVA CMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/disposition-form.js" defer></script>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gradient-to-b from-white to-green-50 text-gray-800">
 
-<main class="max-w-5xl mx-auto px-4 py-6">
+<div class="flex h-screen overflow-hidden">
 
-    <div class="bg-white rounded shadow p-6">
-        <h2 id="formHeading" class="text-lg font-semibold mb-4">Disposition Details</h2>
-
-        <form id="dispositionForm" class="space-y-4">
-            <input type="hidden" id="id">
-
-            <div>
-                <label class="block text-sm mb-1">Disposition Name</label>
-                <input type="text" id="dispositionName" class="border p-2 rounded w-full" required>
-            </div>
-
-            <div>
-                <label class="block text-sm mb-1">Belongs To Category</label>
-                <select id="categoryId" class="border p-2 rounded w-full" required></select>
-            </div>
-
-            <div class="flex items-center space-x-2">
-                <input type="checkbox" id="requiresNextSchedule">
-                <label for="requiresNextSchedule" class="text-sm">Requires Next Schedule</label>
-            </div>
-
-            <div class="flex items-center space-x-2">
-                <input type="checkbox" id="isActive">
-                <label for="isActive" class="text-sm">Active</label>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-4">
-                <button type="button" onclick="history.back()" class="px-4 py-1 border rounded text-gray-700">
-                    Cancel
-                </button>
-
-                <button type="submit" class="px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
-                    Save
-                </button>
-            </div>
-        </form>
-
+  <!-- Sidebar -->
+  <aside
+    id="sidebar"
+    class="fixed inset-y-0 left-0 w-64 bg-green-900 text-green-100 transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 shadow-xl"
+  >
+    <div class="flex items-center gap-3 px-6 py-4 border-b border-green-800">
+      <img src="/images/NovaLogo2-xANBbiNh.svg" class="h-8 w-8" alt="NOVA" />
+      <span class="text-lg font-bold tracking-wide">NOVA CMS</span>
     </div>
 
-</main>
+    <nav class="mt-4 text-sm" id="sidebarNav">
+      <a href="dashboard.html" class="nav-link block px-6 py-3">Dashboard</a>
+      <a href="users.html" class="nav-link block px-6 py-3">Users</a>
+      <a href="email-templates.html" class="nav-link block px-6 py-3">Email Templates</a>
+      <a href="sms-templates.html" class="nav-link block px-6 py-3">SMS Templates</a>
+      <a href="product-types.html" class="nav-link block px-6 py-3">Product Types</a>
+      <a href="account-retention.html" class="nav-link block px-6 py-3">Retention Settings</a>
+      <a href="disposition-categories.html" class="block px-6 py-3 bg-green-800 text-white font-semibold">Disposition Categories</a>
+      <a href="overrides.html" class="nav-link block px-6 py-3">Assignment Overrides</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <div class="flex flex-col flex-1 md:ml-64">
+
+    <!-- Navbar -->
+    <header class="flex items-center bg-white/90 backdrop-blur border-b border-green-100 px-4 h-14 shadow-sm">
+	  <button
+	    class="md:hidden text-2xl text-green-800"
+	    onclick="toggleSidebar()"
+	  >
+	    ☰
+	  </button>
+	
+	  <!-- Right-aligned user actions -->
+	  <div class="ml-auto flex items-center gap-4">
+	    <span id="userLabel" class="text-sm font-semibold text-green-800"></span>
+	    <button
+	      id="logoutBtn"
+	      class="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-lg text-sm font-semibold"
+	    >
+	      Logout
+	    </button>
+	  </div>
+	</header>
+
+    <!-- Main -->
+
+    <!-- Page Content -->
+    <main class="p-6 overflow-y-auto">
+      <div class="flex items-center gap-3 mb-4">
+		  <a
+			href="dispositions.html"
+			class="inline-flex items-center gap-1 text-sm text-green-700 hover:text-green-900 font-medium"
+		  >
+			← Back
+		  </a>
+		
+		  <h1 class="text-xl font-semibold" id="formHeading">
+			Disposition Details
+		  </h1>
+		</div>
+		<div class="bg-white rounded shadow p-6">
+			<form id="dispositionForm" class="space-y-4">
+				<input type="hidden" id="id">
+
+				<div>
+					<label class="block text-sm mb-1">Disposition Name</label>
+					<input type="text" id="dispositionName" class="border p-2 rounded w-full" required>
+				</div>
+
+				<div>
+					<label class="block text-sm mb-1">Belongs To Category</label>
+					<select id="categoryId" class="border p-2 rounded w-full" required></select>
+				</div>
+
+				<div class="flex items-center space-x-2">
+					<input type="checkbox" id="requiresNextSchedule">
+					<label for="requiresNextSchedule" class="text-sm">Requires Next Schedule</label>
+				</div>
+
+				<div class="flex items-center space-x-2">
+					<input type="checkbox" id="isActive">
+					<label for="isActive" class="text-sm">Active</label>
+				</div>
+
+				<div class="flex justify-end gap-2 pt-4">
+					<button type="button" onclick="history.back()" class="px-4 py-1 border rounded text-gray-700">
+						Cancel
+					</button>
+
+					<button type="submit" class="px-4 py-1 bg-green-600 text-white rounded hover:bg-green-700">
+						Save
+					</button>
+				</div>
+			</form>
+		</div>
+
+      
+    </main>
+
+  </div>
+</div>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('-translate-x-full');
+  }
+
+  // Auth guard
+  const username = localStorage.getItem('username');
+  if (!username) window.location = 'login.html';
+  document.getElementById('userLabel').innerText = username;
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location = 'login.html';
+  });
+</script>
 
 </body>
 </html>
