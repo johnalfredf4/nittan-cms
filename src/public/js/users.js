@@ -2,9 +2,6 @@ const roles = JSON.parse(localStorage.getItem("roles") || "[]");
 const isAdmin =
   roles.includes("IT - CMS Admin") || roles.includes("Execom - CEO");
 
-/* ---------------------------
-   Load Users
----------------------------- */
 async function loadUsers() {
   const token = localStorage.getItem("token");
   const username = localStorage.getItem("username");
@@ -21,7 +18,6 @@ async function loadUsers() {
     window.location = "login.html";
   });
 
-  // Hide "New User" if not admin
   if (!isAdmin) {
     const newUserBtn = document.getElementById("newUserBtn");
     if (newUserBtn) newUserBtn.style.display = "none";
@@ -38,11 +34,7 @@ async function loadUsers() {
     return;
   }
 
-  let users = await res.json();
-
-  // ❌ Do not show deleted users
-  users = users.filter(u => Number(u.status) !== 3);
-
+  const users = await res.json();
   const tbody = document.getElementById("usersTable");
   tbody.innerHTML = "";
 
@@ -64,6 +56,7 @@ async function loadUsers() {
         <td class="p-3">${u.username}</td>
         <td class="p-3">${u.firstName} ${u.lastName}</td>
         <td class="p-3">${u.emailAddress ?? "-"}</td>
+        <td class="p-3">${renderRoles(u.roles)}</td>
         <td class="p-3">${renderStatus(u.status)}</td>
         <td class="p-3 text-right space-x-2">${actions.join(" ")}</td>
       </tr>
@@ -71,9 +64,6 @@ async function loadUsers() {
   });
 }
 
-/* ---------------------------
-   Soft Delete User
----------------------------- */
 async function deleteUser(id) {
   if (!confirm("Are you sure you want to delete this user?")) return;
 
@@ -101,6 +91,20 @@ function renderStatus(status) {
     default:
       return '<span class="text-gray-400">-</span>';
   }
+}
+
+/* ---------------------------
+   Roles Renderer
+---------------------------- */
+function renderRoles(roles = []) {
+  if (!roles.length) return '<span class="text-gray-400">-</span>';
+
+  return roles
+    .map(
+      (r) =>
+        `<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded mr-1 mb-1">${r.name}</span>`
+    )
+    .join("");
 }
 
 document.addEventListener("DOMContentLoaded", loadUsers);
