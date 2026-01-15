@@ -8,6 +8,12 @@ import {
 import { UserStatus } from '../../common/enums/user-status.enum';
 import { Role } from '../../roles/entities/role.entity';
 
+export enum UserStatus {
+  ACTIVE = 1,
+  INACTIVE = 2,
+  DELETED = 3,
+}
+
 @Entity('User_Accounts')
 export class User {
   @PrimaryGeneratedColumn()
@@ -37,8 +43,7 @@ export class User {
 
 
   @Column({
-    type: 'varchar',
-    length: 20,
+    type: 'int',
     default: UserStatus.ACTIVE,
   })
   status: UserStatus;
