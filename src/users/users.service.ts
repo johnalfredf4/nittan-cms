@@ -29,12 +29,18 @@ export class UsersService {
     const user = this.usersRepo.create({
       username: dto.username,
       emailAddress: dto.emailAddress,
+
       passwordHash,
-      firstName: dto.firstName,
-      middleName: dto.middleName,
-      lastName: dto.lastName,
+  
+      // ⚠️ must match ENTITY field names
+      first_name: dto.firstName,
+      middle_name: dto.middleName,
+      last_name: dto.lastName,
+  
       status: dto.status ?? UserStatus.ACTIVE,
-      IsPasswordChanged: 0, // ✅ REQUIRED
+  
+      // ✅ REQUIRED by your business rule
+      IsPasswordChanged: 0,
       roles,
     });
 
