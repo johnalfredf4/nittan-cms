@@ -62,8 +62,8 @@ async function loadUsers() {
     tbody.innerHTML += `
       <tr class="border-b hover:bg-green-50">
         <td class="p-3">${u.username}</td>
-        <td class="p-3">${u.emailAddress ?? "-"}</td>
         <td class="p-3">${u.firstName} ${u.lastName}</td>
+        <td class="p-3">${u.emailAddress ?? "-"}</td>
         <td class="p-3">${renderStatus(u.status)}</td>
         <td class="p-3 text-right space-x-2">${actions.join(" ")}</td>
       </tr>
