@@ -22,20 +22,7 @@ const ormconfig: TypeOrmModuleOptions = {
   database: 'Nittan-App',
 
   // 👉 Make sure all entities belonging to Nittan-App are here:
-  entities: [
-    User,
-    Role,
-    EmailTemplate,
-    EmailTemplateVersion,
-    SmsTemplate,
-    ProductType,
-    AccountRetention,
-    DispositionCategory,
-    Disposition,
-    LoanAssignment,
-    RotationState,
-    LoanReceivableAssignment, // ✅ Added!
-  ],
+  entities: [], // safest,
 
   synchronize: false,
 
