@@ -1,80 +1,141 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <title>Account Assignment Overrides</title>
-    <link rel="stylesheet" href="css/tw.css" />
-    <script src="js/overrides.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NOVA CMS</title>
+  <link rel="stylesheet" href="css/tw.css">
+  <script src="js/overrides.js" defer></script>
 </head>
+<body class="bg-gradient-to-b from-white to-green-50 text-gray-800">
 
-<body class="bg-gray-100 min-h-screen">
+<div class="flex h-screen overflow-hidden">
 
-<header class="bg-white shadow">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-xl font-semibold">Assignment Overrides</h1>
-      <div class="flex items-center space-x-3">
-        <span id="userLabel" class="text-sm text-gray-600"></span>
-        <button id="logoutBtn" class="text-sm text-red-600">Logout</button>
-      </div>
+  <!-- Sidebar -->
+  <aside
+    id="sidebar"
+    class="fixed inset-y-0 left-0 w-64 bg-green-900 text-green-100 transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 shadow-xl"
+  >
+    <div class="flex items-center gap-3 px-6 py-4 border-b border-green-800">
+      <img src="/images/NovaLogo2-xANBbiNh.svg" class="h-8 w-8" alt="NOVA" />
+      <span class="text-lg font-bold tracking-wide">NOVA CMS</span>
     </div>
-</header>
 
-<main class="max-w-5xl mx-auto px-4 py-6">
-
-    <nav class="mb-4 flex space-x-4 text-sm">
-      <a href="dashboard.html" class="hover:text-blue-600">Dashboard</a>
-      <a href="overrides.html" class="font-semibold text-blue-600">Overrides</a>
+    <nav class="mt-4 text-sm" id="sidebarNav">
+      <a href="dashboard.html" class="nav-link block px-6 py-3">Dashboard</a>
+      <a href="users.html" class="nav-link block px-6 py-3">Users</a>
+      <a href="email-templates.html" class="nav-link block px-6 py-3">Email Templates</a>
+      <a href="sms-templates.html" class="nav-link block px-6 py-3">SMS Templates</a>
+      <a href="product-types.html" class="nav-link block px-6 py-3">Product Types</a>
+      <a href="account-retention.html" class="nav-link block px-6 py-3">Retention Settings</a>
+      <a href="disposition-categories.html" class="nav-link block px-6 py-3">Disposition Categories</a>
+      <a href="overrides.html" class="block px-6 py-3 bg-green-800 text-white font-semibold">Assignment Overrides</a>
     </nav>
+  </aside>
 
-    <div class="bg-white rounded shadow p-4">
+  <!-- Main -->
+  <div class="flex flex-col flex-1 md:ml-64">
 
-      <h2 class="text-lg font-semibold mb-4">Search Assignments</h2>
+    <!-- Navbar -->
+    <header class="flex items-center bg-white/90 backdrop-blur border-b border-green-100 px-4 h-14 shadow-sm">
+	  <button
+	    class="md:hidden text-2xl text-green-800"
+	    onclick="toggleSidebar()"
+	  >
+	    ☰
+	  </button>
+	
+	  <!-- Right-aligned user actions -->
+	  <div class="ml-auto flex items-center gap-4">
+	    <span id="userLabel" class="text-sm font-semibold text-green-800"></span>
+	    <button
+	      id="logoutBtn"
+	      class="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-lg text-sm font-semibold"
+	    >
+	      Logout
+	    </button>
+	  </div>
+	</header>
 
-      <div class="flex gap-3 mb-6">
-        <input id="searchAgentId" type="number" placeholder="Enter Agent ID"
-               class="px-3 py-1 border rounded w-40" />
+    <!-- Main -->
 
-        <button onclick="searchAssignments()" 
-            class="px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
-            Search
-        </button>
-      </div>
+    <!-- Page Content -->
+    <main class="p-6 overflow-y-auto">
+	  <div class="bg-white rounded-2xl shadow overflow-hidden">
+		  <!-- Header -->
+		  <div class="bg-green-900 px-4 py-3 flex justify-between items-center">
+		    <h2 class="text-lg font-semibold text-white">
+		      Loan Assignments
+		    </h2>
+		  </div>
 
-      <div id="resultsWrap" class="hidden">
+		  <h2 class="text-lg font-semibold mb-4">Search Assignments</h2>
 
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-md font-semibold">
-            Assignments for Agent <span id="searchedAgent" class="text-blue-600"></span>
-          </h3>
+		  <div class="flex gap-3 mb-6">
+			<input id="searchAgentId" type="number" placeholder="Enter Agent ID"
+				   class="px-3 py-1 border rounded w-40" />
 
-          <div class="flex gap-3">
-            <input id="bulkNewAgentId" type="number" placeholder="New Agent ID"
-                  class="px-3 py-1 border rounded w-40" />
+			<button onclick="searchAssignments()" 
+				class="px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
+				Search
+			</button>
+		  </div>
 
-            <button onclick="bulkOverride()" 
-              class="px-4 py-1 bg-red-600 text-white rounded hover:bg-red-700">
-              Override All
-            </button>
-          </div>
-        </div>
+		  <div id="resultsWrap" class="hidden">
 
-        <table class="min-w-full text-sm border-collapse border">
-          <thead>
-            <tr class="bg-gray-200 border-b">
-              <th class="py-2 px-2 border">Receivable ID</th>
-              <th class="py-2 px-2 border">DPD</th>
-              <th class="py-2 px-2 border">Status</th>
-              <th class="py-2 px-2 border">Retention End</th>
-              <th class="py-2 px-2 border text-center">Override</th>
-            </tr>
-          </thead>
-          <tbody id="assignmentRows"></tbody>
-        </table>
+			<div class="flex justify-between items-center mb-4">
+			  <h3 class="text-md font-semibold">
+				Assignments for Agent <span id="searchedAgent" class="text-blue-600"></span>
+			  </h3>
 
-      </div>
+			  <div class="flex gap-3">
+				<input id="bulkNewAgentId" type="number" placeholder="New Agent ID"
+					  class="px-3 py-1 border rounded w-40" />
 
-    </div>
-</main>
+				<button onclick="bulkOverride()" 
+				  class="px-4 py-1 bg-red-600 text-white rounded hover:bg-red-700">
+				  Override All
+				</button>
+			  </div>
+			</div>
+
+			<table class="min-w-full text-sm border-collapse border">
+			  <thead>
+				<tr class="bg-gray-200 border-b">
+				  <th class="py-2 px-2 border">Receivable ID</th>
+				  <th class="py-2 px-2 border">DPD</th>
+				  <th class="py-2 px-2 border">Status</th>
+				  <th class="py-2 px-2 border">Retention End</th>
+				  <th class="py-2 px-2 border text-center">Override</th>
+				</tr>
+			  </thead>
+			  <tbody id="assignmentRows"></tbody>
+			</table>
+
+		  </div>
+
+		</div>
+      
+    </main>
+
+  </div>
+</div>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('-translate-x-full');
+  }
+
+  // Auth guard
+  const username = localStorage.getItem('username');
+  if (!username) window.location = 'login.html';
+  document.getElementById('userLabel').innerText = username;
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location = 'login.html';
+  });
+</script>
 
 </body>
 </html>
