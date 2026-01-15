@@ -31,7 +31,7 @@ export class UsersService {
     const user = this.usersRepo.create({
       username: dto.username,
       emailAddress: dto.emailAddress,
-      employeeId: dto.employeeId, // ✅ ADD
+      employeeId: dto.employeeId ? Number(dto.employeeId) : null, // ✅ ADD
       passwordHash,
 
       firstName: dto.firstName,
@@ -69,7 +69,9 @@ export class UsersService {
     if (dto.emailAddress !== undefined) {
       user.emailAddress = dto.emailAddress;
     }
-    if (dto.employeeId !== undefined) user.employeeId = dto.employeeId;
+    if (dto.employeeId !== undefined) {
+      user.employeeId = Number(dto.employeeId);
+    }
     if (dto.firstName !== undefined) user.firstName = dto.firstName;
     if (dto.middleName !== undefined) user.middleName = dto.middleName;
     if (dto.lastName !== undefined) user.lastName = dto.lastName;
