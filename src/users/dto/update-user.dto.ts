@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsArray,
   IsInt,
+  IsNotEmpty,
 } from 'class-validator';
 import { UserStatus } from '../../common/enums/user-status.enum';
 
@@ -13,6 +14,10 @@ export class UpdateUserDto {
   @IsOptional()
   @IsEmail()
   emailAddress?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  employeeId: string;
   
   @IsOptional()
   @IsString()
