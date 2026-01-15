@@ -139,9 +139,9 @@
   });
 
   // Active nav highlight
-  const currentPage = location.pathname.split('/').pop();
+  const activePage  = location.pathname.split('/').pop();
   document.querySelectorAll('.nav-link').forEach(link => {
-    if (link.getAttribute('href') === currentPage) {
+    if (link.getAttribute('href') === activePage ) {
       link.classList.add('bg-green-800', 'text-white', 'font-semibold');
     } else {
       link.classList.add('hover:bg-green-800');
