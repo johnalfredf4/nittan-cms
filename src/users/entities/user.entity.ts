@@ -17,6 +17,9 @@ export class User {
   @Column({ unique: true, length: 50 })
   username: string;
 
+  @Column({ name: 'email_address', unique: true })
+  emailAddress: string;
+
   @Column({ name: 'password_hash', length: 255 })
   passwordHash: string;
 
@@ -37,10 +40,7 @@ export class User {
   employeeId: number;
 
 
-  @Column({
-    type: 'int',
-    default: UserStatus.ACTIVE,
-  })
+  @Column({ type: 'int', default: UserStatus.ACTIVE })
   status: UserStatus;
 
   // ✅ NEW COLUMN
