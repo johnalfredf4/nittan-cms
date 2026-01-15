@@ -11,70 +11,78 @@ import { UserStatus } from '../common/enums/user-status.enum';
 @Injectable()
 export class UsersService {
   constructor(
-  @InjectRepository(User, 'nittan_app')
-  private readonly usersRepo: Repository<User>,
+    @InjectRepository(User, 'nittan_app')
+    private readonly usersRepo: Repository<User>,
 
-  @InjectRepository(Role, 'nittan_app')
-  private readonly rolesRepo: Repository<Role>,
-) {}
+    @InjectRepository(Role, 'nittan_app')
+    private readonly rolesRepo: Repository<Role>,
+  ) {}
 
-
+  /* =========================
+     CREATE USER
+  ========================== */
   async create(dto: CreateUserDto): Promise<User> {
     const roles = await this.rolesRepo.find({
       where: { name: In(dto.roleNames) },
     });
-  
+
     const passwordHash = await bcrypt.hash(dto.password, 10);
-  
+
     const user = this.usersRepo.create({
       username: dto.username,
       emailAddress: dto.emailAddress,
-  
+
       passwordHash,
-  
+
       firstName: dto.firstName,
       middleName: dto.middleName,
       lastName: dto.lastName,
-  
+
       status: dto.status ?? UserStatus.ACTIVE,
-  
-      // ✅ MUST match entity property name
       isPasswordChanged: false,
-  
+
+      // ✅ Branch support
+      branchId: dto.branchId ?? null,
+
       roles,
     });
-  
+
     return await this.usersRepo.save(user);
   }
 
-
-
-
+  /* =========================
+     UPDATE USER
+  ========================== */
   async update(id: number, dto: UpdateUserDto): Promise<User> {
     const user = await this.usersRepo.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
-  
-    // Password update (only if provided)
+
+    // Password update
     if (dto.password) {
       user.passwordHash = await bcrypt.hash(dto.password, 10);
-      user.isPasswordChanged = true; // ✅ important
+      user.isPasswordChanged = true;
     }
-  
+
     // Basic fields
     if (dto.emailAddress !== undefined) {
-      user.emailAddress = dto.emailAddress; // ✅ FIX
+      user.emailAddress = dto.emailAddress;
     }
     if (dto.firstName !== undefined) user.firstName = dto.firstName;
     if (dto.middleName !== undefined) user.middleName = dto.middleName;
     if (dto.lastName !== undefined) user.lastName = dto.lastName;
-  
-    // Status (admin-only enforced in controller)
+
+    // Status (controller should restrict admin-only)
     if (dto.status !== undefined) {
       user.status = dto.status;
     }
-  
+
+    // ✅ Branch update (optional)
+    if (dto.branchId !== undefined) {
+      user.branchId = dto.branchId;
+    }
+
     // Roles
     if (dto.roleNames) {
       const roles = await this.rolesRepo.find({
@@ -82,15 +90,17 @@ export class UsersService {
       });
       user.roles = roles;
     }
-  
+
     return this.usersRepo.save(user);
   }
 
-
+  /* =========================
+     QUERIES
+  ========================== */
   async findByUsername(username: string): Promise<User | null> {
     return await this.usersRepo.findOne({
       where: { username },
-      relations: ['roles'], // 👈 LOAD ROLES
+      relations: ['roles'],
     });
   }
 
@@ -104,19 +114,22 @@ export class UsersService {
     return user;
   }
 
-  //async remove(id: number): Promise<void> {
-  //  const user = await this.usersRepo.findOne({ where: { id } });
-   // if (!user) throw new NotFoundException('User not found');
-  //  await this.usersRepo.remove(user);
- // }
-
+  /* =========================
+     SOFT DELETE
+  ========================== */
   async remove(id: number) {
     return this.usersRepo.update(id, {
       status: UserStatus.DELETED,
     });
   }
 
+  /* =========================
+     PASSWORD UPDATE
+  ========================== */
   async updatePassword(id: number, hash: string): Promise<void> {
-  await this.usersRepo.update({ id }, { passwordHash: hash, isPasswordChanged: true, });
+    await this.usersRepo.update(
+      { id },
+      { passwordHash: hash, isPasswordChanged: true },
+    );
   }
 }
