@@ -95,7 +95,7 @@ export class UsersService {
  // }
 
   async remove(id: number) {
-    return this.userRepo.update(id, {
+    return this.usersRepo.update(id, {
       status: UserStatus.DELETED,
     });
   }
