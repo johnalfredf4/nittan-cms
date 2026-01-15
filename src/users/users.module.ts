@@ -4,10 +4,11 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { Role } from '../roles/entities/role.entity';
+import { BranchesModule } from '../branches/branches.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Role], 'nittan_app'),
+    TypeOrmModule.forFeature([User, Role, BranchesModule], 'nittan_app'),
   ],
   controllers: [UsersController],
   providers: [UsersService],
