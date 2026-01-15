@@ -85,7 +85,7 @@ function renderPage() {
         <td class="p-3">${u.firstName} ${u.lastName}</td>
         <td class="p-3">${u.emailAddress || "-"}</td>
         <td class="p-3">${branchName}</td>
-        <td class="p-3">${roleNames}</td>
+        <td class="p-3">${renderRoles(u.roles)}</td>
         <td class="p-3">${renderStatus(u.status)}</td>
         <td class="p-3 text-right space-x-2">${actions.join(" ")}</td>
       </tr>
@@ -109,6 +109,17 @@ function renderStatus(status) {
     default:
       return '<span class="text-gray-400">-</span>';
   }
+}
+
+function renderRoles(roles = []) {
+  if (!roles.length) return '<span class="text-gray-400">-</span>';
+
+  return roles
+    .map(
+      (r) =>
+        `<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded mr-1 mb-1">${r.name}</span>`
+    )
+    .join("");
 }
 
 async function deleteUser(id) {
