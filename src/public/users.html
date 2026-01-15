@@ -58,25 +58,39 @@
 
     <!-- Page Content -->
     <main id="pageContent" class="p-6 overflow-y-auto">
-       <div class="bg-white rounded shadow p-4">
-		  <div class="flex justify-between items-center mb-3">
-			<h2 class="text-lg font-semibold">User Directory</h2>
-			<a id="newUserBtn" href="user-form.html" class="px-4 py-2 bg-blue-600 text-white rounded text-sm">+ New User</a>
+       <div class="bg-white rounded-2xl shadow overflow-hidden">
+		  <!-- Header -->
+		  <div class="bg-green-900 px-4 py-3 flex justify-between items-center">
+		    <h2 class="text-lg font-semibold text-white">
+		      User Directory
+		    </h2>
+		
+		    <a
+		      id="newUserBtn"
+		      href="user-form.html"
+		      class="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg text-sm font-semibold transition"
+		    >
+		      + New User
+		    </a>
 		  </div>
+		
+		  <!-- Table -->
 		  <div class="overflow-x-auto">
-			<table class="min-w-full text-sm">
-			  <thead>
-				<tr class="bg-gray-100 text-left">
-				  <th class="p-2">Username</th>
-				  <th class="p-2">Name</th>
-				  <th class="p-2">Status</th>
-				  <th class="p-2 text-right">Actions</th>
-				</tr>
-			  </thead>
-			  <tbody id="usersTable"></tbody>
-			</table>
+		    <table class="min-w-full text-sm">
+		      <thead>
+		        <tr class="bg-green-50 text-left text-green-900 font-semibold">
+		          <th class="p-3">Username</th>
+		          <th class="p-3">Name</th>
+		          <th class="p-3">Status</th>
+		          <th class="p-3 text-right">Actions</th>
+		        </tr>
+		      </thead>
+		      <tbody id="usersTable" class="divide-y"></tbody>
+		    </table>
 		  </div>
+		
 		</div>
+
     </main>
 
   </div>
