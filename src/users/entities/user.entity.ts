@@ -4,10 +4,12 @@ import {
   Column,
   ManyToMany,
   JoinTable,
+  ManyToOne, 
+  JoinColumn, 
 } from 'typeorm';
 import { UserStatus } from '../../common/enums/user-status.enum';
 import { Role } from '../../roles/entities/role.entity';
-
+import { Branch } from '../../branches/entities/branch.entity';
 
 @Entity('User_Accounts')
 export class User {
@@ -32,9 +34,14 @@ export class User {
   @Column({ name: 'last_name', length: 100 })
   lastName: string;
 
-  // 👇 Add these columns (match DB column names)
-  @Column({ name: 'BranchId' })
-  branchId: number;
+  // 👇 Add these columns (match DB column names
+
+  @Column({ name: 'BranchId', nullable: true })
+  branchId?: number;
+  
+  @ManyToOne(() => Branch, { nullable: true })
+  @JoinColumn({ name: 'BranchId' })
+  branch?: Branch;
 
   @Column({ name: 'EmployeeID' })
   employeeId: number;
