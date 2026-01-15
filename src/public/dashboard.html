@@ -3,49 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nittan CMS</title>
+  <title>NOVA CMS | Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gradient-to-b from-white to-green-50 text-gray-800">
 
 <div class="flex h-screen overflow-hidden">
 
   <!-- Sidebar -->
   <aside
     id="sidebar"
-    class="fixed inset-y-0 left-0 w-64 bg-gray-900 text-gray-200 transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50"
+    class="fixed inset-y-0 left-0 w-64 bg-green-900 text-green-100 transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 shadow-xl"
   >
-    <div class="flex items-center px-6 py-4 border-b border-gray-700">
-      <span class="text-lg font-semibold">Nittan CMS</span>
+    <div class="flex items-center gap-3 px-6 py-4 border-b border-green-800">
+      <img src="NovaLogo2-xANBbiNh.svg" class="h-8 w-8" alt="NOVA" />
+      <span class="text-lg font-bold tracking-wide">NOVA CMS</span>
     </div>
 
-    <nav class="mt-4">
-	  <a href="dashboard.html" class="block px-6 py-3 bg-gray-800 text-white">Dashboard</a>
-      <a href="users.html" class="block px-6 py-3 hover:bg-gray-800">Users</a>
-      <a href="email-templates.html" class="block px-6 py-3 hover:bg-gray-800">Email Templates</a>
-      <a href="sms-templates.html" class="block px-6 py-3 hover:bg-gray-800">SMS Templates</a>
-      <a href="product-types.html" class="block px-6 py-3 hover:bg-gray-800">Product Types</a>
-      <a href="account-retention.html" class="block px-6 py-3 hover:bg-gray-800">Retention Settings</a>
-      <a href="disposition-categories.html" class="block px-6 py-3 hover:bg-gray-800">Disposition Categories</a>
-      <a href="overrides.html" class="block px-6 py-3 hover:bg-gray-800">Assignment Overrides</a>
+    <nav class="mt-4 text-sm">
+      <a href="dashboard.html" class="block px-6 py-3 bg-green-800 text-white font-semibold">Dashboard</a>
+      <a href="users.html" class="block px-6 py-3 hover:bg-green-800">Users</a>
+      <a href="email-templates.html" class="block px-6 py-3 hover:bg-green-800">Email Templates</a>
+      <a href="sms-templates.html" class="block px-6 py-3 hover:bg-green-800">SMS Templates</a>
+      <a href="product-types.html" class="block px-6 py-3 hover:bg-green-800">Product Types</a>
+      <a href="account-retention.html" class="block px-6 py-3 hover:bg-green-800">Retention Settings</a>
+      <a href="disposition-categories.html" class="block px-6 py-3 hover:bg-green-800">Disposition Categories</a>
+      <a href="overrides.html" class="block px-6 py-3 hover:bg-green-800">Assignment Overrides</a>
     </nav>
   </aside>
 
   <!-- Main -->
-  <div class="flex flex-col flex-1">
+  <div class="flex flex-col flex-1 md:ml-64">
 
     <!-- Navbar -->
-    <header class="flex items-center justify-between bg-white border-b px-4 h-14">
+    <header class="flex items-center justify-between bg-white/90 backdrop-blur border-b border-green-100 px-4 h-14 shadow-sm">
       <button
-        class="md:hidden text-2xl"
+        class="md:hidden text-2xl text-green-800"
         onclick="toggleSidebar()"
       >
         ☰
       </button>
 
       <div class="flex items-center gap-4">
-        <span class="text-sm font-medium">John Fortaleza</span>
-        <button class="bg-red-500 text-white px-3 py-1 rounded text-sm">
+        <span class="text-sm font-semibold text-green-800">John Fortaleza</span>
+        <button class="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-lg text-sm font-semibold">
           Logout
         </button>
       </div>
@@ -53,9 +54,23 @@
 
     <!-- Content -->
     <main class="p-6 overflow-y-auto">
-      <h1 class="text-2xl font-semibold mb-4">Dashboard</h1>
-      <div class="bg-white p-4 rounded shadow">
-        Welcome to Nittan CMS.
+      <h1 class="text-2xl font-extrabold text-green-800 mb-6">Dashboard</h1>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl shadow p-5">
+          <p class="text-sm text-gray-500">Welcome</p>
+          <p class="text-lg font-semibold mt-1">You are logged in to NOVA CMS</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-5">
+          <p class="text-sm text-gray-500">System</p>
+          <p class="text-lg font-semibold mt-1">All services operational</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-5">
+          <p class="text-sm text-gray-500">Access</p>
+          <p class="text-lg font-semibold mt-1">Role-based permissions enabled</p>
+        </div>
       </div>
     </main>
 
