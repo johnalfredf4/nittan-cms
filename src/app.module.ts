@@ -20,6 +20,7 @@ import ormconfig from './config/ormconfig';
 // 👉 Entities belonging to the writable DB (nittan_app)
 import { User } from './users/entities/user.entity';
 import { Role } from './roles/entities/role.entity';
+import { Branch } from './branches/entities/branch.entity';
 import { EmailTemplate } from './email-templates/entities/email-template.entity';
 import { EmailTemplateVersion } from './email-templates/entities/email-template-version.entity';
 import { SmsTemplate } from './sms-templates/entities/sms-template.entity';
