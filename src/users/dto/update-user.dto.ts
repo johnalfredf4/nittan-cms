@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsEnum,
   IsArray,
+  IsInt,
 } from 'class-validator';
 import { UserStatus } from '../../common/enums/user-status.enum';
 
