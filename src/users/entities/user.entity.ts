@@ -51,8 +51,12 @@ export class User {
   //})
   //isPasswordChanged: boolean;
 
-  @Column({ name: 'IsPasswordChanged', default: 0 })
-  isPasswordChanged: number;
+  @Column({
+    name: 'IsPasswordChanged',
+    type: 'bit',
+    default: 0,
+  })
+  isPasswordChanged: boolean;
 
   @ManyToMany(() => Role, (role) => role.users, { eager: true })
   @JoinTable({
