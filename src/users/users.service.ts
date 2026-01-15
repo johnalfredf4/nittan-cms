@@ -39,7 +39,7 @@ export class UsersService {
       status: dto.status ?? UserStatus.ACTIVE,
   
       // ✅ MUST match entity property name
-      isPasswordChanged: 0,
+      isPasswordChanged: false,
   
       roles,
     });
