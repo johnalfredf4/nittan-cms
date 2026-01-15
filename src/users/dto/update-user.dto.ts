@@ -1,4 +1,5 @@
 import {
+  IsEmail,
   IsString,
   IsOptional,
   IsEnum,
@@ -7,6 +8,11 @@ import {
 import { UserStatus } from '../../common/enums/user-status.enum';
 
 export class UpdateUserDto {
+
+  @IsOptional()
+  @IsEmail()
+  emailAddress?: string;
+  
   @IsOptional()
   @IsString()
   password?: string;
@@ -24,7 +30,7 @@ export class UpdateUserDto {
   lastName?: string;
 
   @IsOptional()
-  @IsEnum(UserStatus)
+  @IsInt()
   status?: UserStatus;
 
   @IsOptional()
