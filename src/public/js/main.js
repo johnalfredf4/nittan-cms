@@ -4,7 +4,8 @@ async function initUserForm() {
   const token = localStorage.getItem("token");
   const roles = JSON.parse(localStorage.getItem("roles") || "[]");
   const username = localStorage.getItem("username");
-
+  const branchSelect = document.getElementById("branchSelect");
+  
   const isAdmin =
     roles.includes("IT - CMS Admin") || roles.includes("Execom - CEO");
 
@@ -45,6 +46,8 @@ async function initUserForm() {
     option.textContent = r.name;
     rolesSelect.appendChild(option);
   });
+  
+  await loadBranches();
 
   /* ---------------------------
      Status control (admin only)
@@ -75,6 +78,9 @@ async function initUserForm() {
     document.querySelector("input[name=username]").value = u.username || "";
     document.querySelector("input[name=emailAddress]").value = u.emailAddress || "";
     document.querySelector("input[name=employeeId]").value = u.employeeId ?? "";
+    if (branchSelect && u.branchId) {
+      branchSelect.value = String(u.branchId);
+    }
     document.querySelector("input[name=firstName]").value = u.firstName || "";
     document.querySelector("input[name=middleName]").value = u.middleName || "";
     document.querySelector("input[name=lastName]").value = u.lastName || "";
@@ -118,6 +124,10 @@ async function initUserForm() {
       lastName: form.get("lastName")?.trim(),
       roleNames: [...rolesSelect.selectedOptions].map((o) => o.value),
     };
+    // Branch selection (only if chosen)
+    if (branchSelect && branchSelect.value) {
+      payload.branchId = Number(branchSelect.value);
+    }
 
     // Username only on CREATE
     if (!editId) {
@@ -154,6 +164,27 @@ async function initUserForm() {
     }
 
     window.location = "users.html";
+  });
+}
+
+async function loadBranches() {
+  const res = await fetch("/branches", {
+    headers: { Authorization: "Bearer " + token },
+  });
+
+  if (!res.ok) {
+    alert("Failed to load branches");
+    return;
+  }
+
+  const branches = await res.json();
+  branchSelect.innerHTML = `<option value="">Select Branch</option>`;
+
+  branches.forEach((b) => {
+    const opt = document.createElement("option");
+    opt.value = b.id;      // BranchId
+    opt.textContent = b.name; // Branch Name
+    branchSelect.appendChild(opt);
   });
 }
 
