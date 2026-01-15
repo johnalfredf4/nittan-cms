@@ -27,11 +27,13 @@ export class UsersService {
 
     const user = this.usersRepo.create({
       username: dto.username,
+      emailAddress: dto.emailAddress,
       passwordHash,
       firstName: dto.firstName,
       middleName: dto.middleName,
       lastName: dto.lastName,
-      status: dto.status,
+      status: dto.status ?? UserStatus.ACTIVE,
+      IsPasswordChanged: 0, // ✅ REQUIRED
       roles,
     });
 
