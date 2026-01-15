@@ -75,4 +75,17 @@ async function deleteUser(id) {
   loadUsers();
 }
 
+function renderStatus(status) {
+  switch (Number(status)) {
+    case 1:
+      return '<span class="text-green-700 font-semibold">Active</span>';
+    case 2:
+      return '<span class="text-yellow-600 font-semibold">Inactive</span>';
+    case 3:
+      return '<span class="text-red-600 font-semibold">Deleted</span>';
+    default:
+      return '<span class="text-gray-400">-</span>';
+  }
+}
+
 document.addEventListener("DOMContentLoaded", loadUsers);
