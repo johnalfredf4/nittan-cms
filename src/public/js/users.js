@@ -1,148 +1,106 @@
-const token = localStorage.getItem("token");
 const roles = JSON.parse(localStorage.getItem("roles") || "[]");
-
 const isAdmin =
   roles.includes("IT - CMS Admin") || roles.includes("Execom - CEO");
 
-const params = new URLSearchParams(window.location.search);
-const userId = params.get("id");
-
-const form = document.getElementById("userForm");
-const headerTitle = document.getElementById("headerTitle");
-const rolesList = document.getElementById("rolesList");
-const passwordInput = document.getElementById("passwordInput");
-const statusSelect = document.getElementById("statusSelect");
-
 /* ---------------------------
-   Auth Guard
+   Load Users
 ---------------------------- */
-if (!token) {
-  window.location = "login.html";
-}
+async function loadUsers() {
+  const token = localStorage.getItem("token");
+  const username = localStorage.getItem("username");
 
-/* ---------------------------
-   Init
----------------------------- */
-document.addEventListener("DOMContentLoaded", async () => {
-  await loadRoles();
-
-  if (!isAdmin && statusSelect) {
-    statusSelect.style.display = "none";
+  if (!token) {
+    window.location = "login.html";
+    return;
   }
 
-  if (userId) {
-    headerTitle.innerText = "Edit User";
-    passwordInput.placeholder = "Leave blank to keep current password";
-    passwordInput.required = false;
-    await loadUser(userId);
-  } else {
-    headerTitle.innerText = "Create User";
-    passwordInput.required = true;
+  document.getElementById("userLabel").innerText = username || "";
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.clear();
+    window.location = "login.html";
+  });
+
+  // Hide "New User" if not admin
+  if (!isAdmin) {
+    const newUserBtn = document.getElementById("newUserBtn");
+    if (newUserBtn) newUserBtn.style.display = "none";
   }
 
-  form.addEventListener("submit", saveUser);
-});
-
-/* ---------------------------
-   Load Roles
----------------------------- */
-async function loadRoles() {
-  const res = await fetch("/roles", {
+  const res = await fetch("/users", {
     headers: { Authorization: "Bearer " + token },
   });
 
   if (!res.ok) {
-    alert("Failed to load roles");
-    return;
-  }
-
-  const roles = await res.json();
-  rolesList.innerHTML = "";
-
-  roles.forEach((role) => {
-    const opt = document.createElement("option");
-    opt.value = role.name;
-    opt.textContent = role.name;
-    rolesList.appendChild(opt);
-  });
-}
-
-/* ---------------------------
-   Load User (Edit)
----------------------------- */
-async function loadUser(id) {
-  const res = await fetch(`/users/${id}`, {
-    headers: { Authorization: "Bearer " + token },
-  });
-
-  if (!res.ok) {
-    alert("Failed to load user");
-    return;
-  }
-
-  const user = await res.json();
-
-  form.username.value = user.username;
-  form.emailAddress.value = user.emailAddress;
-  form.firstName.value = user.firstName;
-  form.middleName.value = user.middleName || "";
-  form.lastName.value = user.lastName;
-  form.status.value = user.status;
-
-  // Preselect roles
-  const userRoles = user.roles.map((r) => r.name);
-  Array.from(rolesList.options).forEach((opt) => {
-    if (userRoles.includes(opt.value)) {
-      opt.selected = true;
+    if (res.status === 401 || res.status === 403) {
+      window.location = "login.html";
     }
+    return;
+  }
+
+  let users = await res.json();
+
+  // ❌ Do not show deleted users
+  users = users.filter(u => Number(u.status) !== 3);
+
+  const tbody = document.getElementById("usersTable");
+  tbody.innerHTML = "";
+
+  users.forEach((u) => {
+    const actions = [];
+
+    actions.push(
+      `<a href="user-form.html?id=${u.id}" class="text-green-700 hover:underline mr-2">Edit</a>`
+    );
+
+    if (isAdmin) {
+      actions.push(
+        `<button onclick="deleteUser(${u.id})" class="text-red-600 hover:underline">Delete</button>`
+      );
+    }
+
+    tbody.innerHTML += `
+      <tr class="border-b hover:bg-green-50">
+        <td class="p-3">${u.username}</td>
+        <td class="p-3">${u.firstName} ${u.lastName}</td>
+        <td class="p-3">${u.emailAddress ?? "-"}</td>
+        <td class="p-3">${renderStatus(u.status)}</td>
+        <td class="p-3 text-right space-x-2">${actions.join(" ")}</td>
+      </tr>
+    `;
   });
 }
 
 /* ---------------------------
-   Save User
+   Soft Delete User
 ---------------------------- */
-async function saveUser(e) {
-  e.preventDefault();
+async function deleteUser(id) {
+  if (!confirm("Are you sure you want to delete this user?")) return;
 
-  const selectedRoles = Array.from(rolesList.selectedOptions).map(
-    (o) => o.value
-  );
+  const token = localStorage.getItem("token");
 
-  const body = {
-    username: form.username.value.trim(),
-    emailAddress: form.emailAddress.value.trim(),
-    firstName: form.firstName.value.trim(),
-    middleName: form.middleName.value.trim(),
-    lastName: form.lastName.value.trim(),
-    roleNames: selectedRoles,
-  };
-
-  // Status only sent by admins
-  if (isAdmin && form.status) {
-    body.status = Number(form.status.value);
-  }
-
-  // Password only if provided
-  if (form.password.value.trim()) {
-    body.password = form.password.value;
-  }
-
-  const method = userId ? "PUT" : "POST";
-  const url = userId ? `/users/${userId}` : "/users";
-
-  const res = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-    body: JSON.stringify(body),
+  await fetch(`/users/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: "Bearer " + token },
   });
 
-  if (res.ok) {
-    window.location = "users.html";
-  } else {
-    const msg = await res.text();
-    alert("Failed to save user:\n" + msg);
+  loadUsers();
+}
+
+/* ---------------------------
+   Status Badge Renderer
+---------------------------- */
+function renderStatus(status) {
+  switch (Number(status)) {
+    case 1:
+      return '<span class="text-green-700 font-semibold">Active</span>';
+    case 2:
+      return '<span class="text-yellow-600 font-semibold">Inactive</span>';
+    case 3:
+      return '<span class="text-red-600 font-semibold">Deleted</span>';
+    default:
+      return '<span class="text-gray-400">-</span>';
   }
 }
+
+document.addEventListener("DOMContentLoaded", loadUsers);
