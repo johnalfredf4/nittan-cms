@@ -4,8 +4,11 @@ async function initUserForm() {
   const token = localStorage.getItem("token");
   const roles = JSON.parse(localStorage.getItem("roles") || "[]");
   const username = localStorage.getItem("username");
+
   const branchSelect = document.getElementById("branchSelect");
-  
+  const sendEmailCheckbox = document.getElementById("sendEmailCheckbox");
+  const sendEmailWrap = document.getElementById("sendEmailWrap");
+
   const isAdmin =
     roles.includes("IT - CMS Admin") || roles.includes("Execom - CEO");
 
@@ -46,7 +49,10 @@ async function initUserForm() {
     option.textContent = r.name;
     rolesSelect.appendChild(option);
   });
-  
+
+  /* ---------------------------
+     Load Branches
+  ---------------------------- */
   await loadBranches();
 
   /* ---------------------------
@@ -58,10 +64,13 @@ async function initUserForm() {
   }
 
   /* ---------------------------
-     Edit mode
+     Create vs Edit Mode
   ---------------------------- */
   if (editId) {
     document.getElementById("headerTitle").innerText = "Edit User";
+
+    // Show send email option only on edit
+    if (sendEmailWrap) sendEmailWrap.style.display = "flex";
 
     const res = await fetch(`/users/${editId}`, {
       headers: { Authorization: "Bearer " + token },
@@ -76,21 +85,27 @@ async function initUserForm() {
 
     // Populate fields
     document.querySelector("input[name=username]").value = u.username || "";
-    document.querySelector("input[name=emailAddress]").value = u.emailAddress || "";
-    document.querySelector("input[name=employeeId]").value = u.employeeId || "";
+    document.querySelector("input[name=emailAddress]").value =
+      u.emailAddress || "";
+    document.querySelector("input[name=employeeId]").value =
+      u.employeeId || "";
 
     if (branchSelect && u.branchId) {
       branchSelect.value = String(u.branchId);
     }
-    document.querySelector("input[name=firstName]").value = u.firstName || "";
-    document.querySelector("input[name=middleName]").value = u.middleName || "";
-    document.querySelector("input[name=lastName]").value = u.lastName || "";
+
+    document.querySelector("input[name=firstName]").value =
+      u.firstName || "";
+    document.querySelector("input[name=middleName]").value =
+      u.middleName || "";
+    document.querySelector("input[name=lastName]").value =
+      u.lastName || "";
 
     if (statusSelect) {
       statusSelect.value = String(u.status);
     }
 
-    // Username should not be editable
+    // Username locked on edit
     document.querySelector("input[name=username]").disabled = true;
 
     // Password optional on edit
@@ -105,76 +120,90 @@ async function initUserForm() {
       if (opt) opt.selected = true;
     });
   } else {
-    // Create mode
+    // CREATE MODE
     document.getElementById("headerTitle").innerText = "Create User";
     document.querySelector("input[name=password]").required = true;
+
+    // Hide send email checkbox (email is auto-sent on create)
+    if (sendEmailWrap) sendEmailWrap.style.display = "none";
   }
 
   /* ---------------------------
      Submit
   ---------------------------- */
-  document.querySelector("#userForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+  document
+    .querySelector("#userForm")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    const form = new FormData(e.target);
+      const form = new FormData(e.target);
 
-    const payload = {
-      emailAddress: form.get("emailAddress")?.trim(),
-      employeeId: form.get("employeeId")?.trim(),
-      firstName: form.get("firstName")?.trim(),
-      middleName: form.get("middleName")?.trim(),
-      lastName: form.get("lastName")?.trim(),
-      roleNames: [...rolesSelect.selectedOptions].map((o) => o.value),
-    };
-    // Branch selection (only if chosen)
-    if (branchSelect && branchSelect.value) {
-      payload.branchId = Number(branchSelect.value);
-    }
+      const payload = {
+        emailAddress: form.get("emailAddress")?.trim(),
+        employeeId: Number(form.get("employeeId")) || null,
+        firstName: form.get("firstName")?.trim(),
+        middleName: form.get("middleName")?.trim(),
+        lastName: form.get("lastName")?.trim(),
+        roleNames: [...rolesSelect.selectedOptions].map((o) => o.value),
+      };
 
-    // Username only on CREATE
-    if (!editId) {
-      payload.username = form.get("username")?.trim();
-    }
+      // Branch
+      if (branchSelect && branchSelect.value) {
+        payload.branchId = Number(branchSelect.value);
+      }
 
-    // Admin-only status
-    if (isAdmin && statusSelect) {
-      payload.status = Number(form.get("status"));
-    }
+      // Username only on CREATE
+      if (!editId) {
+        payload.username = form.get("username")?.trim();
+      }
 
-    // Password handling
-    const pwd = form.get("password");
-    if (!editId || (pwd && pwd.trim())) {
-      payload.password = pwd;
-    }
+      // Admin-only status
+      if (isAdmin && statusSelect) {
+        payload.status = Number(form.get("status"));
+      }
 
-    const url = editId ? `/users/${editId}` : "/users";
-    const method = editId ? "PATCH" : "POST";
+      // Password
+      const pwd = form.get("password");
+      if (!editId || (pwd && pwd.trim())) {
+        payload.password = pwd;
+      }
 
-    const resSave = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-      body: JSON.stringify(payload),
+      // Send email on EDIT (checkbox-driven)
+      if (editId && sendEmailCheckbox?.checked) {
+        payload.sendEmail = true;
+      }
+
+      const url = editId ? `/users/${editId}` : "/users";
+      const method = editId ? "PATCH" : "POST";
+
+      const resSave = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!resSave.ok) {
+        const msg = await resSave.text();
+        alert("Error saving user:\n" + msg);
+        return;
+      }
+
+      window.location = "users.html";
     });
-
-    if (!resSave.ok) {
-      const msg = await resSave.text();
-      alert("Error saving user:\n" + msg);
-      return;
-    }
-
-    window.location = "users.html";
-  });
 }
 
+/* ---------------------------
+   Load Branches
+---------------------------- */
 async function loadBranches() {
   const token = localStorage.getItem("token");
 
   const res = await fetch("/branches", {
     headers: {
-      Authorization: "Bearer " + token, // ✅ REQUIRED
+      Authorization: "Bearer " + token,
     },
   });
 
@@ -185,6 +214,8 @@ async function loadBranches() {
 
   const branches = await res.json();
   const branchSelect = document.getElementById("branchSelect");
+
+  if (!branchSelect) return;
 
   branchSelect.innerHTML = `<option value="">Select Branch</option>`;
 
