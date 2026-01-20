@@ -47,4 +47,6 @@ export class UpdateUserDto {
   @IsOptional()
   @IsInt()
   branchId?: number;
+
+  sendEmail?: boolean; // ✅ frontend flag
 }
