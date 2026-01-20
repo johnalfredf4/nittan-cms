@@ -10,7 +10,7 @@ export class CreateCallRecordingDto {
   callEndTime?: Date;
   durationSeconds?: number;
 
-  txtFileName: string;
+  //txtFileName: string;
 
   // 🔽 NEW
   contactedParty?: string;
@@ -18,4 +18,5 @@ export class CreateCallRecordingDto {
   remarks?: string;
   nextCallScheduleAt?: string;
 }
+
 
