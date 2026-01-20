@@ -37,8 +37,8 @@ export class LoanAssignmentCallRecording {
   @Column({ nullable: true })
   durationSeconds?: number;
 
-  @Column()
-  recordingS3Url: string;
+  @Column({ name: 'S3Url' })
+  s3Url: string;
 
   //@Column()
   //txtFileName: string;
@@ -59,6 +59,7 @@ export class LoanAssignmentCallRecording {
   @CreateDateColumn()
   createdAt: Date;
 }
+
 
 
 
