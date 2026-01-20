@@ -26,7 +26,7 @@ export class UsersService {
   /* =========================
      CREATE USER
   ========================== */
-  async create(dto: CreateUserDto): Promise<User> {
+  async create(dto: CreateUserDto, jwtToken: string): Promise<User> {
     const roles = await this.rolesRepo.find({
       where: { name: In(dto.roleNames) },
     });
@@ -51,14 +51,19 @@ export class UsersService {
 
       roles,
     });
-
+    
+    await this.sendCredentialsViaApi(saved, dto.password, jwtToken);
     return await this.usersRepo.save(user);
   }
 
   /* =========================
      UPDATE USER
   ========================== */
-  async update(id: number, dto: UpdateUserDto): Promise<User> {
+  async update(
+    id: number,
+    dto: UpdateUserDto,
+    jwtToken: string,
+  ): Promise<User> {
     const user = await this.usersRepo.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -97,6 +102,11 @@ export class UsersService {
         where: { name: In(dto.roleNames) },
       });
       user.roles = roles;
+    }
+
+    // ✅ Send only if admin checked box AND password changed
+    if (dto.sendCredentialsEmail && dto.password) {
+      await this.sendCredentialsViaApi(saved, dto.password, jwtToken);
     }
 
     return this.usersRepo.save(user);
