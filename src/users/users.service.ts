@@ -75,17 +75,25 @@ export class UsersService {
     dto: UpdateUserDto,
     jwtToken: string,
   ): Promise<User> {
-    const user = await this.usersRepo.findOne({ where: { id } });
+    const user = await this.usersRepo.findOne({
+      where: { id },
+      relations: ['roles'],
+    });
+  
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
+  
+    // ✅ Declare outside so it's available later
+    let plainPassword: string | undefined;
+  
     // Password update
     if (dto.password) {
+      plainPassword = dto.password; // 👈 capture before hashing
       user.passwordHash = await bcrypt.hash(dto.password, 10);
       user.isPasswordChanged = true;
     }
-
+  
     // Basic fields
     if (dto.emailAddress !== undefined) {
       user.emailAddress = dto.emailAddress;
@@ -96,17 +104,17 @@ export class UsersService {
     if (dto.firstName !== undefined) user.firstName = dto.firstName;
     if (dto.middleName !== undefined) user.middleName = dto.middleName;
     if (dto.lastName !== undefined) user.lastName = dto.lastName;
-
-    // Status (controller should restrict admin-only)
+  
+    // Status (controller restricts admin-only)
     if (dto.status !== undefined) {
       user.status = dto.status;
     }
-
-    // ✅ Branch update (optional)
+  
+    // Branch update (optional)
     if (dto.branchId !== undefined) {
       user.branchId = dto.branchId;
     }
-
+  
     // Roles
     if (dto.roleNames) {
       const roles = await this.rolesRepo.find({
@@ -114,11 +122,11 @@ export class UsersService {
       });
       user.roles = roles;
     }
-
+  
     // ✅ SAVE FIRST
     const saved = await this.usersRepo.save(user);
   
-    // ✅ SEND EMAIL ONLY IF CHECKED
+    // ✅ SEND EMAIL ONLY IF CHECKED AND PASSWORD WAS CHANGED
     if (dto.sendEmail && plainPassword && jwtToken) {
       await this.sendCredentialsViaApi(
         saved,
@@ -129,6 +137,7 @@ export class UsersService {
   
     return saved;
   }
+
 
   /* =========================
      QUERIES
