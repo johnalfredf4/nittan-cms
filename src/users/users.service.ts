@@ -130,6 +130,56 @@ export class UsersService {
     return user;
   }
 
+  private async sendCredentialsViaApi(
+    user: User,
+    plainPassword: string,
+    jwtToken: string,
+  ) {
+    const fullName = `${user.firstName} ${user.lastName}`;
+  
+    const message = `
+      <p>Dear ${fullName},</p>
+  
+      <p>Your NOVA CMS account has been created or updated.</p>
+  
+      <p><strong>Login Details:</strong></p>
+      <ul>
+        <li><strong>Username:</strong> ${user.username}</li>
+        <li><strong>Temporary Password:</strong> ${plainPassword}</li>
+      </ul>
+  
+      <p>
+        Please log in here:<br/>
+        <a href="https://nova.nittancapitalfinance.com.ph/">
+          https://nova.nittancapitalfinance.com.ph/
+        </a>
+      </p>
+  
+      <p>For security reasons, please change your password after logging in.</p>
+  
+      <p>— NOVA CMS Team</p>
+    `;
+  
+    const payload = {
+      to: user.emailAddress,
+      subject: 'Your NOVA CMS Login Credentials',
+      message,
+      referenceId: user.id,
+      emailTemplateId: 3, // or null if you're not using templates
+    };
+  
+    const url = this.config.get('EMAIL_API_URL') || 'http://localhost:3000/email/send';
+  
+    await firstValueFrom(
+      this.http.post(url, payload, {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+          'Content-Type': 'application/json',
+        },
+      }),
+    );
+  }
+
 
   /* =========================
      SOFT DELETE
