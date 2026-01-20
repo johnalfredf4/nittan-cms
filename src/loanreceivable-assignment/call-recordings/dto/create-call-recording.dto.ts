@@ -11,4 +11,11 @@ export class CreateCallRecordingDto {
   durationSeconds?: number;
 
   txtFileName: string;
+
+  // 🔽 NEW
+  contactedParty?: string;
+  dispositionId?: number;
+  remarks?: string;
+  nextCallScheduleAt?: string;
 }
+
