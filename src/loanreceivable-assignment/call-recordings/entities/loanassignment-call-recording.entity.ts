@@ -11,54 +11,56 @@ import { LoanReceivableAssignment } from '../../entities/loanreceivable-assignme
 
 @Entity('LoanAssignment_CallRecordings')
 export class LoanAssignmentCallRecording {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ name: 'Id' })
   id: number;
 
   @ManyToOne(() => LoanReceivableAssignment)
   @JoinColumn({ name: 'LoanReceivableAssignmentId' })
   loanAssignment: LoanReceivableAssignment;
 
+  @Column({ name: 'AgentId' })
+  agentId: number;
 
-  @Column()
-  borrowerName: string;
+  @Column({ name: 'ClientName' })
+  clientName: string;
 
-  @Column({ nullable: true })
-  callerNumber?: string;
+  @Column({ name: 'MobileNumber' })
+  mobileNumber: string;
 
-  @Column({ nullable: true })
-  calleeNumber?: string;
+  @Column({ name: 'FileName' })
+  fileName: string;
 
-  @Column({ type: 'datetime', nullable: true })
-  callStartTime?: Date;
-
-  @Column({ type: 'datetime', nullable: true })
-  callEndTime?: Date;
-
-  @Column({ nullable: true })
-  durationSeconds?: number;
+  @Column({ name: 'S3Key' })
+  s3Key: string;
 
   @Column({ name: 'S3Url' })
   s3Url: string;
 
-  //@Column()
-  //txtFileName: string;
+  @Column({ name: 'CallStartedAt', type: 'datetime', nullable: true })
+  callStartedAt?: Date;
 
-  // 🔽 NEW FIELDS
-  @Column({ nullable: true })
+  @Column({ name: 'CallEndedAt', type: 'datetime', nullable: true })
+  callEndedAt?: Date;
+
+  @Column({ name: 'DurationSeconds', nullable: true })
+  durationSeconds?: number;
+
+  @Column({ name: 'ContactedParty', nullable: true })
   contactedParty?: string;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ name: 'DispositionId', type: 'int', nullable: true })
   dispositionId?: number;
 
-  @Column({ type: 'nvarchar', length: 'max', nullable: true })
+  @Column({ name: 'Remarks', type: 'nvarchar', length: 'max', nullable: true })
   remarks?: string;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ name: 'NextCallScheduleAt', type: 'datetime', nullable: true })
   nextCallScheduleAt?: Date;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'CreatedAt' })
   createdAt: Date;
 }
+
 
 
 
