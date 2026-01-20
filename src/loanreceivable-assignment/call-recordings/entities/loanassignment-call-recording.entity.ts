@@ -14,9 +14,10 @@ export class LoanAssignmentCallRecording {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => LoanReceivableAssignment, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'LoanAssignmentId' })
+  @ManyToOne(() => LoanReceivableAssignment)
+  @JoinColumn({ name: 'LoanReceivableAssignmentId' })
   loanAssignment: LoanReceivableAssignment;
+
 
   @Column()
   borrowerName: string;
@@ -58,4 +59,5 @@ export class LoanAssignmentCallRecording {
   @CreateDateColumn()
   createdAt: Date;
 }
+
 
