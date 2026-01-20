@@ -7,6 +7,9 @@ import { Role } from '../roles/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserStatus } from '../common/enums/user-status.enum';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -16,6 +19,8 @@ export class UsersService {
 
     @InjectRepository(Role, 'nittan_app')
     private readonly rolesRepo: Repository<Role>,
+    private readonly http: HttpService, // ✅ ADD
+    private readonly config: ConfigService, // optional but recommended
   ) {}
 
   /* =========================
