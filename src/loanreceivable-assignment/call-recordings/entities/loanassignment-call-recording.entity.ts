@@ -42,6 +42,20 @@ export class LoanAssignmentCallRecording {
   @Column()
   txtFileName: string;
 
+  // 🔽 NEW FIELDS
+  @Column({ nullable: true })
+  contactedParty?: string;
+
+  @Column({ type: 'int', nullable: true })
+  dispositionId?: number;
+
+  @Column({ type: 'nvarchar', length: 'max', nullable: true })
+  remarks?: string;
+
+  @Column({ type: 'datetime', nullable: true })
+  nextCallScheduleAt?: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 }
+
