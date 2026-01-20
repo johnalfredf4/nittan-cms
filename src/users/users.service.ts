@@ -52,8 +52,19 @@ export class UsersService {
       roles,
     });
     
-    await this.sendCredentialsViaApi(saved, dto.password, jwtToken);
-    return await this.usersRepo.save(user);
+     // ✅ SAVE FIRST
+    const saved = await this.usersRepo.save(user);
+  
+    // ✅ AUTO EMAIL
+    if (jwtToken && dto.password) {
+      await this.sendCredentialsViaApi(
+        saved,
+        dto.password,
+        jwtToken,
+      );
+    }
+  
+    return saved;
   }
 
   /* =========================
@@ -104,12 +115,19 @@ export class UsersService {
       user.roles = roles;
     }
 
-    // ✅ Send only if admin checked box AND password changed
-    if (dto.sendCredentialsEmail && dto.password) {
-      await this.sendCredentialsViaApi(saved, dto.password, jwtToken);
+    // ✅ SAVE FIRST
+    const saved = await this.usersRepo.save(user);
+  
+    // ✅ SEND EMAIL ONLY IF CHECKED
+    if (dto.sendEmail && plainPassword && jwtToken) {
+      await this.sendCredentialsViaApi(
+        saved,
+        plainPassword,
+        jwtToken,
+      );
     }
-
-    return this.usersRepo.save(user);
+  
+    return saved;
   }
 
   /* =========================
