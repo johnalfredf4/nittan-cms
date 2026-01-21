@@ -1,4 +1,5 @@
-import { RetentionRule } from '../entities/retention-rule.entity';
+import { RetentionRule } from '../entities/retention-rule-v2.entity';
+
 
 
 export function mapDpdToCategory(dpd: number, rules: RetentionRule[]) {
