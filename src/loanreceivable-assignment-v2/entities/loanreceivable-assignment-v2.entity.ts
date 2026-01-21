@@ -3,23 +3,12 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 export enum AssignmentStatus {
   ACTIVE = 'ACTIVE',
   EXPIRED = 'EXPIRED',
-  PROCESSED = 'PROCESSED',
-}
-
-export enum DpdCategory {
-  CAT1 = 'CAT1',
-  CAT2 = 'CAT2',
-  CAT3 = 'CAT3',
-  CAT4 = 'CAT4',
-  CAT5 = 'CAT5',
-  CAT6 = 'CAT6',
-  CAT7 = 'CAT7',
-  CAT8 = 'CAT8',
 }
 
 @Entity('LoanReceivable_Assignments_V2')
@@ -28,19 +17,20 @@ export class LoanReceivableAssignmentV2 {
   id: number;
 
   @Column({ type: 'int' })
-  loanApplicationId: number;
+  loanReceivableId: number;
 
   @Column({ type: 'int' })
-  loanReceivableId: number;
+  loanApplicationId: number;
 
   @Column({ type: 'int' })
   agentId: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int' })
   dpd: number;
 
+  // 🔥 STORE CATEGORY CODE (CAT1–CAT8)
   @Column({ type: 'varchar', length: 10 })
-  dpdCategory: DpdCategory;
+  dpdCategory: string;
 
   @Column({ type: 'int', nullable: true })
   retentionDays: number | null;
@@ -57,4 +47,7 @@ export class LoanReceivableAssignmentV2 {
 
   @CreateDateColumn({ type: 'datetime' })
   createdAt: Date;
+
+  @UpdateDateColumn({ type: 'datetime' })
+  updatedAt: Date;
 }
