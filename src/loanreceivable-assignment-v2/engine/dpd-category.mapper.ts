@@ -1,11 +1,15 @@
-import { RetentionRule } from '../entities/retention-rule-v2.entity';
+import { RetentionRuleV2 } from '../entities/retention-rule-v2.entity';
 
-
-
-export function mapDpdToCategory(dpd: number, rules: RetentionRule[]) {
-return rules.find(r =>
-r.isActive &&
-dpd >= r.minDpd &&
-(r.maxDpd === null || dpd <= r.maxDpd),
-);
+export function mapRetentionRule(
+  dpd: number,
+  rules: RetentionRuleV2[],
+): RetentionRuleV2 | null {
+  return (
+    rules.find(
+      r =>
+        r.isActive &&
+        dpd >= r.dpdMin &&
+        (r.dpdMax === null || dpd <= r.dpdMax),
+    ) || null
+  );
 }
