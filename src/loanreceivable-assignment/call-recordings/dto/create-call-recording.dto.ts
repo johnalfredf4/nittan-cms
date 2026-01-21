@@ -21,4 +21,7 @@ export class CreateCallRecordingDto {
   dispositionId?: number;
   remarks?: string;
   nextCallScheduleAt?: string;
+  agentName: string;
+  relationshipName?: string;
 }
+
