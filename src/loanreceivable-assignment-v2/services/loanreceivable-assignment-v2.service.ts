@@ -16,7 +16,7 @@ import {
   DpdCategory,
 } from '../entities/loanreceivable-assignment-v2.entity';
 
-import { RetentionRuleV2 } from '../entities/retention-rule-v2.entity';
+import { RetentionRule } from '../entities/retention-rule-v2.entity';
 
 @Injectable()
 export class LoanReceivableAssignmentV2Service {
@@ -29,8 +29,8 @@ export class LoanReceivableAssignmentV2Service {
     @InjectRepository(LoanReceivableAssignmentV2, 'nittan_app')
     private readonly assignments: Repository<LoanReceivableAssignmentV2>,
 
-    @InjectRepository(RetentionRuleV2, 'nittan_app')
-    private readonly retentionRules: Repository<RetentionRuleV2>,
+    @InjectRepository(RetentionRule, 'nittan_app')
+    private readonly retentionRules: Repository<RetentionRule>,
 
     /* ===============================
        CORE / LEGACY DB (nittan)
@@ -44,6 +44,7 @@ export class LoanReceivableAssignmentV2Service {
     @InjectDataSource('nittan_app')
     private readonly appDataSource: DataSource,
   ) {}
+
   /* ============================================================
      MANUAL RUN (API / ADMIN)
   ============================================================ */
@@ -53,23 +54,21 @@ export class LoanReceivableAssignmentV2Service {
     await this.assignReceivables();
   }
 
-  
   /* ============================================================
      CRON — EVERY MINUTE
      - Expires old assignments
-     - Rebalances
+     - Reassigns fairly
      - Assigns new receivables
   ============================================================ */
   @Cron('0 */1 * * * *')
   async runScheduler() {
     this.logger.log('🔄 Running auto-expire + reassign');
-
     await this.autoExpireAssignments();
     await this.assignReceivables();
   }
 
   /* ============================================================
-     AUTO EXPIRE
+     AUTO EXPIRE ASSIGNMENTS
   ============================================================ */
   private async autoExpireAssignments() {
     const result = await this.assignments.update(
@@ -82,7 +81,7 @@ export class LoanReceivableAssignmentV2Service {
       },
     );
 
-    if (result.affected) {
+    if (result.affected && result.affected > 0) {
       this.logger.log(`⏳ Expired ${result.affected} assignments`);
     }
   }
@@ -92,17 +91,25 @@ export class LoanReceivableAssignmentV2Service {
   ============================================================ */
   private async assignReceivables() {
     const receivables = await this.fetchReceivables();
-    if (!receivables.length) return;
+    if (!receivables.length) {
+      this.logger.log('ℹ No receivables eligible for assignment');
+      return;
+    }
 
     let agents = await this.loadAgentsWithLoad();
-    if (!agents.length) return;
+    if (!agents.length) {
+      this.logger.warn('⚠ No active collection agents found');
+      return;
+    }
 
     for (const loan of receivables) {
-      // Balance agent load
+      // Sort by least loaded agent first
       agents.sort((a, b) => a.assignedCount - b.assignedCount);
       const agent = agents[0];
 
-      if (!agent || agent.assignedCount >= 10) continue;
+      if (!agent || agent.assignedCount >= 10) {
+        continue;
+      }
 
       // Prevent duplicate ACTIVE assignment
       const exists = await this.assignments.findOne({
@@ -112,7 +119,9 @@ export class LoanReceivableAssignmentV2Service {
         },
       });
 
-      if (exists) continue;
+      if (exists) {
+        continue;
+      }
 
       const rule = await this.getRetentionRule(loan.dpd);
 
@@ -140,13 +149,21 @@ export class LoanReceivableAssignmentV2Service {
 
   /* ============================================================
      FETCH RECEIVABLES
+     - Due soon (<= 7 days)
+     - Overdue
+     - Not cleared (write-offs excluded)
   ============================================================ */
-  private async fetchReceivables(): Promise<any[]> {
+  private async fetchReceivables(): Promise<
+    {
+      loanReceivableId: number;
+      loanApplicationId: number;
+      dpd: number;
+    }[]
+  > {
     const sql = `
       SELECT TOP 200
         r.ID AS loanReceivableId,
         r.LoanApplicationId AS loanApplicationId,
-        r.DueDate,
         DATEDIFF(DAY, r.DueDate, GETDATE()) AS dpd
       FROM [Nittan].[dbo].[tblLoanReceivables] r
       WHERE r.Cleared = 0
@@ -156,7 +173,12 @@ export class LoanReceivableAssignmentV2Service {
 
     const rows = await this.nittanDataSource.query(sql);
     this.logger.log(`📌 Receivables fetched: ${rows.length}`);
-    return rows;
+
+    return rows.map(r => ({
+      loanReceivableId: Number(r.loanReceivableId),
+      loanApplicationId: Number(r.loanApplicationId),
+      dpd: Number(r.dpd ?? 0),
+    }));
   }
 
   /* ============================================================
@@ -198,7 +220,7 @@ export class LoanReceivableAssignmentV2Service {
   /* ============================================================
      RETENTION RULE LOOKUP (CMS CONTROLLED)
   ============================================================ */
-  private async getRetentionRule(dpd: number): Promise<RetentionRuleV2> {
+  private async getRetentionRule(dpd: number): Promise<RetentionRule> {
     let category: DpdCategory;
 
     if (dpd <= 0) category = DpdCategory.CAT1;
@@ -211,9 +233,13 @@ export class LoanReceivableAssignmentV2Service {
     else category = DpdCategory.CAT8;
 
     const rule = await this.retentionRules.findOne({
-      where: { category },
+      where: {
+        category,
+        active: true,
+      },
     });
 
+    // Fallback if CMS rule missing
     if (!rule) {
       return {
         id: 0,
@@ -221,7 +247,7 @@ export class LoanReceivableAssignmentV2Service {
         retentionDays: category === DpdCategory.CAT8 ? null : 7,
         label: category,
         active: true,
-      } as RetentionRuleV2;
+      } as RetentionRule;
     }
 
     return rule;
