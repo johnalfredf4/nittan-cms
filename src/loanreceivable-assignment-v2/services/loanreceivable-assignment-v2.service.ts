@@ -17,6 +17,7 @@ import {
 } from '../entities/loanreceivable-assignment-v2.entity';
 
 import { RetentionRule } from '../entities/retention-rule-v2.entity';
+import { mapRetentionRule } from '../engine/dpd-category.mapper';
 
 @Injectable()
 export class LoanReceivableAssignmentV2Service {
@@ -220,36 +221,30 @@ export class LoanReceivableAssignmentV2Service {
   /* ============================================================
      RETENTION RULE LOOKUP (CMS CONTROLLED)
   ============================================================ */
-  private async getRetentionRule(dpd: number): Promise<RetentionRule> {
-    let category: DpdCategory;
 
-    if (dpd <= 0) category = DpdCategory.CAT1;
-    else if (dpd <= 30) category = DpdCategory.CAT2;
-    else if (dpd <= 60) category = DpdCategory.CAT3;
-    else if (dpd <= 90) category = DpdCategory.CAT4;
-    else if (dpd <= 120) category = DpdCategory.CAT5;
-    else if (dpd <= 150) category = DpdCategory.CAT6;
-    else if (dpd <= 180) category = DpdCategory.CAT7;
-    else category = DpdCategory.CAT8;
-
-    const rule = await this.retentionRules.findOne({
-      where: {
-        category,
-        active: true,
-      },
+  private async getRetentionRule(dpd: number): Promise<RetentionRuleV2> {
+    const rules = await this.retentionRules.find({
+      where: { isActive: true },
+      order: { dpdMin: 'ASC' },
     });
-
-    // Fallback if CMS rule missing
+  
+    const rule = mapRetentionRule(dpd, rules);
+  
     if (!rule) {
       return {
         id: 0,
-        category,
-        retentionDays: category === DpdCategory.CAT8 ? null : 7,
-        label: category,
-        active: true,
-      } as RetentionRule;
+        categoryCode: 'UNKNOWN',
+        dpdMin: dpd,
+        dpdMax: dpd,
+        retentionDays: 7,
+        label: 'Fallback Rule',
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as RetentionRuleV2;
     }
-
+  
     return rule;
   }
+
 }
