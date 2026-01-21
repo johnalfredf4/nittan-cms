@@ -11,7 +11,7 @@ import { RetentionRuleV2 } from './entities/retention-rule-v2.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature(
-      [LoanReceivableAssignmentV2, RetentionRule],
+      [LoanReceivableAssignmentV2, RetentionRuleV2],
       'nittan_app',
     ),
   ],
