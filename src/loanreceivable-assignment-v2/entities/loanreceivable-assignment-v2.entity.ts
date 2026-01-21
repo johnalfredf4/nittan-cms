@@ -28,9 +28,9 @@ export class LoanReceivableAssignmentV2 {
   @Column({ type: 'int' })
   dpd: number;
 
-  // 🔥 STORE CATEGORY CODE (CAT1–CAT8)
-  @Column({ type: 'varchar', length: 10 })
-  dpdCategory: string;
+  // 🔥 MATCHES DB COLUMN NAME
+  @Column({ name: 'categoryCode', type: 'varchar', length: 10 })
+  categoryCode: string;
 
   @Column({ type: 'int', nullable: true })
   retentionDays: number | null;
