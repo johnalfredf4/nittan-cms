@@ -32,7 +32,7 @@ export class LoanReceivableAssignmentV2Service {
     private readonly assignments: Repository<LoanReceivableAssignmentV2>,
 
     @InjectRepository(RetentionRule, 'nittan_app')
-    private readonly retentionRules: Repository<RetentionRule>,
+    private readonly retentionRules: Repository<RetentionRuleV2>,
 
     /* ===============================
        CORE / LEGACY DB (nittan)
