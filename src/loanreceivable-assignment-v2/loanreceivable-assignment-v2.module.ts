@@ -6,6 +6,8 @@ import { LoanReceivableAssignmentV2Service } from './services/loanreceivable-ass
 import { LoanReceivableAssignmentV2Controller } from './controllers/loanreceivable-assignment-v2.controller';
 import { NittanService } from './nittan/nittan.service';
 import { AgentLoadService } from './engine/agent-load.service';
+import { LoanReceivableAssignmentV2 } from './entities/loanreceivable-assignment-v2.entity';
+import { RetentionRuleV2 } from './entities/retention-rule-v2.entity';
 
 @Module({
   imports: [
