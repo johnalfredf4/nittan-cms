@@ -5,8 +5,12 @@ import { LoanReceivableAssignmentV2Service } from '../services/loanreceivable-as
 export class LoanReceivableAssignmentV2Controller {
   constructor(private readonly service: LoanReceivableAssignmentV2Service) {}
 
+  /**
+   * Manual trigger (for admin / testing)
+   */
   @Post('run')
-  run(@Body() body: { agentIds: number[]; maxPerAgent?: number }) {
-    return this.service.run(body.agentIds, body.maxPerAgent);
+  async run() {
+    await this.service.run();
+    return { ok: true, message: 'Assignment cycle executed' };
   }
 }
