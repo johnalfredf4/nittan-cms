@@ -5,7 +5,8 @@ import { LoanReceivableAssignmentV2Service } from './services/loanreceivable-ass
 import { LoanReceivableAssignmentV2Controller } from './controllers/loanreceivable-assignment-v2.controller';
 
 import { LoanReceivableAssignmentV2 } from './entities/loanreceivable-assignment-v2.entity';
-import { RetentionRule } from './entities/retention-rule-v2.entity';
+import { RetentionRuleV2 } from './entities/retention-rule-v2.entity';
+
 
 @Module({
   imports: [
