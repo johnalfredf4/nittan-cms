@@ -50,6 +50,7 @@ import { LoanAssignmentMonthlyIncome } from './loanreceivable-assignment/snapsho
 import { LoanAssignmentMonthlyExpense } from './loanreceivable-assignment/snapshot/entities/loanassignment-monthly-expense.entity';
 import { LoanAssignmentContactReference } from './loanreceivable-assignment/snapshot/entities/loanassignment-contact-reference.entity';
 import { LoanAssignmentAttachment } from './loanreceivable-assignment/snapshot/entities/loanassignment-attachment.entity';
+import { LoanReceivableAssignmentV2Module } from './loanreceivable-assignment-v2/loanreceivable-assignment-v2.module';
 
 @Module({
   imports: [
@@ -119,6 +120,7 @@ import { LoanAssignmentAttachment } from './loanreceivable-assignment/snapshot/e
     SmsSenderModule,
     CoBorrowerModule,
     PaymentHistoryModule,
+    LoanReceivableAssignmentV2Module,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'src', 'public'),
       serveRoot: '/',
