@@ -59,7 +59,14 @@ export class LoanAssignmentCallRecording {
 
   @CreateDateColumn({ name: 'CreatedAt' })
   createdAt: Date;
+
+  @Column({ name: 'AgentName' })
+  agentName: string;
+  
+  @Column({ name: 'RelationshipName', nullable: true })
+  relationshipName?: string;
 }
+
 
 
 
