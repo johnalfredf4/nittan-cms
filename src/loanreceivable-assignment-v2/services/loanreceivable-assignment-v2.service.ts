@@ -136,7 +136,7 @@ export class LoanReceivableAssignmentV2Service {
         loanReceivableId: loan.loanReceivableId,
         loanApplicationId: loan.loanApplicationId,
         dpd: loan.dpd,
-        dpdCategory: rule.category,
+        dpdCategory: rule.categoryCode,
         agentId: agent.agentId,
         retentionDays: rule.retentionDays,
         retentionUntil,
