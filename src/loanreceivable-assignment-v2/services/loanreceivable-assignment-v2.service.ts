@@ -44,7 +44,16 @@ export class LoanReceivableAssignmentV2Service {
     @InjectDataSource('nittan_app')
     private readonly appDataSource: DataSource,
   ) {}
+  /* ============================================================
+     MANUAL RUN (API / ADMIN)
+  ============================================================ */
+  async run() {
+    this.logger.log('▶ Manual assignment run triggered');
+    await this.autoExpireAssignments();
+    await this.assignReceivables();
+  }
 
+  
   /* ============================================================
      CRON — EVERY MINUTE
      - Expires old assignments
