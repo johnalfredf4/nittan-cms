@@ -16,7 +16,8 @@ import {
   DpdCategory,
 } from '../entities/loanreceivable-assignment-v2.entity';
 
-import { RetentionRule } from '../entities/retention-rule-v2.entity';
+import { RetentionRuleV2 } from '../entities/retention-rule-v2.entity';
+
 import { mapRetentionRule } from '../engine/dpd-category.mapper';
 
 @Injectable()
