@@ -1,40 +1,33 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { DpdCategory } from './loanreceivable-assignment-v2.entity';
 
-
-@Entity('RetentionRules')
+@Entity('LoanReceivable_RetentionRules_V2')
 export class RetentionRule {
-@PrimaryGeneratedColumn()
-id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
+  @Column({
+    type: 'varchar',
+    length: 10,
+    unique: true,
+  })
+  category: DpdCategory;
 
-@Column()
-categoryCode: string;
+  @Column({
+    type: 'int',
+    nullable: true,
+  })
+  retentionDays: number | null; // NULL = indefinite
 
+  @Column({
+    type: 'varchar',
+    length: 100,
+  })
+  label: string;
 
-@Column()
-minDpd: number;
-
-
-@Column({ nullable: true })
-maxDpd?: number;
-
-
-@Column({ nullable: true })
-retentionDays?: number;
-
-
-@Column()
-label: string;
-
-
-@Column({ default: true })
-isActive: boolean;
-
-
-@CreateDateColumn()
-createdAt: Date;
-
-
-@UpdateDateColumn()
-updatedAt: Date;
+  @Column({
+    type: 'bit',
+    default: 1,
+  })
+  active: boolean;
 }
