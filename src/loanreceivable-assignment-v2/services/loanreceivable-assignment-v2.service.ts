@@ -13,7 +13,6 @@ import { Cron } from '@nestjs/schedule';
 import {
   LoanReceivableAssignmentV2,
   AssignmentStatus,
-  DpdCategory,
 } from '../entities/loanreceivable-assignment-v2.entity';
 
 import { RetentionRuleV2 } from '../entities/retention-rule-v2.entity';
