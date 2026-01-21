@@ -1,50 +1,60 @@
-import { Entity, PrimaryGeneratedColumn, Column, Index, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 
+export enum AssignmentStatus {
+  ACTIVE = 'ACTIVE',
+  EXPIRED = 'EXPIRED',
+  PROCESSED = 'PROCESSED',
+}
+
+export enum DpdCategory {
+  CAT1 = 'CAT1',
+  CAT2 = 'CAT2',
+  CAT3 = 'CAT3',
+  CAT4 = 'CAT4',
+  CAT5 = 'CAT5',
+  CAT6 = 'CAT6',
+  CAT7 = 'CAT7',
+  CAT8 = 'CAT8',
+}
 
 @Entity('LoanReceivable_Assignments_V2')
-@Index(['loanReceivableId', 'status'])
-@Index(['status', 'retentionUntil'])
 export class LoanReceivableAssignmentV2 {
-@PrimaryGeneratedColumn()
-id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
+  @Column({ type: 'int' })
+  loanApplicationId: number;
 
-@Column()
-loanApplicationId: number;
+  @Column({ type: 'int' })
+  loanReceivableId: number;
 
+  @Column({ type: 'int' })
+  agentId: number;
 
-@Column()
-loanReceivableId: number;
+  @Column({ type: 'int', nullable: true })
+  dpd: number;
 
+  @Column({ type: 'varchar', length: 10 })
+  dpdCategory: DpdCategory;
 
-@Column()
-agentId: number;
+  @Column({ type: 'int', nullable: true })
+  retentionDays: number | null;
 
+  @Column({ type: 'datetime', nullable: true })
+  retentionUntil: Date | null;
 
-@Column()
-dpd: number;
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: AssignmentStatus.ACTIVE,
+  })
+  status: AssignmentStatus;
 
-
-@Column({ length: 10 })
-categoryCode: string; // CAT1..CAT8
-
-
-@Column()
-retentionDays: number; // CMS-driven
-
-
-@Column({ type: 'datetime' })
-retentionUntil: Date;
-
-
-@Column({ length: 20, default: 'ACTIVE' })
-status: 'ACTIVE' | 'EXPIRED';
-
-
-@CreateDateColumn({ type: 'datetime' })
-createdAt: Date;
-
-
-@UpdateDateColumn({ type: 'datetime' })
-updatedAt: Date;
+  @CreateDateColumn({ type: 'datetime' })
+  createdAt: Date;
 }
