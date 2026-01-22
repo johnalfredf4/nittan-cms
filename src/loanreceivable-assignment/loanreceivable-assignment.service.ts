@@ -3,7 +3,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+//import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 import {
   Repository,
   LessThan,
@@ -20,7 +21,8 @@ import {
 import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
 import { OverrideSingleDto } from './dto/override-single.dto';
 import { LoanAssignmentPersonalSnapshotService } from './snapshot/loanassignment-personal-snapshot.service';
-import { RetentionRule } from './entities/retention-rule.entity';
+//import { RetentionRule } from './entities/retention-rule.entity';
+import { RetentionRulesService } from './retention-rules/retention-rules.service';
 
 @Injectable()
 export class LoanReceivableAssignmentService {
@@ -30,9 +32,7 @@ export class LoanReceivableAssignmentService {
     @InjectRepository(LoanReceivableAssignment, 'nittan_app')
     private readonly assignmentRepo: Repository<LoanReceivableAssignment>,
 
-    @InjectRepository(RetentionRule, 'nittan_app')
-    private readonly retentionRules: Repository<RetentionRule>,
-
+    private readonly retentionRulesService: RetentionRulesService,
 
     /* ===============================
        SNAPSHOT SERVICE
@@ -112,7 +112,7 @@ export class LoanReceivableAssignmentService {
         const agent = agents[0];
         if (!agent || agent.assignedCount >= 10) continue;
   
-        const rule = await this.resolveRetentionRule(loan.DPD);
+        const rule = await this.retentionRulesService.resolveByDpd(loan.DPD);
   
         const retentionUntil =
           rule.retentionDays === null
@@ -270,6 +270,27 @@ export class LoanReceivableAssignmentService {
       branchId: a.branchId ?? null,
       assignedCount: 0,
     }));
+  }
+
+  async resolveByDpd(dpd: number) {
+    const rules = await this.repo.find({
+      where: { isActive: true },
+      order: { dpdMin: 'ASC' },
+    });
+  
+    const match = rules.find(
+      r => dpd >= r.dpdMin && (r.dpdMax === null || dpd <= r.dpdMax),
+    );
+  
+    if (!match) {
+      return {
+        categoryCode: 'CAT8',
+        retentionDays: null,
+        label: 'Collection hold',
+      };
+    }
+  
+    return match;
   }
 
   private async resolveRetentionRule(dpd: number) {
@@ -476,6 +497,7 @@ export class LoanReceivableAssignmentService {
 
 
 }
+
 
 
 
