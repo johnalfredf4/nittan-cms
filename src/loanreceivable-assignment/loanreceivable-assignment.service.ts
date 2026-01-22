@@ -124,7 +124,7 @@ export class LoanReceivableAssignmentService {
           loanApplicationId: loan.LoanApplicationID,
           // borrowerId: loan.BorrowerID,
           dpd: loan.DPD,
-          dpdCategory: rule.categoryCode,
+          dpdCategory: DpdCategory[rule.categoryCode as keyof typeof DpdCategory],
           agentId: agent.agentId,
           branchId: agent.branchId,
           locationType: agent.branchId ? 'BRANCH' : 'HQ',
@@ -477,6 +477,7 @@ export class LoanReceivableAssignmentService {
 
 
 }
+
 
 
 
