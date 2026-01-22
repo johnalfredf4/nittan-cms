@@ -120,7 +120,7 @@ export class LoanReceivableAssignmentService {
             : new Date(Date.now() + rule.retentionDays * 86400000);
   
         const result = await this.assignmentRepo.insert({
-          loanReceivableID: loan.LoanReceivableId, // <-- match entity field
+          loanReceivableId: loan.LoanReceivableId, // <-- match entity field
           loanApplicationId: loan.LoanApplicationID,
           dpd: loan.DPD,
           dpdCategory: rule.categoryCode as DpdCategory,
@@ -476,6 +476,7 @@ export class LoanReceivableAssignmentService {
 
 
 }
+
 
 
 
