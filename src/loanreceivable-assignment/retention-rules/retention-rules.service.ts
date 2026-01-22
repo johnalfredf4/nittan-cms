@@ -10,7 +10,7 @@ import { QueryRetentionRuleDto } from './dto/query-retention-rule.dto';
 export class RetentionRulesService {
   constructor(
     @InjectRepository(LoanRetentionRule, 'nittan_app')
-    private readonly repo: Repository<LoanRetentionRule>;
+    private readonly repo: Repository<LoanRetentionRule>,
   ) {}
 
   async create(dto: CreateRetentionRuleDto) {
