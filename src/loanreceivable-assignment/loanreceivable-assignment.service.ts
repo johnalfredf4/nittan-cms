@@ -293,29 +293,6 @@ export class LoanReceivableAssignmentService {
     return match;
   }
 
-  private async resolveRetentionRule(dpd: number) {
-    //const rules = await this.retentionRules.find({
-    //  where: { isActive: true },
-    //  order: { dpdMin: 'ASC' },
-   // });
-  
-    const match = rules.find(r =>
-      dpd >= r.dpdMin &&
-      (r.dpdMax === null || dpd <= r.dpdMax),
-    );
-  
-    // Fallback safety
-    if (!match) {
-      return {
-        categoryCode: 'CAT8',
-        retentionDays: null,
-        label: 'Collection hold',
-      };
-    }
-  
-    return match;
-  }
-
   async getLoanProfile(assignmentId: number) {
   /* ===============================
      PERSONAL SNAPSHOTS
@@ -497,6 +474,7 @@ export class LoanReceivableAssignmentService {
 
 
 }
+
 
 
 
