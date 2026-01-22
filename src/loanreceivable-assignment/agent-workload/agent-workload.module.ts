@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AgentWorkloadController } from './agent-workload.controller';
@@ -12,7 +12,7 @@ import { LoanReceivableAssignmentModule } from '../loanreceivable-assignment.mod
       [LoanReceivableAssignment],
       'nittan_app',
     ),
-    LoanReceivableAssignmentModule, // ✅ IMPORT MODULE
+    forwardRef(() => LoanReceivableAssignmentModule), // ✅ FIX
   ],
   controllers: [AgentWorkloadController],
   providers: [AgentWorkloadService],
