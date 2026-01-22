@@ -1,4 +1,5 @@
-const API = '/api/loanreceivable-assignment/retention-rules';
+const API = 'http://localhost:3000/loanreceivable-assignment/retention-rules';
+
 
 async function loadRules() {
   const res = await fetch(API);
