@@ -294,10 +294,10 @@ export class LoanReceivableAssignmentService {
   }
 
   private async resolveRetentionRule(dpd: number) {
-    const rules = await this.retentionRules.find({
-      where: { isActive: true },
-      order: { dpdMin: 'ASC' },
-    });
+    //const rules = await this.retentionRules.find({
+    //  where: { isActive: true },
+    //  order: { dpdMin: 'ASC' },
+   // });
   
     const match = rules.find(r =>
       dpd >= r.dpdMin &&
@@ -497,6 +497,7 @@ export class LoanReceivableAssignmentService {
 
 
 }
+
 
 
 
