@@ -38,6 +38,7 @@ import { DocumentRequirement } from './documents/entities/document-requirement.e
 import { CallRecordingsModule } from './call-recordings/call-recordings.module';
 //import { RetentionRule } from './entities/retention-rule.entity';
 import { RetentionRulesModule } from './retention-rules/retention-rules.module';
+import { AgentWorkloadModule } from './agent-workload/agent-workload.module';
 
 @Module({
   imports: [
@@ -72,7 +73,7 @@ import { RetentionRulesModule } from './retention-rules/retention-rules.module';
     LoanAssignmentContactReferenceModule,
     LoanAssignmentAttachmentModule,
     RetentionRulesModule,
-
+    AgentWorkloadModule,
     /* ============================================
        Documents sub-domain
     ============================================ */
