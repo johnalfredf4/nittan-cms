@@ -272,27 +272,6 @@ export class LoanReceivableAssignmentService {
     }));
   }
 
-  async resolveByDpd(dpd: number) {
-    //const rules = await this.repo.find({
-    //  where: { isActive: true },
-    //  order: { dpdMin: 'ASC' },
-    //});
-  
-    const match = rules.find(
-      r => dpd >= r.dpdMin && (r.dpdMax === null || dpd <= r.dpdMax),
-    );
-  
-    if (!match) {
-      return {
-        categoryCode: 'CAT8',
-        retentionDays: null,
-        label: 'Collection hold',
-      };
-    }
-  
-    return match;
-  }
-
   async getLoanProfile(assignmentId: number) {
   /* ===============================
      PERSONAL SNAPSHOTS
@@ -474,6 +453,7 @@ export class LoanReceivableAssignmentService {
 
 
 }
+
 
 
 
