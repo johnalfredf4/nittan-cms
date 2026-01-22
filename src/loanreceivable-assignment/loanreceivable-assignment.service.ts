@@ -132,7 +132,7 @@ export class LoanReceivableAssignmentService {
           status: AssignmentStatus.ACTIVE,
         });
         
-        const assignmentId = assignment.id;
+        const assignmentId = result.identifiers[0].id;
   
         /* ===============================
            BUILD CO-BORROWERS ARRAY
@@ -476,6 +476,7 @@ export class LoanReceivableAssignmentService {
 
 
 }
+
 
 
 
