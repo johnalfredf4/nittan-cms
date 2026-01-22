@@ -29,15 +29,15 @@ export class AgentWorkloadService {
       )
       .select([
         'a.id AS assignmentId',
-        'a.loanReceivableId',
-        'a.loanApplicationId',
+        'a.loanReceivableId AS loanReceivableId',
+        'a.loanApplicationId AS loanApplicationId',
         'a.agentId AS agentId',
-        'a.branchId',
-        'a.dpd',
-        'a.dpdCategory',
-        'a.retentionDays',
-        'a.retentionUntil',
-        'a.status',
+        'a.branchId AS branchId',
+        'a.dpd AS dpd',
+        'a.dpdCategory AS dpdCategory',
+        'a.retentionDays AS retentionDays',
+        'a.retentionUntil AS retentionUntil',
+        'a.status AS status',
         `
         LTRIM(
           RTRIM(
