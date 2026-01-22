@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -10,12 +10,12 @@ import { LoanReceivableAssignmentService } from '../loanreceivable-assignment.se
 @Injectable()
 export class AgentWorkloadService {
   constructor(
-    @InjectRepository(LoanReceivableAssignment, 'nittan_app')
-    private readonly assignmentRepo: Repository<LoanReceivableAssignment>,
+  @InjectRepository(LoanReceivableAssignment, 'nittan_app')
+  private readonly assignmentRepo: Repository<LoanReceivableAssignment>,
 
-    private readonly assignmentService: LoanReceivableAssignmentService,
+  @Inject(forwardRef(() => LoanReceivableAssignmentService))
+  private readonly assignmentService: LoanReceivableAssignmentService,
   ) {}
-
   /* ============================================================
      FETCH AGENT WORKLOAD (ADMIN VIEW)
   ============================================================ */
