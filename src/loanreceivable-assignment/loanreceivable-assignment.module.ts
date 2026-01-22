@@ -49,7 +49,6 @@ import { RetentionRulesModule } from './retention-rules/retention-rules.module';
         LoanReceivableAssignment,
         LoanAssignmentDocument,
         DocumentRequirement,
-        RetentionRule,
       ],
       'nittan_app',
     ),
