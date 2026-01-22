@@ -101,6 +101,8 @@ function closeModal() {
 }
 
 async function loadReassignAgents() {
+  if (!toAgentId) return;
+
   const res = await fetch(`${API}/agents`);
   if (!res.ok) return;
 
@@ -114,6 +116,7 @@ async function loadReassignAgents() {
     toAgentId.appendChild(opt);
   });
 }
+
 
 async function confirmReassign() {
   const payload = {
