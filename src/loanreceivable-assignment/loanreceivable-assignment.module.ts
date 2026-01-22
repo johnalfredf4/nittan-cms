@@ -36,7 +36,7 @@ import { LoanAssignmentDocument } from './documents/entities/loan-assignment-doc
 import { DocumentRequirement } from './documents/entities/document-requirement.entity';
 
 import { CallRecordingsModule } from './call-recordings/call-recordings.module';
-import { RetentionRule } from './entities/retention-rule.entity';
+//import { RetentionRule } from './entities/retention-rule.entity';
 import { RetentionRulesModule } from './retention-rules/retention-rules.module';
 
 @Module({
