@@ -1,4 +1,14 @@
 const API = '/loanreceivable-assignment/agent-workload';
+const agentId = document.getElementById('agentId');
+const status = document.getElementById('status');
+const minDpd = document.getElementById('minDpd');
+const maxDpd = document.getElementById('maxDpd');
+
+const workloadRows = document.getElementById('workloadRows');
+
+const reassignModal = document.getElementById('reassignModal');
+const assignmentId = document.getElementById('assignmentId');
+const toAgentId = document.getElementById('toAgentId');
 
 async function loadWorkload() {
   const params = new URLSearchParams();
