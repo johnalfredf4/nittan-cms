@@ -47,7 +47,7 @@ export class LoanReceivableAssignment {
   @Column({ type: 'int' })
   agentId: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   branchId: number;
 
   @Column({ type: 'int' })
