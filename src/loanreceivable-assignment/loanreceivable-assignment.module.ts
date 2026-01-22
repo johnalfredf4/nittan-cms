@@ -74,7 +74,6 @@ import { AgentWorkloadModule } from './agent-workload/agent-workload.module';
     LoanAssignmentContactReferenceModule,
     LoanAssignmentAttachmentModule,
     RetentionRulesModule,
-    AgentWorkloadModule,
     /* ============================================
        Documents sub-domain
     ============================================ */
