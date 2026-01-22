@@ -9,8 +9,8 @@ import { QueryRetentionRuleDto } from './dto/query-retention-rule.dto';
 @Injectable()
 export class RetentionRulesService {
   constructor(
-    @InjectRepository(LoanRetentionRule)
-    private readonly repo: Repository<LoanRetentionRule>,
+    @InjectRepository(LoanRetentionRule, 'nittan_app')
+    private readonly repo: Repository<LoanRetentionRule>;
   ) {}
 
   async create(dto: CreateRetentionRuleDto) {
