@@ -61,7 +61,7 @@ export class LoanReceivableAssignmentV2Service {
      - Reassigns fairly
      - Assigns new receivables
   ============================================================ */
-  @Cron('0 */1 * * * *')
+  //@Cron('0 */1 * * * *')
   async runScheduler() {
     this.logger.log('🔄 Running auto-expire + reassign');
     await this.autoExpireAssignments();
