@@ -141,21 +141,40 @@
   id="reassignModal"
   class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50"
 >
-  <div class="bg-white rounded-lg shadow p-6 w-full max-w-sm">
-    <h2 class="text-lg font-semibold mb-3">
+  <div class="bg-white rounded-lg shadow p-6 w-full max-w-md">
+
+    <h2 class="text-lg font-semibold mb-4">
       Reassign Loan
     </h2>
 
+    <!-- Hidden assignment id -->
     <input type="hidden" id="assignmentId" />
 
-    <div class="mb-3">
-      <label class="text-sm">New Agent ID</label>
-      <input
+    <!-- CURRENT AGENT -->
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-600 mb-1">
+        Current Agent
+      </label>
+      <div
+        id="currentAgent"
+        class="border rounded px-3 py-2 bg-gray-100 text-gray-800 text-sm"
+      >
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- NEW AGENT -->
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-600 mb-1">
+        Reassign to Agent
+      </label>
+
+      <select
         id="toAgentId"
-        type="number"
         class="border p-2 rounded w-full"
-        required
-      />
+      >
+        <option value="">Select Agent</option>
+      </select>
     </div>
 
     <div class="flex justify-end gap-2 pt-2">
@@ -173,8 +192,10 @@
         Reassign
       </button>
     </div>
+
   </div>
 </div>
+
 
 </body>
 </html>
