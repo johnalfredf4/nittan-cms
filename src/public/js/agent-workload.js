@@ -68,11 +68,16 @@ async function loadWorkload() {
 }
 
 async function loadAgents() {
+  const select = document.getElementById('agentId');
+  if (!select) {
+    console.warn('agentId select not found');
+    return;
+  }
+
   const res = await fetch(`${API}/agents`);
   if (!res.ok) return;
 
   const agents = await res.json();
-  const select = document.getElementById('agentId');
 
   agents.forEach(a => {
     const opt = document.createElement('option');
@@ -81,6 +86,7 @@ async function loadAgents() {
     select.appendChild(opt);
   });
 }
+
 
 function openModal(id) {
   assignmentId.value = id;
