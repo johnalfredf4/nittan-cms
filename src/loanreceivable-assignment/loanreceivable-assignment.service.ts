@@ -90,57 +90,56 @@ export class LoanReceivableAssignmentService {
   @Cron('0 * * * * *')
   async assignLoans(): Promise<void> {
     this.logger.log('🔄 Starting receivable assignment process');
-
+  
     await this.autoExpireAssignments();
-
+  
     const loans = await this.loadReceivablesForAssignment();
     if (!loans.length) return;
-
+  
     let agents = await this.loadAgents();
     if (!agents.length) return;
-
+  
     const loads = await this.getAgentLoad({});
     agents = agents.map(a => ({
       ...a,
       assignedCount:
         loads.find(l => l.agentId === a.agentId)?.assignedCount ?? 0,
     }));
-
+  
     for (const loan of loans) {
-      agents.sort((a, b) => a.assignedCount - b.assignedCount);
-      const agent = agents[0];
-      if (!agent || agent.assignedCount >= 10) continue;
-
-      const rule = await this.resolveRetentionRule(loan.DPD);
-
-      const retentionUntil =
-        rule.retentionDays === null
-          ? null
-          : new Date(Date.now() + rule.retentionDays * 86400000);
-      
-      const assignment = await this.assignmentRepo.save({
-        loanReceivableId: loan.LoanReceivableId,
-        loanApplicationId: loan.LoanApplicationID,
-        //borrowerId: loan.BorrowerID,
-        dpd: loan.DPD,
-        dpdCategory: rule.categoryCode,
-        agentId: agent.agentId,
-        branchId: agent.branchId,
-        locationType: agent.branchId ? 'BRANCH' : 'HQ',
-        retentionDays: rule.retentionDays,
-        retentionUntil,
-        status: AssignmentStatus.ACTIVE,
-      });
-
-
-
-        const assignmentId = result.identifiers[0].id;
-
+      try {
+        agents.sort((a, b) => a.assignedCount - b.assignedCount);
+        const agent = agents[0];
+        if (!agent || agent.assignedCount >= 10) continue;
+  
+        const rule = await this.resolveRetentionRule(loan.DPD);
+  
+        const retentionUntil =
+          rule.retentionDays === null
+            ? null
+            : new Date(Date.now() + rule.retentionDays * 86400000);
+  
+        const assignment = await this.assignmentRepo.save({
+          loanReceivableId: loan.LoanReceivableId,
+          loanApplicationId: loan.LoanApplicationID,
+          // borrowerId: loan.BorrowerID,
+          dpd: loan.DPD,
+          dpdCategory: rule.categoryCode,
+          agentId: agent.agentId,
+          branchId: agent.branchId,
+          locationType: agent.branchId ? 'BRANCH' : 'HQ',
+          retentionDays: rule.retentionDays,
+          retentionUntil,
+          status: AssignmentStatus.ACTIVE,
+        });
+  
+        const assignmentId = assignment.id;
+  
         /* ===============================
            BUILD CO-BORROWERS ARRAY
         =============================== */
         const coBorrowers = [];
-
+  
         if (loan.CoBorrower1Id) {
           coBorrowers.push({
             personId: loan.CoBorrower1Id,
@@ -148,7 +147,7 @@ export class LoanReceivableAssignmentService {
             order: 1,
           });
         }
-
+  
         if (loan.CoBorrower2Id) {
           coBorrowers.push({
             personId: loan.CoBorrower2Id,
@@ -156,7 +155,7 @@ export class LoanReceivableAssignmentService {
             order: 2,
           });
         }
-
+  
         if (loan.CoBorrower3Id) {
           coBorrowers.push({
             personId: loan.CoBorrower3Id,
@@ -164,7 +163,7 @@ export class LoanReceivableAssignmentService {
             order: 3,
           });
         }
-
+  
         /* ===============================
            TRANSACTIONAL SNAPSHOT SAVE
         =============================== */
@@ -173,15 +172,16 @@ export class LoanReceivableAssignmentService {
           loan.BorrowerID,
           coBorrowers,
         );
-
+  
         agent.assignedCount++;
       } catch (err) {
         this.logger.error('❌ Failed to assign receivable', err);
       }
     }
-
+  
     this.logger.log('✅ Loan receivable assignment completed');
   }
+
 
   /* ============================================================
      (UNCHANGED METHODS BELOW)
@@ -477,6 +477,7 @@ export class LoanReceivableAssignmentService {
 
 
 }
+
 
 
 
