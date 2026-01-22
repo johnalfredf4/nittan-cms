@@ -15,6 +15,11 @@ export class AgentWorkloadController {
     return this.service.getWorkload(query);
   }
 
+  @Get('agents')
+    getAgents() {
+      return this.service.getAgents();
+    }
+
   /* ============================================================
      ADMIN: REASSIGN LOAN
   ============================================================ */
