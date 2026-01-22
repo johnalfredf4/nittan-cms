@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentWorkloadController } from './agent-workload.controller';
 import { AgentWorkloadService } from './agent-workload.service';
 import { LoanReceivableAssignment } from '../entities/loanreceivable-assignment.entity';
-import { LoanReceivableAssignmentService } from '../loanreceivable-assignment.service';
+import { LoanReceivableAssignmentModule } from '../loanreceivable-assignment.module';
 
 @Module({
   imports: [
@@ -12,11 +12,9 @@ import { LoanReceivableAssignmentService } from '../loanreceivable-assignment.se
       [LoanReceivableAssignment],
       'nittan_app',
     ),
+    LoanReceivableAssignmentModule, // ✅ IMPORT MODULE
   ],
   controllers: [AgentWorkloadController],
-  providers: [
-    AgentWorkloadService,
-    LoanReceivableAssignmentService,
-  ],
+  providers: [AgentWorkloadService],
 })
 export class AgentWorkloadModule {}
