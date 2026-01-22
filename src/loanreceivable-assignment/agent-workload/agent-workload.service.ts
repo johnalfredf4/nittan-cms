@@ -22,38 +22,63 @@ export class AgentWorkloadService {
   async getWorkload(query: QueryAgentWorkloadDto) {
     const qb = this.assignmentRepo
       .createQueryBuilder('a')
+      .leftJoin(
+        'User_Accounts',
+        'u',
+        'u.EmployeeId = a.agentId',
+      )
       .select([
         'a.id AS assignmentId',
         'a.loanReceivableId',
         'a.loanApplicationId',
-        'a.agentId',
+        'a.agentId AS agentId',
         'a.branchId',
         'a.dpd',
         'a.dpdCategory',
         'a.retentionDays',
         'a.retentionUntil',
         'a.status',
+        `
+        LTRIM(
+          RTRIM(
+            CONCAT(
+              u.first_name, ' ',
+              ISNULL(u.middle_name + ' ', ''),
+              u.last_name
+            )
+          )
+        ) AS agentFullName
+        `,
       ])
       .orderBy('a.dpd', 'DESC');
-
+  
     if (query.agentId) {
-      qb.andWhere('a.agentId = :agentId', { agentId: query.agentId });
+      qb.andWhere('a.agentId = :agentId', {
+        agentId: query.agentId,
+      });
     }
-
+  
     if (query.status) {
-      qb.andWhere('a.status = :status', { status: query.status });
+      qb.andWhere('a.status = :status', {
+        status: query.status,
+      });
     }
-
+  
     if (query.minDpd !== undefined) {
-      qb.andWhere('a.dpd >= :minDpd', { minDpd: query.minDpd });
+      qb.andWhere('a.dpd >= :minDpd', {
+        minDpd: query.minDpd,
+      });
     }
-
+  
     if (query.maxDpd !== undefined) {
-      qb.andWhere('a.dpd <= :maxDpd', { maxDpd: query.maxDpd });
+      qb.andWhere('a.dpd <= :maxDpd', {
+        maxDpd: query.maxDpd,
+      });
     }
-
+  
     return qb.getRawMany();
   }
+
 
   /* ============================================================
      REASSIGN SINGLE LOAN RECEIVABLE
