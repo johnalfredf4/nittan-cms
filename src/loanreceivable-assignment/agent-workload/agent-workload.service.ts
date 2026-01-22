@@ -97,4 +97,27 @@ export class AgentWorkloadService {
       { toAgentId: dto.toAgentId },
     );
   }
+
+  async getAgents() {
+    return this.assignmentRepo.query(`
+      SELECT DISTINCT
+        ua.EmployeeId AS agentId,
+        LTRIM(
+          RTRIM(
+            CONCAT(
+              ua.first_name, ' ',
+              ISNULL(ua.middle_name + ' ', ''),
+              ua.last_name
+            )
+          )
+        ) AS fullName,
+        ua.BranchId AS branchId
+      FROM dbo.User_Accounts ua
+      INNER JOIN dbo.User_Roles ur ON ur.user_id = ua.id
+      INNER JOIN dbo.Roles r ON r.id = ur.role_id
+      WHERE ua.status = 1
+        AND r.name LIKE 'Collection Agent%'
+      ORDER BY fullName
+    `);
+  }
 }
