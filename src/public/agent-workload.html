@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NOVA CMS – Agent Workload</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/agent-workload.js" defer></script>
+</head>
+
+<body class="bg-gradient-to-b from-white to-green-50 text-gray-800">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SIDEBAR (reuse your existing sidebar markup) -->
+  <aside
+    id="sidebar"
+    class="fixed inset-y-0 left-0 w-64 bg-green-900 text-green-100 transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 shadow-xl"
+  >
+    <div class="flex items-center gap-3 px-6 py-4 border-b border-green-800">
+      <img src="/images/NovaLogo2-xANBbiNh.svg" class="h-8 w-8" alt="NOVA" />
+      <span class="text-lg font-bold tracking-wide">NOVA CMS</span>
+    </div>
+
+    <nav class="mt-4 text-sm" id="sidebarNav">
+      <a href="dashboard.html" class="nav-link block px-6 py-3">Dashboard</a>
+      <a href="users.html" class="nav-link block px-6 py-3">Users</a>
+      <a href="email-templates.html" class="nav-link block px-6 py-3">Email Templates</a>
+      <a href="sms-templates.html" class="nav-link block px-6 py-3">SMS Templates</a>
+      <a href="product-types.html" class="nav-link block px-6 py-3">Product Types</a>
+      <a href="retention-rules.html" class="nav-link block px-6 py-3">Retention Settings</a>
+      <a href="disposition-categories.html" class="nav-link block px-6 py-3">Disposition Categories</a>
+      <a href="agent-workload.html" class="block px-6 py-3 bg-green-800 text-white font-semibold">Loan Assignment|Overrides</a>
+    </nav>
+  </aside>
+  <!-- ================================================= -->
+
+  <div class="flex flex-col flex-1 md:ml-64">
+
+    <!-- NAVBAR (reuse your existing navbar markup) -->
+	<header class="flex items-center bg-white/90 backdrop-blur border-b border-green-100 px-4 h-14 shadow-sm">
+	  <button
+	    class="md:hidden text-2xl text-green-800"
+	    onclick="toggleSidebar()"
+	  >
+	    ☰
+	  </button>
+	
+	  <!-- Right-aligned user actions -->
+	  <div class="ml-auto flex items-center gap-4">
+	    <span id="userLabel" class="text-sm font-semibold text-green-800"></span>
+	    <button
+	      id="logoutBtn"
+	      class="bg-red-500 hover:bg-red-600 transition text-white px-3 py-1.5 rounded-lg text-sm font-semibold"
+	    >
+	      Logout
+	    </button>
+	  </div>
+	</header>
+    <!-- ================================================= -->
+
+    <main class="p-6 overflow-y-auto">
+
+      <!-- PAGE HEADER -->
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-semibold">
+          📊 Agent Workload Dashboard
+        </h1>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="bg-white rounded-xl shadow p-4 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+
+          <select
+		  id="toAgentId"
+		  class="border p-2 rounded w-full"
+		></select>
+
+          <select id="status" class="border p-2 rounded">
+            <option value="">All Status</option>
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="EXPIRED">EXPIRED</option>
+            <option value="PROCESSED">PROCESSED</option>
+          </select>
+
+          <input
+            id="minDpd"
+            type="number"
+            placeholder="Min DPD"
+            class="border p-2 rounded"
+          />
+
+          <input
+            id="maxDpd"
+            type="number"
+            placeholder="Max DPD"
+            class="border p-2 rounded"
+          />
+
+          <button
+            onclick="loadWorkload()"
+            class="bg-green-700 hover:bg-green-800 text-white rounded px-4"
+          >
+            Apply
+          </button>
+
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="bg-white rounded-xl shadow overflow-hidden">
+        <table class="min-w-full text-sm">
+          <thead class="bg-green-100">
+            <tr>
+              <th class="px-3 py-2 text-left">Assignment ID</th>
+              <th class="px-3 py-2 text-left">Agent</th>
+              <th class="px-3 py-2 text-left">Loan ID</th>
+              <th class="px-3 py-2 text-left">DPD</th>
+              <th class="px-3 py-2 text-left">Category</th>
+              <th class="px-3 py-2 text-left">Retention</th>
+              <th class="px-3 py-2 text-left">Status</th>
+              <th class="px-3 py-2 text-left">Action</th>
+            </tr>
+          </thead>
+
+          <tbody id="workloadRows" class="text-sm"></tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- REASSIGN MODAL -->
+<div
+  id="reassignModal"
+  class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50"
+>
+  <div class="bg-white rounded-lg shadow p-6 w-full max-w-sm">
+    <h2 class="text-lg font-semibold mb-3">
+      Reassign Loan
+    </h2>
+
+    <input type="hidden" id="assignmentId" />
+
+    <div class="mb-3">
+      <label class="text-sm">New Agent ID</label>
+      <input
+        id="toAgentId"
+        type="number"
+        class="border p-2 rounded w-full"
+        required
+      />
+    </div>
+
+    <div class="flex justify-end gap-2 pt-2">
+      <button
+        onclick="closeModal()"
+        class="px-4 py-1 border rounded"
+      >
+        Cancel
+      </button>
+
+      <button
+        onclick="confirmReassign()"
+        class="px-4 py-1 bg-green-600 text-white rounded"
+      >
+        Reassign
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
