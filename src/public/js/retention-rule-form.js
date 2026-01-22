@@ -1,4 +1,4 @@
-const API = '/api/loanreceivable-assignment/retention-rules';
+const API = 'http://localhost:3000/loanreceivable-assignment/retention-rules';
 const params = new URLSearchParams(location.search);
 const id = params.get('id');
 
