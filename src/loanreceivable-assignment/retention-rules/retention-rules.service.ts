@@ -51,4 +51,26 @@ export class RetentionRulesService {
     await this.findOne(id);
     return this.repo.delete(id);
   }
+
+  async resolveByDpd(dpd: number) {
+    const rules = await this.repo.find({
+      where: { isActive: true },
+      order: { dpdMin: 'ASC' },
+    });
+  
+    const match = rules.find(
+      r => dpd >= r.dpdMin && (r.dpdMax === null || dpd <= r.dpdMax),
+    );
+  
+    // Safety fallback
+    if (!match) {
+      return {
+        categoryCode: 'CAT8',
+        retentionDays: null,
+        label: 'Collection hold',
+      };
+    }
+  
+    return match;
+  }
 }
