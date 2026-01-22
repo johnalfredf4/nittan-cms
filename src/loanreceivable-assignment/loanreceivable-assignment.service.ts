@@ -120,19 +120,18 @@ export class LoanReceivableAssignmentService {
             : new Date(Date.now() + rule.retentionDays * 86400000);
   
         const assignment = await this.assignmentRepo.save({
-          loanReceivableId: loan.LoanReceivableId,
+          loanReceivableID: loan.LoanReceivableId, // <-- match entity field
           loanApplicationId: loan.LoanApplicationID,
-          // borrowerId: loan.BorrowerID,
           dpd: loan.DPD,
-          dpdCategory: DpdCategory[rule.categoryCode as keyof typeof DpdCategory],
+          dpdCategory: rule.categoryCode as DpdCategory,
           agentId: agent.agentId,
           branchId: agent.branchId,
           locationType: agent.branchId ? 'BRANCH' : 'HQ',
           retentionDays: rule.retentionDays,
           retentionUntil,
           status: AssignmentStatus.ACTIVE,
-        });
-  
+        } as DeepPartial<LoanReceivableAssignment>);
+        
         const assignmentId = assignment.id;
   
         /* ===============================
@@ -477,6 +476,7 @@ export class LoanReceivableAssignmentService {
 
 
 }
+
 
 
 
