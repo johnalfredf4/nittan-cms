@@ -56,7 +56,11 @@ async function loadWorkload() {
         <td class="px-3 py-2">${r.status}</td>
         <td class="px-3 py-2">
           <button
-            onclick="openModal(${r.assignmentId})"
+            onclick="openModal(
+			  ${r.assignmentId},
+			  '${r.agentFullName ?? ''}',
+			  ${r.agentId}
+			)"
             class="text-green-700 hover:underline text-sm"
           >
             Reassign
@@ -88,19 +92,29 @@ async function loadAgents() {
 }
 
 
-function openModal(id) {
+function openModal(id, agentName, agentIdValue) {
   assignmentId.value = id;
-  loadReassignAgents();
+
+  // Show current agent
+  const currentAgentDiv = document.getElementById('currentAgent');
+  if (currentAgentDiv) {
+    currentAgentDiv.textContent = `${agentName} (ID: ${agentIdValue})`;
+  }
+
+  // Load dropdown excluding current agent
+  loadReassignAgents(agentIdValue);
+
   reassignModal.classList.remove('hidden');
   reassignModal.classList.add('flex');
 }
+
 
 function closeModal() {
   reassignModal.classList.add('hidden');
   reassignModal.classList.remove('flex');
 }
 
-async function loadReassignAgents() {
+async function loadReassignAgents(currentAgentId) {
   if (!toAgentId) return;
 
   const res = await fetch(`${API}/agents`);
@@ -110,12 +124,16 @@ async function loadReassignAgents() {
   toAgentId.innerHTML = '<option value="">Select Agent</option>';
 
   agents.forEach(a => {
+    // Prevent reassigning to same agent
+    if (a.agentId === currentAgentId) return;
+
     const opt = document.createElement('option');
     opt.value = a.agentId;
-    opt.textContent = a.fullName;
+    opt.textContent = `${a.fullName} (ID: ${a.agentId})`;
     toAgentId.appendChild(opt);
   });
 }
+
 
 
 async function confirmReassign() {
