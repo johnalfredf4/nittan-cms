@@ -36,6 +36,7 @@ import { LoanAssignmentDocument } from './documents/entities/loan-assignment-doc
 import { DocumentRequirement } from './documents/entities/document-requirement.entity';
 
 import { CallRecordingsModule } from './call-recordings/call-recordings.module';
+import { RetentionRule } from './entities/retention-rule.entity';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { CallRecordingsModule } from './call-recordings/call-recordings.module';
         LoanReceivableAssignment,
         LoanAssignmentDocument,
         DocumentRequirement,
+        RetentionRule,
       ],
       'nittan_app',
     ),
