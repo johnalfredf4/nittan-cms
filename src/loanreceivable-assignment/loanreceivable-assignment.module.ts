@@ -2,8 +2,6 @@ import { Module, forwardRef } from '@nestjs/common';
 //import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-
-import { AgentWorkloadModule } from './agent-workload/agent-workload.module';
 /* =======================
    Assignment Core
 ======================= */
