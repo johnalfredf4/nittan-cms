@@ -20,6 +20,7 @@ import {
 import { BulkOverrideAssignmentDto } from './dto/bulk-override.dto';
 import { OverrideSingleDto } from './dto/override-single.dto';
 import { LoanAssignmentPersonalSnapshotService } from './snapshot/loanassignment-personal-snapshot.service';
+import { RetentionRule } from './entities/retention-rule.entity';
 
 @Injectable()
 export class LoanReceivableAssignmentService {
@@ -28,6 +29,10 @@ export class LoanReceivableAssignmentService {
   constructor(
     @InjectRepository(LoanReceivableAssignment, 'nittan_app')
     private readonly assignmentRepo: Repository<LoanReceivableAssignment>,
+
+    @InjectRepository(RetentionRule, 'nittan_app')
+    private readonly retentionRules: Repository<RetentionRule>,
+
 
     /* ===============================
        SNAPSHOT SERVICE
@@ -106,21 +111,28 @@ export class LoanReceivableAssignmentService {
       const agent = agents[0];
       if (!agent || agent.assignedCount >= 10) continue;
 
-      const retentionDays = this.getRetentionDays(loan.DPD);
+      const rule = await this.resolveRetentionRule(loan.DPD);
 
-      try {
-        const result = await this.assignmentRepo.insert({
-          loanReceivableId: loan.LoanReceivableId,
-          loanApplicationId: loan.LoanApplicationID,
-          agentId: agent.agentId,
-          branchId: agent.branchId,
-          dpd: loan.DPD,
-          dpdCategory: this.getDpdCategory(loan.DPD),
-          locationType: agent.branchId ? 'BRANCH' : 'HQ',
-          retentionDays,
-          retentionUntil: new Date(Date.now() + retentionDays * 86400000),
-          status: AssignmentStatus.ACTIVE,
-        });
+      const retentionUntil =
+        rule.retentionDays === null
+          ? null
+          : new Date(Date.now() + rule.retentionDays * 86400000);
+      
+      const assignment = await this.assignmentRepo.save({
+        loanReceivableId: loan.LoanReceivableId,
+        loanApplicationId: loan.LoanApplicationID,
+        //borrowerId: loan.BorrowerID,
+        dpd: loan.DPD,
+        dpdCategory: rule.categoryCode,
+        agentId: agent.agentId,
+        branchId: agent.branchId,
+        locationType: agent.branchId ? 'BRANCH' : 'HQ',
+        retentionDays: rule.retentionDays,
+        retentionUntil,
+        status: AssignmentStatus.ACTIVE,
+      });
+
+
 
         const assignmentId = result.identifiers[0].id;
 
@@ -261,19 +273,27 @@ export class LoanReceivableAssignmentService {
     }));
   }
 
-  private getRetentionDays(dpd: number): number {
-    return dpd >= 181 ? 120 : 7;
-  }
-
-  private getDpdCategory(dpd: number): DpdCategory {
-    if (dpd <= 0) return DpdCategory.DPD_0;
-    if (dpd <= 30) return DpdCategory.DPD_1_30;
-    if (dpd <= 60) return DpdCategory.DPD_31_60;
-    if (dpd <= 90) return DpdCategory.DPD_61_90;
-    if (dpd <= 120) return DpdCategory.DPD_91_120;
-    if (dpd <= 150) return DpdCategory.DPD_121_150;
-    if (dpd <= 180) return DpdCategory.DPD_151_180;
-    return DpdCategory.DPD_181_PLUS;
+  private async resolveRetentionRule(dpd: number) {
+    const rules = await this.retentionRules.find({
+      where: { isActive: true },
+      order: { dpdMin: 'ASC' },
+    });
+  
+    const match = rules.find(r =>
+      dpd >= r.dpdMin &&
+      (r.dpdMax === null || dpd <= r.dpdMax),
+    );
+  
+    // Fallback safety
+    if (!match) {
+      return {
+        categoryCode: 'CAT8',
+        retentionDays: null,
+        label: 'Collection hold',
+      };
+    }
+  
+    return match;
   }
 
   async getLoanProfile(assignmentId: number) {
@@ -457,6 +477,7 @@ export class LoanReceivableAssignmentService {
 
 
 }
+
 
 
 
