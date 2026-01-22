@@ -5,9 +5,15 @@ import { RetentionRulesService } from './retention-rules.service';
 import { LoanRetentionRule } from './entities/loan-retention-rule.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([LoanRetentionRule])],
+  imports: [
+    TypeOrmModule.forFeature(
+      [LoanRetentionRule],
+      'nittan_app',
+    ),
+  ],
   controllers: [RetentionRulesController],
   providers: [RetentionRulesService],
   exports: [RetentionRulesService],
 })
 export class RetentionRulesModule {}
+
