@@ -3,7 +3,18 @@ const API = 'http://localhost:3000/loanreceivable-assignment/retention-rules';
 
 async function loadRules() {
   const res = await fetch(API);
+
+  if (!res.ok) {
+    console.error('Failed to load retention rules', await res.text());
+    return;
+  }
+
   const rules = await res.json();
+
+  if (!Array.isArray(rules)) {
+    console.error('Expected array, got:', rules);
+    return;
+  }
 
   const tbody = document.getElementById('retentionRows');
   tbody.innerHTML = '';
@@ -19,17 +30,6 @@ async function loadRules() {
           <span class="${r.isActive ? 'text-green-600' : 'text-red-500'}">
             ${r.isActive ? 'Active' : 'Inactive'}
           </span>
-        </td>
-        <td class="px-3 py-2">
-          <a href="retention-rule-form.html?id=${r.id}" class="text-green-700 mr-2">Edit</a>
-          <button onclick="toggle(${r.id}, ${!r.isActive})"
-                  class="text-sm text-blue-600 mr-2">
-            Toggle
-          </button>
-          <button onclick="removeRule(${r.id})"
-                  class="text-sm text-red-600">
-            Delete
-          </button>
         </td>
       </tr>
     `;
