@@ -273,10 +273,10 @@ export class LoanReceivableAssignmentService {
   }
 
   async resolveByDpd(dpd: number) {
-    const rules = await this.repo.find({
-      where: { isActive: true },
-      order: { dpdMin: 'ASC' },
-    });
+    //const rules = await this.repo.find({
+    //  where: { isActive: true },
+    //  order: { dpdMin: 'ASC' },
+    //});
   
     const match = rules.find(
       r => dpd >= r.dpdMin && (r.dpdMax === null || dpd <= r.dpdMax),
@@ -497,6 +497,7 @@ export class LoanReceivableAssignmentService {
 
 
 }
+
 
 
 
