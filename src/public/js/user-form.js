@@ -1,3 +1,6 @@
+/* =========================================================
+   Auth & Role Setup
+========================================================= */
 const token = localStorage.getItem("token");
 const roles = JSON.parse(localStorage.getItem("roles") || "[]");
 
@@ -7,19 +10,25 @@ const isAdmin =
 const params = new URLSearchParams(window.location.search);
 const userId = params.get("id");
 
+/* =========================================================
+   DOM Elements
+========================================================= */
 const form = document.getElementById("userForm");
 const headerTitle = document.getElementById("headerTitle");
 const rolesList = document.getElementById("rolesList");
 const passwordInput = document.getElementById("passwordInput");
 const statusSelect = document.getElementById("statusSelect");
 
-/* ---------------------------
+/* =========================================================
    Auth Guard
----------------------------- */
+========================================================= */
 if (!token) {
   window.location = "login.html";
 }
 
+/* =========================================================
+   Generate Temporary Password
+========================================================= */
 async function generateTempPassword() {
   if (!userId) {
     alert("User must be saved first before generating a temporary password.");
@@ -28,39 +37,45 @@ async function generateTempPassword() {
 
   if (!confirm("Generate a temporary password for this user?")) return;
 
-  const res = await fetch(
-    `/users/${userId}/generate-temp-password`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + token,
-      },
+  try {
+    const res = await fetch(
+      `/users/${userId}/generate-temp-password`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Failed to generate password");
+      return;
     }
-  );
 
-  const data = await res.json();
-
-  if (!res.ok) {
-    alert(data.message || "Failed to generate password");
-    return;
+    alert(
+      `Temporary password generated:\n\n${data.tempPassword}\n\nUser will be required to change it on next login.`
+    );
+  } catch (err) {
+    console.error(err);
+    alert("Unexpected error while generating password.");
   }
-
-  alert(
-    `Temporary password generated:\n\n${data.tempPassword}\n\nUser will be required to change it on next login.`
-  );
 }
 
-
-/* ---------------------------
+/* =========================================================
    Init
----------------------------- */
+========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
   await loadRoles();
 
+  // Hide status field for non-admins
   if (!isAdmin && statusSelect) {
     statusSelect.style.display = "none";
   }
 
+  // Edit vs Create mode
   if (userId) {
     headerTitle.innerText = "Edit User";
     passwordInput.placeholder = "Leave blank to keep current password";
@@ -71,21 +86,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     passwordInput.required = true;
   }
 
-  // ✅ ADD THIS PART
+  /* -----------------------------------------
+     Generate Temp Password Button Setup
+  ----------------------------------------- */
   const generateBtn = document.getElementById("generateTempPasswordBtn");
 
-  if (generateBtn && userId) {
-    generateBtn.addEventListener("click", generateTempPassword);
-  } else if (generateBtn) {
+  if (!generateBtn) {
+    console.warn("Generate Temp Password button not found in DOM");
+  } else if (!userId || !isAdmin) {
+    // Hide button if:
+    // - creating user
+    // - not admin
     generateBtn.style.display = "none";
+  } else {
+    generateBtn.addEventListener("click", generateTempPassword);
   }
 
   form.addEventListener("submit", saveUser);
 });
 
-/* ---------------------------
+/* =========================================================
    Load Roles
----------------------------- */
+========================================================= */
 async function loadRoles() {
   const res = await fetch("/roles", {
     headers: { Authorization: "Bearer " + token },
@@ -107,9 +129,9 @@ async function loadRoles() {
   });
 }
 
-/* ---------------------------
-   Load User (Edit)
----------------------------- */
+/* =========================================================
+   Load User (Edit Mode)
+========================================================= */
 async function loadUser(id) {
   const res = await fetch(`/users/${id}`, {
     headers: { Authorization: "Bearer " + token },
@@ -138,15 +160,15 @@ async function loadUser(id) {
   });
 }
 
-/* ---------------------------
+/* =========================================================
    Save User
----------------------------- */
+========================================================= */
 async function saveUser(e) {
   e.preventDefault();
 
-  const selectedRoles = Array.from(rolesList.selectedOptions).map(
-    (o) => o.value
-  );
+  const selectedRoles = Array.from(
+    rolesList.selectedOptions
+  ).map((o) => o.value);
 
   const body = {
     username: form.username.value.trim(),
@@ -157,7 +179,7 @@ async function saveUser(e) {
     roleNames: selectedRoles,
   };
 
-  // Status only sent by admins
+  // Status only for admins
   if (isAdmin && form.status) {
     body.status = Number(form.status.value);
   }
@@ -185,5 +207,4 @@ async function saveUser(e) {
     const msg = await res.text();
     alert("Failed to save user:\n" + msg);
   }
-
 }
