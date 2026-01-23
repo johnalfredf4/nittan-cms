@@ -8,6 +8,9 @@ async function initUserForm() {
   const branchSelect = document.getElementById("branchSelect");
   const sendEmailCheckbox = document.getElementById("sendEmailCheckbox");
   const sendEmailWrap = document.getElementById("sendEmailWrap");
+  const generateTempPasswordBtn = document.getElementById(
+    "generateTempPasswordBtn"
+  );
 
   const isAdmin =
     roles.includes("IT - CMS Admin") || roles.includes("Execom - CEO");
@@ -17,7 +20,9 @@ async function initUserForm() {
     return;
   }
 
-  // Navbar user + logout
+  /* ---------------------------
+     Navbar
+  ---------------------------- */
   document.getElementById("userLabel").innerText = username || "";
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.clear();
@@ -56,7 +61,7 @@ async function initUserForm() {
   await loadBranches();
 
   /* ---------------------------
-     Status control (admin only)
+     Status (Admin only)
   ---------------------------- */
   const statusSelect = document.querySelector("select[name=status]");
   if (!isAdmin && statusSelect) {
@@ -124,8 +129,54 @@ async function initUserForm() {
     document.getElementById("headerTitle").innerText = "Create User";
     document.querySelector("input[name=password]").required = true;
 
-    // Hide send email checkbox (email is auto-sent on create)
+    // Hide send email checkbox
     if (sendEmailWrap) sendEmailWrap.style.display = "none";
+  }
+
+  /* ---------------------------
+     Generate Temporary Password
+  ---------------------------- */
+  if (!generateTempPasswordBtn) {
+    console.warn("Generate Temporary Password button not found");
+  } else if (!editId || !isAdmin) {
+    // Hide if not edit mode or not admin
+    generateTempPasswordBtn.style.display = "none";
+  } else {
+    generateTempPasswordBtn.addEventListener("click", async () => {
+      if (
+        !confirm(
+          "Generate a temporary password for this user?\n\nUser will be required to change it on next login."
+        )
+      ) {
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `/users/${editId}/generate-temp-password`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + token,
+            },
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.message || "Failed to generate password");
+          return;
+        }
+
+        alert(
+          `Temporary password generated:\n\n${data.tempPassword}\n\nPlease share this securely with the user.`
+        );
+      } catch (err) {
+        console.error(err);
+        alert("Unexpected error while generating password.");
+      }
+    });
   }
 
   /* ---------------------------
@@ -147,28 +198,23 @@ async function initUserForm() {
         roleNames: [...rolesSelect.selectedOptions].map((o) => o.value),
       };
 
-      // Branch
       if (branchSelect && branchSelect.value) {
         payload.branchId = Number(branchSelect.value);
       }
 
-      // Username only on CREATE
       if (!editId) {
         payload.username = form.get("username")?.trim();
       }
 
-      // Admin-only status
       if (isAdmin && statusSelect) {
         payload.status = Number(form.get("status"));
       }
 
-      // Password
       const pwd = form.get("password");
       if (!editId || (pwd && pwd.trim())) {
         payload.password = pwd;
       }
 
-      // Send email on EDIT (checkbox-driven)
       if (editId && sendEmailCheckbox?.checked) {
         payload.sendEmail = true;
       }
