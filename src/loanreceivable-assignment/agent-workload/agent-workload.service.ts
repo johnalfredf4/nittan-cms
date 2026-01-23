@@ -22,15 +22,29 @@ export class AgentWorkloadService {
   async getWorkload(query: QueryAgentWorkloadDto) {
     const qb = this.assignmentRepo
       .createQueryBuilder('a')
+  
+      // Join User Accounts (same DB: Nittan-App)
       .leftJoin(
         'User_Accounts',
         'u',
         'u.EmployeeId = a.agentId',
       )
+  
+      // ✅ Cross-database JOIN to Nittan.dbo.tblLoanApplications
+      .innerJoin(
+        '[Nittan].[dbo].[tblLoanApplications]',
+        'l',
+        'l.ID = a.loanApplicationId',
+      )
+  
       .select([
         'a.id AS assignmentId',
-        'a.loanReceivableId AS loanReceivableId',
+  
+        // ✅ ApplicationCode as Acct
+        'l.ApplicationCode AS acct',
+  
         'a.loanApplicationId AS loanApplicationId',
+        'a.loanReceivableId AS loanReceivableId',
         'a.agentId AS agentId',
         'a.branchId AS branchId',
         'a.dpd AS dpd',
@@ -38,6 +52,7 @@ export class AgentWorkloadService {
         'a.retentionDays AS retentionDays',
         'a.retentionUntil AS retentionUntil',
         'a.status AS status',
+  
         `
         LTRIM(
           RTRIM(
@@ -76,6 +91,7 @@ export class AgentWorkloadService {
       });
     }
   
+    // Must use raw results because of cross-DB join + alias
     return qb.getRawMany();
   }
 
