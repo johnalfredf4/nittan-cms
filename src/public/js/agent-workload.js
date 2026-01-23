@@ -13,73 +13,68 @@ const toAgentId = document.getElementById('toAgentId');
 /* ============================================================
    LOAD WORKLOAD (FRONTEND)
 ============================================================ */
-async function loadWorkload() {
-  const params = new URLSearchParams();
+/* ============================================================
+   FETCH AGENT WORKLOAD (ADMIN VIEW)
+   Cross-DB join via RAW SQL (TypeORM-safe)
+============================================================ */
+async getWorkload(query: QueryAgentWorkloadDto) {
+  const params: any[] = [];
+  let whereClause = 'WHERE 1=1';
 
-  if (agentId.value) params.append('agentId', agentId.value);
-  if (status.value) params.append('status', status.value);
-  if (minDpd.value) params.append('minDpd', minDpd.value);
-  if (maxDpd.value) params.append('maxDpd', maxDpd.value);
-
-  const res = await fetch(`${API}?${params.toString()}`);
-  if (!res.ok) {
-    console.error('Failed to load workload');
-    return;
+  if (query.agentId) {
+    params.push(query.agentId);
+    whereClause += ` AND a.agentId = @${params.length}`;
   }
 
-  const rows = await res.json();
-  workloadRows.innerHTML = '';
-
-  if (!Array.isArray(rows) || rows.length === 0) {
-    workloadRows.innerHTML = `
-      <tr>
-        <td colspan="8" class="text-center py-6 text-gray-400">
-          No records found
-        </td>
-      </tr>
-    `;
-    return;
+  if (query.status !== undefined) {
+    params.push(query.status);
+    whereClause += ` AND a.status = @${params.length}`;
   }
 
-  rows.forEach(r => {
-    workloadRows.innerHTML += `
-      <tr class="border-t">
-        <td class="px-3 py-2">${r.assignmentId}</td>
+  if (query.minDpd !== undefined) {
+    params.push(query.minDpd);
+    whereClause += ` AND a.dpd >= @${params.length}`;
+  }
 
-        <td class="px-3 py-2">
-          ${r.agentFullName ?? r.agentId}
-        </td>
+  if (query.maxDpd !== undefined) {
+    params.push(query.maxDpd);
+    whereClause += ` AND a.dpd <= @${params.length}`;
+  }
 
-        <!-- ✅ Acct (ApplicationCode) -->
-        <td class="px-3 py-2 font-medium text-green-800">
-          ${r.acct ?? '-'}
-        </td>
+  const sql = `
+    SELECT
+      a.id AS assignmentId,
+      l.ApplicationCode AS acct,
+      a.loanApplicationId,
+      a.loanReceivableId,
+      a.agentId,
+      a.branchId,
+      a.dpd,
+      a.dpdCategory,
+      a.retentionDays,
+      a.retentionUntil,
+      a.status,
+      LTRIM(
+        RTRIM(
+          CONCAT(
+            u.first_name, ' ',
+            ISNULL(u.middle_name + ' ', ''),
+            u.last_name
+          )
+        )
+      ) AS agentFullName
+    FROM [Nittan-App].[dbo].[LoanReceivable_Assignments] a
+    LEFT JOIN [Nittan-App].[dbo].[User_Accounts] u
+      ON u.EmployeeId = a.agentId
+    INNER JOIN [Nittan].[dbo].[tblLoanApplications] l
+      ON l.ID = a.loanApplicationId
+    ${whereClause}
+    ORDER BY a.dpd DESC
+  `;
 
-        <td class="px-3 py-2">${r.dpd}</td>
-        <td class="px-3 py-2">${r.dpdCategory}</td>
-
-        <td class="px-3 py-2">
-          ${r.retentionDays ?? '-'}
-        </td>
-
-        <td class="px-3 py-2">${r.status}</td>
-
-        <td class="px-3 py-2">
-          <button
-            onclick="openModal(
-              ${r.assignmentId},
-              '${r.agentFullName ?? ''}',
-              ${r.agentId}
-            )"
-            class="text-green-700 hover:underline text-sm"
-          >
-            Reassign
-          </button>
-        </td>
-      </tr>
-    `;
-  });
+  return this.assignmentRepo.query(sql, params);
 }
+
 
 /* ============================================================
    LOAD AGENTS
