@@ -30,9 +30,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     statusSelect.style.display = "none";
   }
 
-  if (userId && isAdmin) {
-    document.getElementById("tempPasswordSection").style.display = "block";
-  }
 
   if (userId) {
     headerTitle.innerText = "Edit User";
