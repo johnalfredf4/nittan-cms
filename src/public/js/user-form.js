@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ✅ ADD THIS PART
   const generateBtn = document.getElementById("generateTempPasswordBtn");
 
-  if (generateBtn && isAdmin && userId) {
+  if (generateBtn && userId) {
     generateBtn.addEventListener("click", generateTempPassword);
   } else if (generateBtn) {
     generateBtn.style.display = "none";
