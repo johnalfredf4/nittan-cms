@@ -238,4 +238,36 @@ export class UsersService {
       { passwordHash: hash, isPasswordChanged: true },
     );
   }
+
+  /* =========================
+   GENERATE TEMP PASSWORD
+========================== */
+async generateTempPassword(userId: number, jwtToken?: string) {
+  const user = await this.usersRepo.findOne({
+      where: { id: userId },
+    });
+  
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
+    const tempPassword = this.generateRandomPassword(12);
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
+  
+    user.passwordHash = passwordHash;
+    user.isPasswordChanged = false;
+  
+    await this.usersRepo.save(user);
+  
+    // OPTIONAL: Send email via your existing API
+    if (jwtToken) {
+      await this.sendCredentialsViaApi(user, tempPassword, jwtToken);
+    }
+  
+    return {
+      message: 'Temporary password generated successfully',
+      tempPassword, // ⚠️ UI should display ONCE
+    };
+  }
+
 }
