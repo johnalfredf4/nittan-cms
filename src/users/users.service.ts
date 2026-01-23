@@ -114,7 +114,9 @@ export class UsersService {
     if (dto.branchId !== undefined) {
       user.branchId = dto.branchId;
     }
-  
+
+    isPasswordChanged: false,
+      
     // Roles
     if (dto.roleNames) {
       const roles = await this.rolesRepo.find({
