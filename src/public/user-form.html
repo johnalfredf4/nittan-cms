@@ -112,6 +112,15 @@
             placeholder="Password"
             class="w-full border rounded px-3 py-2" />
 		  </div>
+		  <div class="mt-4" id="tempPasswordSection" style="display:none">
+			  <button
+			    type="button"
+			    onclick="generateTempPassword()"
+			    class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+			  >
+			    Generate Temporary Password
+			  </button>
+			</div>
 		  <!-- Send credentials email (EDIT only) -->
 		<div id="sendEmailWrap" class="flex items-center gap-2">
 		  <input type="checkbox" id="sendEmailCheckbox" />
@@ -158,7 +167,7 @@
               Hold Ctrl (desktop) or long-press (mobile) to select multiple.
             </p>
           </div>
-
+			
           <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded">
             Save
           </button>
