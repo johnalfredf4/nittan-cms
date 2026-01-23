@@ -60,4 +60,15 @@ export class UsersController {
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
   }
+
+  // GENERATE TEMP PASSWORD
+@Post(':id/generate-temp-password')
+@Roles('IT - CMS Admin', 'Execom - CEO')
+async generateTempPassword(
+    @Req() req: Request,
+    @Param('id') id: string,
+  ) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    return this.usersService.generateTempPassword(+id, token);
+  }
 }
