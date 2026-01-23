@@ -145,4 +145,21 @@ async function confirmReassign() {
 
   const res = await fetch(`${API}/reassign`, {
     method: 'POST',
-    headers: { 'Content-Type'
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    alert('Failed to reassign');
+    return;
+  }
+
+  closeModal();
+  loadWorkload();
+}
+
+/* ============================================================
+   INITIAL LOAD
+============================================================ */
+loadAgents();
+loadWorkload();
