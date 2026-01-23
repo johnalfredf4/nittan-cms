@@ -1,15 +1,3 @@
-const API = '/loanreceivable-assignment/agent-workload';
-const agentId = document.getElementById('agentId');
-const status = document.getElementById('status');
-const minDpd = document.getElementById('minDpd');
-const maxDpd = document.getElementById('maxDpd');
-
-const workloadRows = document.getElementById('workloadRows');
-
-const reassignModal = document.getElementById('reassignModal');
-const assignmentId = document.getElementById('assignmentId');
-const toAgentId = document.getElementById('toAgentId');
-
 async function loadWorkload() {
   const params = new URLSearchParams();
 
@@ -44,23 +32,32 @@ async function loadWorkload() {
     tbody.innerHTML += `
       <tr class="border-t">
         <td class="px-3 py-2">${r.assignmentId}</td>
+
         <td class="px-3 py-2">
-		  ${r.agentFullName ?? r.agentId}
-		</td>
-        <td class="px-3 py-2">${r.loanReceivableId}</td>
+          ${r.agentFullName ?? r.agentId}
+        </td>
+
+        <!-- ✅ Acct (ApplicationCode) -->
+        <td class="px-3 py-2 font-medium text-green-800">
+          ${r.acct ?? '-'}
+        </td>
+
         <td class="px-3 py-2">${r.dpd}</td>
         <td class="px-3 py-2">${r.dpdCategory}</td>
+
         <td class="px-3 py-2">
           ${r.retentionDays ?? '-'}
         </td>
+
         <td class="px-3 py-2">${r.status}</td>
+
         <td class="px-3 py-2">
           <button
             onclick="openModal(
-			  ${r.assignmentId},
-			  '${r.agentFullName ?? ''}',
-			  ${r.agentId}
-			)"
+              ${r.assignmentId},
+              '${r.agentFullName ?? ''}',
+              ${r.agentId}
+            )"
             class="text-green-700 hover:underline text-sm"
           >
             Reassign
@@ -70,98 +67,3 @@ async function loadWorkload() {
     `;
   });
 }
-
-async function loadAgents() {
-  const select = document.getElementById('agentId');
-  if (!select) {
-    console.warn('agentId select not found');
-    return;
-  }
-
-  const res = await fetch(`${API}/agents`);
-  if (!res.ok) return;
-
-  const agents = await res.json();
-
-  agents.forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = a.agentId;
-    opt.textContent = a.fullName;
-    select.appendChild(opt);
-  });
-}
-
-
-function openModal(id, agentName, agentIdValue) {
-  assignmentId.value = id;
-
-  // Show current agent
-  const currentAgentDiv = document.getElementById('currentAgent');
-  if (currentAgentDiv) {
-    currentAgentDiv.textContent = `${agentName} (ID: ${agentIdValue})`;
-  }
-
-  // Load dropdown excluding current agent
-  loadReassignAgents(agentIdValue);
-
-  reassignModal.classList.remove('hidden');
-  reassignModal.classList.add('flex');
-}
-
-
-function closeModal() {
-  reassignModal.classList.add('hidden');
-  reassignModal.classList.remove('flex');
-}
-
-async function loadReassignAgents(currentAgentId) {
-  if (!toAgentId) return;
-
-  const res = await fetch(`${API}/agents`);
-  if (!res.ok) return;
-
-  const agents = await res.json();
-  toAgentId.innerHTML = '<option value="">Select Agent</option>';
-
-  agents.forEach(a => {
-    // Prevent reassigning to same agent
-    if (a.agentId === currentAgentId) return;
-
-    const opt = document.createElement('option');
-    opt.value = a.agentId;
-    opt.textContent = `${a.fullName} (ID: ${a.agentId})`;
-    toAgentId.appendChild(opt);
-  });
-}
-
-
-
-async function confirmReassign() {
-  const payload = {
-    assignmentId: Number(assignmentId.value),
-    toAgentId: Number(toAgentId.value),
-  };
-
-  if (!payload.toAgentId) {
-    alert('Please enter agent ID');
-    return;
-  }
-
-  const res = await fetch(`${API}/reassign`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    alert('Failed to reassign');
-    return;
-  }
-
-  closeModal();
-  loadWorkload();
-}
-
-// Initial load
-loadAgents();
-loadWorkload();
