@@ -115,7 +115,7 @@ export class UsersService {
       user.branchId = dto.branchId;
     }
 
-    isPasswordChanged: false,
+    isPasswordChanged: false;
       
     // Roles
     if (dto.roleNames) {
