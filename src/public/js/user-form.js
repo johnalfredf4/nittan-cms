@@ -20,6 +20,37 @@ if (!token) {
   window.location = "login.html";
 }
 
+async function generateTempPassword() {
+  if (!userId) {
+    alert("User must be saved first before generating a temporary password.");
+    return;
+  }
+
+  if (!confirm("Generate a temporary password for this user?")) return;
+
+  const res = await fetch(
+    `/users/${userId}/generate-temp-password`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.message || "Failed to generate password");
+    return;
+  }
+
+  alert(
+    `Temporary password generated:\n\n${data.tempPassword}\n\nUser will be required to change it on next login.`
+  );
+}
+
+
 /* ---------------------------
    Init
 ---------------------------- */
@@ -29,7 +60,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!isAdmin && statusSelect) {
     statusSelect.style.display = "none";
   }
-
 
   if (userId) {
     headerTitle.innerText = "Edit User";
@@ -146,30 +176,5 @@ async function saveUser(e) {
     const msg = await res.text();
     alert("Failed to save user:\n" + msg);
   }
-
-  window.generateTempPassword = async function () {
-    if (!confirm("Generate a temporary password for this user?")) return;
-  
-    const res = await fetch(
-      `/users/${userId}/generate-temp-password`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      }
-    );
-  
-    const data = await res.json();
-  
-    if (!res.ok) {
-      alert(data.message || "Failed to generate password");
-      return;
-    }
-  
-    alert(
-      `Temporary password generated:\n\n${data.tempPassword}\n\nUser will be required to change it on next login.`
-    );
-  };
 
 }
