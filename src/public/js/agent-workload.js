@@ -11,123 +11,104 @@ const assignmentId = document.getElementById('assignmentId');
 const toAgentId = document.getElementById('toAgentId');
 
 /* ============================================================
-   FETCH AGENT WORKLOAD (ADMIN VIEW)
-   Cross-DB join FIXED for SQL Server + TypeORM
+   LOAD WORKLOAD (FRONTEND)
 ============================================================ */
-async getWorkload(query: QueryAgentWorkloadDto) {
-  const qb = this.assignmentRepo
-    .createQueryBuilder('a')
+async function loadWorkload() {
+  const params = new URLSearchParams();
 
-    // Same-DB join (Nittan-App)
-    .leftJoin(
-      'User_Accounts',
-      'u',
-      'u.EmployeeId = a.agentId',
-    )
+  if (agentId.value) params.append('agentId', agentId.value);
+  if (status.value) params.append('status', status.value);
+  if (minDpd.value) params.append('minDpd', minDpd.value);
+  if (maxDpd.value) params.append('maxDpd', maxDpd.value);
 
-    // ✅ FIXED: Cross-database join using raw expression
-    .innerJoin(
-      () => '[Nittan].[dbo].[tblLoanApplications]',
-      'l',
-      'l.ID = a.loanApplicationId',
-    )
-
-    .select([
-      'a.id AS assignmentId',
-
-      // ✅ ApplicationCode → Acct
-      'l.ApplicationCode AS acct',
-
-      'a.loanApplicationId AS loanApplicationId',
-      'a.loanReceivableId AS loanReceivableId',
-      'a.agentId AS agentId',
-      'a.branchId AS branchId',
-      'a.dpd AS dpd',
-      'a.dpdCategory AS dpdCategory',
-      'a.retentionDays AS retentionDays',
-      'a.retentionUntil AS retentionUntil',
-      'a.status AS status',
-
-      `
-      LTRIM(
-        RTRIM(
-          CONCAT(
-            u.first_name, ' ',
-            ISNULL(u.middle_name + ' ', ''),
-            u.last_name
-          )
-        )
-      ) AS agentFullName
-      `,
-    ])
-    .orderBy('a.dpd', 'DESC');
-
-  if (query.agentId) {
-    qb.andWhere('a.agentId = :agentId', {
-      agentId: query.agentId,
-    });
-  }
-
-  if (query.status) {
-    qb.andWhere('a.status = :status', {
-      status: query.status,
-    });
-  }
-
-  if (query.minDpd !== undefined) {
-    qb.andWhere('a.dpd >= :minDpd', {
-      minDpd: query.minDpd,
-    });
-  }
-
-  if (query.maxDpd !== undefined) {
-    qb.andWhere('a.dpd <= :maxDpd', {
-      maxDpd: query.maxDpd,
-    });
-  }
-
-  // REQUIRED for alias fields like `acct`
-  return qb.getRawMany();
-}
-
-
-async function loadAgents() {
-  const select = document.getElementById('agentId');
-  if (!select) {
-    console.warn('agentId select not found');
+  const res = await fetch(`${API}?${params.toString()}`);
+  if (!res.ok) {
+    console.error('Failed to load workload');
     return;
   }
 
+  const rows = await res.json();
+  workloadRows.innerHTML = '';
+
+  if (!Array.isArray(rows) || rows.length === 0) {
+    workloadRows.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-center py-6 text-gray-400">
+          No records found
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  rows.forEach(r => {
+    workloadRows.innerHTML += `
+      <tr class="border-t">
+        <td class="px-3 py-2">${r.assignmentId}</td>
+
+        <td class="px-3 py-2">
+          ${r.agentFullName ?? r.agentId}
+        </td>
+
+        <!-- ✅ Acct (ApplicationCode) -->
+        <td class="px-3 py-2 font-medium text-green-800">
+          ${r.acct ?? '-'}
+        </td>
+
+        <td class="px-3 py-2">${r.dpd}</td>
+        <td class="px-3 py-2">${r.dpdCategory}</td>
+
+        <td class="px-3 py-2">
+          ${r.retentionDays ?? '-'}
+        </td>
+
+        <td class="px-3 py-2">${r.status}</td>
+
+        <td class="px-3 py-2">
+          <button
+            onclick="openModal(
+              ${r.assignmentId},
+              '${r.agentFullName ?? ''}',
+              ${r.agentId}
+            )"
+            class="text-green-700 hover:underline text-sm"
+          >
+            Reassign
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+/* ============================================================
+   LOAD AGENTS
+============================================================ */
+async function loadAgents() {
   const res = await fetch(`${API}/agents`);
   if (!res.ok) return;
 
   const agents = await res.json();
-
-  agents.forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = a.agentId;
-    opt.textContent = a.fullName;
-    select.appendChild(opt);
-  });
+  agentId.innerHTML += agents
+    .map(a => `<option value="${a.agentId}">${a.fullName}</option>`)
+    .join('');
 }
 
-
+/* ============================================================
+   MODAL + REASSIGN
+============================================================ */
 function openModal(id, agentName, agentIdValue) {
   assignmentId.value = id;
 
-  // Show current agent
   const currentAgentDiv = document.getElementById('currentAgent');
   if (currentAgentDiv) {
     currentAgentDiv.textContent = `${agentName} (ID: ${agentIdValue})`;
   }
 
-  // Load dropdown excluding current agent
   loadReassignAgents(agentIdValue);
-
   reassignModal.classList.remove('hidden');
   reassignModal.classList.add('flex');
 }
-
 
 function closeModal() {
   reassignModal.classList.add('hidden');
@@ -135,8 +116,6 @@ function closeModal() {
 }
 
 async function loadReassignAgents(currentAgentId) {
-  if (!toAgentId) return;
-
   const res = await fetch(`${API}/agents`);
   if (!res.ok) return;
 
@@ -144,17 +123,14 @@ async function loadReassignAgents(currentAgentId) {
   toAgentId.innerHTML = '<option value="">Select Agent</option>';
 
   agents.forEach(a => {
-    // Prevent reassigning to same agent
     if (a.agentId === currentAgentId) return;
-
-    const opt = document.createElement('option');
-    opt.value = a.agentId;
-    opt.textContent = `${a.fullName} (ID: ${a.agentId})`;
-    toAgentId.appendChild(opt);
+    toAgentId.innerHTML += `
+      <option value="${a.agentId}">
+        ${a.fullName} (ID: ${a.agentId})
+      </option>
+    `;
   });
 }
-
-
 
 async function confirmReassign() {
   const payload = {
@@ -163,25 +139,10 @@ async function confirmReassign() {
   };
 
   if (!payload.toAgentId) {
-    alert('Please enter agent ID');
+    alert('Please select an agent');
     return;
   }
 
   const res = await fetch(`${API}/reassign`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    alert('Failed to reassign');
-    return;
-  }
-
-  closeModal();
-  loadWorkload();
-}
-
-// Initial load
-loadAgents();
-loadWorkload();
+    headers: { 'Content-Type'
