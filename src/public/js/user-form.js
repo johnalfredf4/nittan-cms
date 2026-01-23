@@ -147,7 +147,7 @@ async function saveUser(e) {
     alert("Failed to save user:\n" + msg);
   }
 
-  async function generateTempPassword() {
+  window.generateTempPassword = async function () {
     if (!confirm("Generate a temporary password for this user?")) return;
   
     const res = await fetch(
@@ -170,6 +170,6 @@ async function saveUser(e) {
     alert(
       `Temporary password generated:\n\n${data.tempPassword}\n\nUser will be required to change it on next login.`
     );
-  }
+  };
 
 }
