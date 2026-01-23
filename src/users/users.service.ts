@@ -91,7 +91,7 @@ export class UsersService {
     if (dto.password) {
       plainPassword = dto.password; // 👈 capture before hashing
       user.passwordHash = await bcrypt.hash(dto.password, 10);
-      user.isPasswordChanged = true;
+      user.isPasswordChanged = false;
     }
   
     // Basic fields
@@ -115,7 +115,7 @@ export class UsersService {
       user.branchId = dto.branchId;
     }
 
-    isPasswordChanged: false;
+    //isPasswordChanged: false;
       
     // Roles
     if (dto.roleNames) {
