@@ -19,81 +19,68 @@ export class AgentWorkloadService {
   /* ============================================================
      FETCH AGENT WORKLOAD (ADMIN VIEW)
   ============================================================ */
-  async getWorkload(query: QueryAgentWorkloadDto) {
-    const qb = this.assignmentRepo
-      .createQueryBuilder('a')
-  
-      // Join User Accounts (same DB: Nittan-App)
-      .leftJoin(
-        'User_Accounts',
-        'u',
-        'u.EmployeeId = a.agentId',
-      )
-  
-      // ✅ Cross-database JOIN to Nittan.dbo.tblLoanApplications
-      .innerJoin(
-        '[Nittan].[dbo].[tblLoanApplications]',
-        'l',
-        'l.ID = a.loanApplicationId',
-      )
-  
-      .select([
-        'a.id AS assignmentId',
-  
-        // ✅ ApplicationCode as Acct
-        'l.ApplicationCode AS acct',
-  
-        'a.loanApplicationId AS loanApplicationId',
-        'a.loanReceivableId AS loanReceivableId',
-        'a.agentId AS agentId',
-        'a.branchId AS branchId',
-        'a.dpd AS dpd',
-        'a.dpdCategory AS dpdCategory',
-        'a.retentionDays AS retentionDays',
-        'a.retentionUntil AS retentionUntil',
-        'a.status AS status',
-  
-        `
-        LTRIM(
-          RTRIM(
-            CONCAT(
-              u.first_name, ' ',
-              ISNULL(u.middle_name + ' ', ''),
-              u.last_name
-            )
-          )
-        ) AS agentFullName
-        `,
-      ])
-      .orderBy('a.dpd', 'DESC');
-  
-    if (query.agentId) {
-      qb.andWhere('a.agentId = :agentId', {
-        agentId: query.agentId,
-      });
-    }
-  
-    if (query.status) {
-      qb.andWhere('a.status = :status', {
-        status: query.status,
-      });
-    }
-  
-    if (query.minDpd !== undefined) {
-      qb.andWhere('a.dpd >= :minDpd', {
-        minDpd: query.minDpd,
-      });
-    }
-  
-    if (query.maxDpd !== undefined) {
-      qb.andWhere('a.dpd <= :maxDpd', {
-        maxDpd: query.maxDpd,
-      });
-    }
-  
-    // Must use raw results because of cross-DB join + alias
-    return qb.getRawMany();
+  /* ============================================================
+   FETCH AGENT WORKLOAD (ADMIN VIEW)
+   Cross-database join via RAW SQL (SQL Server safe)
+============================================================ */
+async getWorkload(query: QueryAgentWorkloadDto) {
+  const params: any[] = [];
+  let whereClause = 'WHERE 1=1';
+
+  if (query.agentId) {
+    params.push(query.agentId);
+    whereClause += ` AND a.agentId = @${params.length}`;
   }
+
+  if (query.status !== undefined) {
+    params.push(query.status);
+    whereClause += ` AND a.status = @${params.length}`;
+  }
+
+  if (query.minDpd !== undefined) {
+    params.push(query.minDpd);
+    whereClause += ` AND a.dpd >= @${params.length}`;
+  }
+
+  if (query.maxDpd !== undefined) {
+    params.push(query.maxDpd);
+    whereClause += ` AND a.dpd <= @${params.length}`;
+  }
+
+  const sql = `
+    SELECT
+      a.id AS assignmentId,
+      l.ApplicationCode AS acct,
+      a.loanApplicationId,
+      a.loanReceivableId,
+      a.agentId,
+      a.branchId,
+      a.dpd,
+      a.dpdCategory,
+      a.retentionDays,
+      a.retentionUntil,
+      a.status,
+      LTRIM(
+        RTRIM(
+          CONCAT(
+            u.first_name, ' ',
+            ISNULL(u.middle_name + ' ', ''),
+            u.last_name
+          )
+        )
+      ) AS agentFullName
+    FROM [Nittan-App].[dbo].[LoanReceivable_Assignments] a
+    LEFT JOIN [Nittan-App].[dbo].[User_Accounts] u
+      ON u.EmployeeId = a.agentId
+    INNER JOIN [Nittan].[dbo].[tblLoanApplications] l
+      ON l.ID = a.loanApplicationId
+    ${whereClause}
+    ORDER BY a.dpd DESC
+  `;
+
+  return this.assignmentRepo.query(sql, params);
+}
+
 
 
   /* ============================================================
