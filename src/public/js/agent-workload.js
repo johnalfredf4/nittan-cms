@@ -10,75 +10,86 @@ const reassignModal = document.getElementById('reassignModal');
 const assignmentId = document.getElementById('assignmentId');
 const toAgentId = document.getElementById('toAgentId');
 
-async function loadWorkload() {
-  const params = new URLSearchParams();
+/* ============================================================
+   FETCH AGENT WORKLOAD (ADMIN VIEW)
+   Cross-DB join FIXED for SQL Server + TypeORM
+============================================================ */
+async getWorkload(query: QueryAgentWorkloadDto) {
+  const qb = this.assignmentRepo
+    .createQueryBuilder('a')
 
-  if (agentId.value) params.append('agentId', agentId.value);
-  if (status.value) params.append('status', status.value);
-  if (minDpd.value) params.append('minDpd', minDpd.value);
-  if (maxDpd.value) params.append('maxDpd', maxDpd.value);
+    // Same-DB join (Nittan-App)
+    .leftJoin(
+      'User_Accounts',
+      'u',
+      'u.EmployeeId = a.agentId',
+    )
 
-  const res = await fetch(`${API}?${params.toString()}`);
+    // ✅ FIXED: Cross-database join using raw expression
+    .innerJoin(
+      () => '[Nittan].[dbo].[tblLoanApplications]',
+      'l',
+      'l.ID = a.loanApplicationId',
+    )
 
-  if (!res.ok) {
-    console.error('Failed to load workload');
-    return;
+    .select([
+      'a.id AS assignmentId',
+
+      // ✅ ApplicationCode → Acct
+      'l.ApplicationCode AS acct',
+
+      'a.loanApplicationId AS loanApplicationId',
+      'a.loanReceivableId AS loanReceivableId',
+      'a.agentId AS agentId',
+      'a.branchId AS branchId',
+      'a.dpd AS dpd',
+      'a.dpdCategory AS dpdCategory',
+      'a.retentionDays AS retentionDays',
+      'a.retentionUntil AS retentionUntil',
+      'a.status AS status',
+
+      `
+      LTRIM(
+        RTRIM(
+          CONCAT(
+            u.first_name, ' ',
+            ISNULL(u.middle_name + ' ', ''),
+            u.last_name
+          )
+        )
+      ) AS agentFullName
+      `,
+    ])
+    .orderBy('a.dpd', 'DESC');
+
+  if (query.agentId) {
+    qb.andWhere('a.agentId = :agentId', {
+      agentId: query.agentId,
+    });
   }
 
-  const rows = await res.json();
-  const tbody = document.getElementById('workloadRows');
-  tbody.innerHTML = '';
-
-  if (!Array.isArray(rows) || rows.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="8" class="text-center py-6 text-gray-400">
-          No records found
-        </td>
-      </tr>
-    `;
-    return;
+  if (query.status) {
+    qb.andWhere('a.status = :status', {
+      status: query.status,
+    });
   }
 
-  rows.forEach(r => {
-    tbody.innerHTML += `
-      <tr class="border-t">
-        <td class="px-3 py-2">${r.assignmentId}</td>
+  if (query.minDpd !== undefined) {
+    qb.andWhere('a.dpd >= :minDpd', {
+      minDpd: query.minDpd,
+    });
+  }
 
-        <td class="px-3 py-2">
-          ${r.agentFullName ?? r.agentId}
-        </td>
+  if (query.maxDpd !== undefined) {
+    qb.andWhere('a.dpd <= :maxDpd', {
+      maxDpd: query.maxDpd,
+    });
+  }
 
-        <!-- ✅ Acct (ApplicationCode) -->
-        <td class="px-3 py-2 font-medium text-green-800">
-          ${r.acct ?? '-'}
-        </td>
-
-        <td class="px-3 py-2">${r.dpd}</td>
-        <td class="px-3 py-2">${r.dpdCategory}</td>
-
-        <td class="px-3 py-2">
-          ${r.retentionDays ?? '-'}
-        </td>
-
-        <td class="px-3 py-2">${r.status}</td>
-
-        <td class="px-3 py-2">
-          <button
-            onclick="openModal(
-              ${r.assignmentId},
-              '${r.agentFullName ?? ''}',
-              ${r.agentId}
-            )"
-            class="text-green-700 hover:underline text-sm"
-          >
-            Reassign
-          </button>
-        </td>
-      </tr>
-    `;
-  });
+  // REQUIRED for alias fields like `acct`
+  return qb.getRawMany();
 }
+
 
 async function loadAgents() {
   const select = document.getElementById('agentId');
