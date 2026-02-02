@@ -40,6 +40,7 @@ import { CallRecordingsModule } from './call-recordings/call-recordings.module';
 //import { RetentionRule } from './entities/retention-rule.entity';
 import { RetentionRulesModule } from './retention-rules/retention-rules.module';
 import { AgentWorkloadModule } from './agent-workload/agent-workload.module';
+import { SignedDocumentsModule } from './signed-documents/signed-documents.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { AgentWorkloadModule } from './agent-workload/agent-workload.module';
     ============================================ */
     DocumentsModule,
     CallRecordingsModule,
+    SignedDocumentsModule,
     forwardRef(() => AgentWorkloadModule), // ✅ MIRROR
   ],
 
