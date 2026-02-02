@@ -15,10 +15,10 @@ import { CreateCreditInvestigationCoBorrowerDto } from './dto/create-coborrower.
 @Injectable()
 export class CreditInvestigationService {
   constructor(
-    @InjectRepository(CreditInvestigationReport)
+    @InjectRepository(CreditInvestigationReport, 'nittan_app')
     private readonly cirRepo: Repository<CreditInvestigationReport>,
 
-    @InjectRepository(CreditInvestigationCoBorrower)
+    @InjectRepository(CreditInvestigationCoBorrower, 'nittan_app')
     private readonly coRepo: Repository<CreditInvestigationCoBorrower>,
   ) {}
 

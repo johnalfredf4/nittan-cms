@@ -9,10 +9,13 @@ import { CreditInvestigationCoBorrower } from './entities/credit-investigation-c
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      CreditInvestigationReport,
-      CreditInvestigationCoBorrower,
-    ]),
+    TypeOrmModule.forFeature(
+	  [
+		CreditInvestigationReport,
+		CreditInvestigationCoBorrower,
+	  ],
+	  'nittan_app', // ✅ IMPORTANT
+	),
   ],
   controllers: [CreditInvestigationController],
   providers: [CreditInvestigationService],
