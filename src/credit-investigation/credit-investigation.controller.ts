@@ -31,6 +31,13 @@ export class CreditInvestigationController {
   ) {
     return this.service.create(dto);
   }
+  
+  @Get('by-user/:createdByUserId')
+	getByCreatedByUser(
+	  @Param('createdByUserId', ParseIntPipe) createdByUserId: number,
+	) {
+	  return this.service.findByCreatedByUserId(createdByUserId);
+	}
 
   @Get(':id')
   get(

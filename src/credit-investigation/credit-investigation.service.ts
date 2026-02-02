@@ -103,4 +103,16 @@ export class CreditInvestigationService {
       isDeleted: true,
     });
   }
+  
+  async findByCreatedByUserId(createdByUserId: number) {
+  return this.cirRepo.find({
+    where: {
+      createdByUserId,
+      isDeleted: false,
+    },
+    order: {
+      createdAt: 'DESC',
+    },
+  });
+}
 }
