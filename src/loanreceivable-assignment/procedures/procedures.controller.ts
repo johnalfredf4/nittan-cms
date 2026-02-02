@@ -60,4 +60,21 @@ export class ProceduresController {
   deleteDoc(@Param('id') id: number) {
     return this.service.deleteDocument(id);
   }
+  
+  @Get('by-assignment/:loanAssignmentId')
+	getByLoanAssignment(
+	  @Param('loanAssignmentId') loanAssignmentId: number,
+	) {
+	  return this.service.getByLoanAssignmentId(loanAssignmentId);
+	}
+
+	@Get('ctb/:procedureId')
+	getCTBList(@Param('procedureId') procedureId: number) {
+	  return this.service.getCTBList(procedureId);
+	}
+	
+ @Get('documents/:procedureId')
+	getDocuments(@Param('procedureId') procedureId: number) {
+	  return this.service.getDocumentsByProcedure(procedureId);
+	}
 }

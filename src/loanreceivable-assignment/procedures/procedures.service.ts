@@ -66,4 +66,35 @@ export class ProceduresService {
   deleteDocument(id: number) {
     return this.docRepo.update(id, { isDeleted: true });
   }
+  
+  async getByLoanAssignmentId(loanAssignmentId: number) {
+	  return this.procedureRepo.findOne({
+		where: {
+		  loanAssignmentId,
+		  isDeleted: false,
+		},
+		order: { createdAt: 'DESC' },
+	  });
+	}
+	
+ async getCTBList(procedureId: number) {
+  return this.ctbRepo.find({
+    where: {
+      procedureId,
+      isDeleted: false,
+    },
+    order: { createdAt: 'ASC' },
+  });
+}
+
+	async getDocumentsByProcedure(procedureId: number) {
+	  return this.docRepo.find({
+		where: {
+		  procedureId,
+		  isDeleted: false,
+		},
+		order: { createdAt: 'ASC' },
+	  });
+	}
+
 }
