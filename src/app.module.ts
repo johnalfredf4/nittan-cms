@@ -51,6 +51,7 @@ import { LoanAssignmentMonthlyExpense } from './loanreceivable-assignment/snapsh
 import { LoanAssignmentContactReference } from './loanreceivable-assignment/snapshot/entities/loanassignment-contact-reference.entity';
 import { LoanAssignmentAttachment } from './loanreceivable-assignment/snapshot/entities/loanassignment-attachment.entity';
 import { LoanReceivableAssignmentV2Module } from './loanreceivable-assignment-v2/loanreceivable-assignment-v2.module';
+import { CreditInvestigationModule } from './credit-investigation/credit-investigation.module';
 
 @Module({
   imports: [
@@ -121,6 +122,7 @@ import { LoanReceivableAssignmentV2Module } from './loanreceivable-assignment-v2
     CoBorrowerModule,
     PaymentHistoryModule,
     LoanReceivableAssignmentV2Module,
+    CreditInvestigationModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'src', 'public'),
       serveRoot: '/',
