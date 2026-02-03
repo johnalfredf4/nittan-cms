@@ -24,42 +24,21 @@ export class AgentWorkloadService {
    Cross-database join via RAW SQL (SQL Server safe)
 ============================================================ */
 async getWorkload(query: QueryAgentWorkloadDto) {
-  const params: any[] = [];
-  let whereClause = 'WHERE 1=1';
-
-  if (query.agentId) {
-    whereClause += ' AND a.agentId = ?';
-    params.push(query.agentId);
-  }
-
-  if (query.status !== undefined) {
-    whereClause += ' AND a.status = ?';
-    params.push(query.status);
-  }
-
-  if (query.minDpd !== undefined) {
-    whereClause += ' AND a.dpd >= ?';
-    params.push(query.minDpd);
-  }
-
-  if (query.maxDpd !== undefined) {
-    whereClause += ' AND a.dpd <= ?';
-    params.push(query.maxDpd);
-  }
-
-  const sql = `
-    SELECT
-      a.id AS assignmentId,
-      l.ApplicationCode AS acct,
-      a.loanApplicationId,
-      a.loanReceivableId,
-      a.agentId,
-      a.branchId,
-      a.dpd,
-      a.dpdCategory,
-      a.retentionDays,
-      a.retentionUntil,
-      a.status,
+  const qb = this.assignmentRepo
+    .createQueryBuilder('a')
+    .select([
+      'a.id AS assignmentId',
+      'l.ApplicationCode AS acct',
+      'a.loanApplicationId',
+      'a.loanReceivableId',
+      'a.agentId',
+      'a.branchId',
+      'a.dpd',
+      'a.dpdCategory',
+      'a.retentionDays',
+      'a.retentionUntil',
+      'a.status',
+      `
       LTRIM(
         RTRIM(
           CONCAT(
@@ -69,19 +48,48 @@ async getWorkload(query: QueryAgentWorkloadDto) {
           )
         )
       ) AS agentFullName
-    FROM [Nittan-App].[dbo].[LoanReceivable_Assignments] a
-    LEFT JOIN [Nittan-App].[dbo].[User_Accounts] u
-      ON u.EmployeeId = a.agentId
-    INNER JOIN [Nittan].[dbo].[tblLoanApplications] l
-      ON l.ID = a.loanApplicationId
-    ${whereClause}
-    ORDER BY a.dpd DESC
-  `;
+      `,
+    ])
+    .leftJoin(
+      '[Nittan-App].[dbo].[User_Accounts]',
+      'u',
+      'u.EmployeeId = a.agentId',
+    )
+    .innerJoin(
+      '[Nittan].[dbo].[tblLoanApplications]',
+      'l',
+      'l.ID = a.loanApplicationId',
+    )
+    .where('1=1');
 
-  return this.assignmentRepo.query(sql, params);
+  if (query.agentId) {
+    qb.andWhere('a.agentId = :agentId', {
+      agentId: query.agentId,
+    });
+  }
+
+  if (query.status !== undefined) {
+    qb.andWhere('a.status = :status', {
+      status: query.status,
+    });
+  }
+
+  if (query.minDpd !== undefined) {
+    qb.andWhere('a.dpd >= :minDpd', {
+      minDpd: query.minDpd,
+    });
+  }
+
+  if (query.maxDpd !== undefined) {
+    qb.andWhere('a.dpd <= :maxDpd', {
+      maxDpd: query.maxDpd,
+    });
+  }
+
+  qb.orderBy('a.dpd', 'DESC');
+
+  return qb.getRawMany();
 }
-
-
 
 
   /* ============================================================
