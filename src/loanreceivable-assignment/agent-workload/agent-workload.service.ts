@@ -1,11 +1,18 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
+
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { Repository, DataSource } from 'typeorm';
 
 import { LoanReceivableAssignment } from '../entities/loanreceivable-assignment.entity';
 import { QueryAgentWorkloadDto } from './dto/query-agent-workload.dto';
 import { ReassignLoanDto } from './dto/reassign-loan.dto';
 import { LoanReceivableAssignmentService } from '../loanreceivable-assignment.service';
+
 
 @Injectable()
 export class AgentWorkloadService {
