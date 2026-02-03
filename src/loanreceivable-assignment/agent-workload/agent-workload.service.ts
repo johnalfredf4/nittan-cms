@@ -1,27 +1,17 @@
-import {
-  Injectable,
-  NotFoundException,
-  Inject,
-  forwardRef,
-} from '@nestjs/common';
-
-import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { LoanReceivableAssignment } from '../entities/loanreceivable-assignment.entity';
 import { QueryAgentWorkloadDto } from './dto/query-agent-workload.dto';
 import { ReassignLoanDto } from './dto/reassign-loan.dto';
 import { LoanReceivableAssignmentService } from '../loanreceivable-assignment.service';
 
-
 @Injectable()
 export class AgentWorkloadService {
   constructor(
   @InjectRepository(LoanReceivableAssignment, 'nittan_app')
   private readonly assignmentRepo: Repository<LoanReceivableAssignment>,
-
-  @InjectDataSource('nittan_app')
-  private readonly appDataSource: DataSource,
 
   @Inject(forwardRef(() => LoanReceivableAssignmentService))
   private readonly assignmentService: LoanReceivableAssignmentService,
@@ -34,27 +24,27 @@ export class AgentWorkloadService {
    Cross-database join via RAW SQL (SQL Server safe)
 ============================================================ */
 async getWorkload(query: QueryAgentWorkloadDto) {
+  const params: any[] = [];
   let whereClause = 'WHERE 1=1';
-  const params: Record<string, any> = {};
 
   if (query.agentId) {
-    whereClause += ' AND a.agentId = @agentId';
-    params.agentId = query.agentId;
+    params.push(query.agentId);
+    whereClause += ` AND a.agentId = @${params.length}`;
   }
 
   if (query.status !== undefined) {
-    whereClause += ' AND a.status = @status';
-    params.status = query.status;
+    params.push(query.status);
+    whereClause += ` AND a.status = @${params.length}`;
   }
 
   if (query.minDpd !== undefined) {
-    whereClause += ' AND a.dpd >= @minDpd';
-    params.minDpd = query.minDpd;
+    params.push(query.minDpd);
+    whereClause += ` AND a.dpd >= @${params.length}`;
   }
 
   if (query.maxDpd !== undefined) {
-    whereClause += ' AND a.dpd <= @maxDpd';
-    params.maxDpd = query.maxDpd;
+    params.push(query.maxDpd);
+    whereClause += ` AND a.dpd <= @${params.length}`;
   }
 
   const sql = `
@@ -88,7 +78,7 @@ async getWorkload(query: QueryAgentWorkloadDto) {
     ORDER BY a.dpd DESC
   `;
 
-  return this.appDataSource.query(sql, params);
+  return this.assignmentRepo.query(sql, params);
 }
 
 
