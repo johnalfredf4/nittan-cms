@@ -29,22 +29,22 @@ async getWorkload(query: QueryAgentWorkloadDto) {
 
   if (query.agentId) {
     params.push(query.agentId);
-    whereClause += ` AND a.agentId = @${params.length}`;
+    whereClause += ` AND a.agentId = ?`;
   }
 
   if (query.status !== undefined) {
     params.push(query.status);
-    whereClause += ` AND a.status = @${params.length}`;
+    whereClause += ` AND a.status = ?`;
   }
 
   if (query.minDpd !== undefined) {
     params.push(query.minDpd);
-    whereClause += ` AND a.dpd >= @${params.length}`;
+    whereClause += ` AND a.dpd >= ?`;
   }
 
   if (query.maxDpd !== undefined) {
     params.push(query.maxDpd);
-    whereClause += ` AND a.dpd <= @${params.length}`;
+    whereClause += ` AND a.dpd <= ?`;
   }
 
   const sql = `
