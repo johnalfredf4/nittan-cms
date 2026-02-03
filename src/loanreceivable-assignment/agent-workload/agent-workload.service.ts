@@ -28,23 +28,23 @@ async getWorkload(query: QueryAgentWorkloadDto) {
   let whereClause = 'WHERE 1=1';
 
   if (query.agentId) {
+    whereClause += ' AND a.agentId = ?';
     params.push(query.agentId);
-    whereClause += ` AND a.agentId = ?`;
   }
 
   if (query.status !== undefined) {
+    whereClause += ' AND a.status = ?';
     params.push(query.status);
-    whereClause += ` AND a.status = ?`;
   }
 
   if (query.minDpd !== undefined) {
+    whereClause += ' AND a.dpd >= ?';
     params.push(query.minDpd);
-    whereClause += ` AND a.dpd >= ?`;
   }
 
   if (query.maxDpd !== undefined) {
+    whereClause += ' AND a.dpd <= ?';
     params.push(query.maxDpd);
-    whereClause += ` AND a.dpd <= ?`;
   }
 
   const sql = `
@@ -80,6 +80,7 @@ async getWorkload(query: QueryAgentWorkloadDto) {
 
   return this.assignmentRepo.query(sql, params);
 }
+
 
 
 
