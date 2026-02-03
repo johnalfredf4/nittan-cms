@@ -24,21 +24,43 @@ export class AgentWorkloadService {
    Cross-database join via RAW SQL (SQL Server safe)
 ============================================================ */
 async getWorkload(query: QueryAgentWorkloadDto) {
-  const qb = this.assignmentRepo
-    .createQueryBuilder('a')
-    .select([
-      'a.id AS assignmentId',
-      'l.ApplicationCode AS acct',
-      'a.loanApplicationId',
-      'a.loanReceivableId',
-      'a.agentId',
-      'a.branchId',
-      'a.dpd',
-      'a.dpdCategory',
-      'a.retentionDays',
-      'a.retentionUntil',
-      'a.status',
-      `
+  const request = this.assignmentRepo.manager.connection.driver.master.createRequest();
+
+  let whereClause = 'WHERE 1=1';
+
+  if (query.agentId) {
+    whereClause += ' AND a.agentId = @agentId';
+    request.input('agentId', query.agentId);
+  }
+
+  if (query.status !== undefined) {
+    whereClause += ' AND a.status = @status';
+    request.input('status', query.status);
+  }
+
+  if (query.minDpd !== undefined) {
+    whereClause += ' AND a.dpd >= @minDpd';
+    request.input('minDpd', query.minDpd);
+  }
+
+  if (query.maxDpd !== undefined) {
+    whereClause += ' AND a.dpd <= @maxDpd';
+    request.input('maxDpd', query.maxDpd);
+  }
+
+  const sql = `
+    SELECT
+      a.id AS assignmentId,
+      l.ApplicationCode AS acct,
+      a.loanApplicationId,
+      a.loanReceivableId,
+      a.agentId,
+      a.branchId,
+      a.dpd,
+      a.dpdCategory,
+      a.retentionDays,
+      a.retentionUntil,
+      a.status,
       LTRIM(
         RTRIM(
           CONCAT(
@@ -48,47 +70,17 @@ async getWorkload(query: QueryAgentWorkloadDto) {
           )
         )
       ) AS agentFullName
-      `,
-    ])
-    .leftJoin(
-      '[Nittan-App].[dbo].[User_Accounts]',
-      'u',
-      'u.EmployeeId = a.agentId',
-    )
-    .innerJoin(
-      '[Nittan].[dbo].[tblLoanApplications]',
-      'l',
-      'l.ID = a.loanApplicationId',
-    )
-    .where('1=1');
+    FROM [Nittan-App].[dbo].[LoanReceivable_Assignments] a
+    LEFT JOIN [Nittan-App].[dbo].[User_Accounts] u
+      ON u.EmployeeId = a.agentId
+    INNER JOIN [Nittan].[dbo].[tblLoanApplications] l
+      ON l.ID = a.loanApplicationId
+    ${whereClause}
+    ORDER BY a.dpd DESC
+  `;
 
-  if (query.agentId) {
-    qb.andWhere('a.agentId = :agentId', {
-      agentId: query.agentId,
-    });
-  }
-
-  if (query.status !== undefined) {
-    qb.andWhere('a.status = :status', {
-      status: query.status,
-    });
-  }
-
-  if (query.minDpd !== undefined) {
-    qb.andWhere('a.dpd >= :minDpd', {
-      minDpd: query.minDpd,
-    });
-  }
-
-  if (query.maxDpd !== undefined) {
-    qb.andWhere('a.dpd <= :maxDpd', {
-      maxDpd: query.maxDpd,
-    });
-  }
-
-  qb.orderBy('a.dpd', 'DESC');
-
-  return qb.getRawMany();
+  const result = await request.query(sql);
+  return result.recordset;
 }
 
 
