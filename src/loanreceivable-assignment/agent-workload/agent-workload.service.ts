@@ -13,6 +13,9 @@ export class AgentWorkloadService {
   @InjectRepository(LoanReceivableAssignment, 'nittan_app')
   private readonly assignmentRepo: Repository<LoanReceivableAssignment>,
 
+  @InjectDataSource('nittan_app')
+  private readonly appDataSource: DataSource,
+
   @Inject(forwardRef(() => LoanReceivableAssignmentService))
   private readonly assignmentService: LoanReceivableAssignmentService,
   ) {}
@@ -24,28 +27,27 @@ export class AgentWorkloadService {
    Cross-database join via RAW SQL (SQL Server safe)
 ============================================================ */
 async getWorkload(query: QueryAgentWorkloadDto) {
-  const request = this.assignmentRepo.manager.connection.driver.master.createRequest();
-
   let whereClause = 'WHERE 1=1';
+  const params: Record<string, any> = {};
 
   if (query.agentId) {
     whereClause += ' AND a.agentId = @agentId';
-    request.input('agentId', query.agentId);
+    params.agentId = query.agentId;
   }
 
   if (query.status !== undefined) {
     whereClause += ' AND a.status = @status';
-    request.input('status', query.status);
+    params.status = query.status;
   }
 
   if (query.minDpd !== undefined) {
     whereClause += ' AND a.dpd >= @minDpd';
-    request.input('minDpd', query.minDpd);
+    params.minDpd = query.minDpd;
   }
 
   if (query.maxDpd !== undefined) {
     whereClause += ' AND a.dpd <= @maxDpd';
-    request.input('maxDpd', query.maxDpd);
+    params.maxDpd = query.maxDpd;
   }
 
   const sql = `
@@ -79,9 +81,9 @@ async getWorkload(query: QueryAgentWorkloadDto) {
     ORDER BY a.dpd DESC
   `;
 
-  const result = await request.query(sql);
-  return result.recordset;
+  return this.appDataSource.query(sql, params);
 }
+
 
 
   /* ============================================================
